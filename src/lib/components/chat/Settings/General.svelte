@@ -22,7 +22,7 @@
 
 	// General
 	let themes = ['dark', 'light', 'oled-dark', 'outis-mneme'];
-	let selectedTheme = 'system';
+	let selectedTheme = 'outis-mneme';
 
 	let languages: Awaited<ReturnType<typeof getLanguages>> = [];
 	let lang = $i18n.language;
@@ -129,7 +129,7 @@
 	};
 
 	onMount(async () => {
-		selectedTheme = localStorage.theme ?? 'system';
+		selectedTheme = localStorage.theme ?? 'outis-mneme';
 
 		languages = await getLanguages();
 
