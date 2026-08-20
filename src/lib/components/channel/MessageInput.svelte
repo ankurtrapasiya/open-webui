@@ -912,6 +912,7 @@
 											{placeholder}
 											richText={$settings?.richTextInput ?? true}
 											showFormattingToolbar={$settings?.showFormattingToolbar ?? false}
+											showFloatingMenu={false}
 											shiftEnter={!($settings?.ctrlEnterToSend ?? false) &&
 												!$mobile &&
 												!(
