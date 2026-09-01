@@ -348,13 +348,30 @@ html:is(.outis-dark, .outis-light) #sidebar-chat-item div[dir='auto'] {
 	line-height: calc(20px * var(--app-text-scale, 1) * var(--outis-prose-scale));
 }
 
-/* Reading-area headings need no rule of their own any more. app.css gives
-   them `prose-h1:text-xl prose-h2:text-lg prose-h3:text-base`, which now
-   resolve through the scaled --text-* tokens above, so the hierarchy tracks
-   the ratio automatically. Three hardcoded overrides used to sit here and
-   pin them at 16/14/13px; they were a second place the size relationship
-   was expressed, and the first place it would have drifted the next time
-   the ratio changed. */
+/* Reading-area headings, in `em` -- so they are a *proportion* of the reading
+   size rather than a second copy of it, and follow --outis-prose-scale (and
+   the UI Scale slider) without anything else to keep in sync.
+
+   app.css sizes them `prose-h1:text-xl prose-h2:text-lg prose-h3:text-base`,
+   which through the scaled tokens lands at 17 / 15.3 / 13.6px against a
+   12.8px body -- an h1 a third larger than the text under it. That is a
+   document's proportion, and a chat answer is not a document: it is a
+   stream of short sections where a heading is a signpost, not a title page.
+   Reported live as headings reading "quite big" next to everything else.
+
+   1.18 / 1.09 / 1.00 keeps three distinguishable levels within a much
+   narrower band -- 15.1 / 14.0 / 12.8px. h3 matches the body size on
+   purpose and separates by weight instead, which app.css already gives it
+   (`prose-headings:font-medium` against normal body text). */
+html:is(.outis-dark, .outis-light) .markdown-prose h1 {
+	font-size: 1.18em;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose h2 {
+	font-size: 1.09em;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose h3 {
+	font-size: 1em;
+}
 
 /* CodeBlock.svelte's wrapper carries `text-sm` (14px), inherited by the
    highlight.js path while a response is still streaming (before CodeMirror
@@ -394,4 +411,18 @@ html:is(.outis-dark, .outis-light) svg {
 html:is(.outis-dark, .outis-light) .outis-diagram > svg {
 	max-width: 100%;
 	height: auto;
+}
+
+/* A code block is a distinct surface, and in the light theme it barely read as
+   one: its ground sits 1.08:1 from the paper, which is a tint rather than an
+   edge. A hairline does the separating instead, so the fill can stay quiet --
+   the point is that the block has a boundary, not that it is darker. Both
+   themes take it, from their own token, so a block reads the same way in each.
+   The colour lives with the palettes; the shape lives here.
+
+   On the `language-*` container only, not on `.markdown-prose pre` as well:
+   CodeBlock.svelte nests the `pre` inside that container, so covering both
+   draws two borders a pixel apart around every code block in an answer. */
+html:is(.outis-dark, .outis-light) div[class*='language-'] {
+	border: 1px solid var(--outis-code-border);
 }

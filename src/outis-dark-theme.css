@@ -74,6 +74,11 @@ html.outis-dark {
 	/* Consumed by the autofill rules in outis-theme-shared.css. */
 	--outis-input-bg: #090d0c;
 	--outis-input-fg: #d4ede2;
+
+	/* Code-block surface. The fill is the same near-black one step up from the
+	   page; the hairline is what says "block". */
+	--outis-code-bg: #0f1512;
+	--outis-code-border: #1f2c26;
 }
 
 /* Finding 3 (OUTIS_DARK_CONSISTENCY_SPEC.md): literal `text-white`/
@@ -239,16 +244,16 @@ html.outis-dark .markdown-prose-sm,
 html.outis-dark .markdown-prose-xs,
 html.outis-dark .input-prose,
 html.outis-dark .input-prose-sm {
-	--tw-prose-invert-headings: #ebd0a7;
-	--tw-prose-invert-bold: #c1d0c8;
-	--tw-prose-invert-body: #b2c2b9;
-	--tw-prose-invert-kbd: #c1d0c8;
-	--tw-prose-invert-lead: #86978e;
-	--tw-prose-invert-quotes: #86978e;
-	--tw-prose-invert-captions: #86978e;
-	--tw-prose-invert-counters: #86978e;
-	--tw-prose-invert-bullets: #6e8177;
-	--tw-prose-invert-links: #77cd97;
+	--tw-prose-invert-headings: #d6bf9b;
+	--tw-prose-invert-bold: #b0bfb6;
+	--tw-prose-invert-body: #a5b5ad;
+	--tw-prose-invert-kbd: #b0bfb6;
+	--tw-prose-invert-lead: #7f9086;
+	--tw-prose-invert-quotes: #7f9086;
+	--tw-prose-invert-captions: #7f9086;
+	--tw-prose-invert-counters: #7f9086;
+	--tw-prose-invert-bullets: #6b7b72;
+	--tw-prose-invert-links: #6bae88;
 	--tw-prose-invert-hr: #2a3d34;
 	--tw-prose-invert-quote-borders: #2a3d34;
 	--tw-prose-invert-th-borders: #2a3d34;
@@ -292,7 +297,7 @@ html.outis-dark .input-prose-sm :not(pre) > code {
  * ------------------------------------------------------------------ */
 
 html.outis-dark .hljs {
-	background: #0f1512;
+	background: var(--outis-code-bg);
 	color: #b9d9cb;
 }
 
@@ -381,7 +386,7 @@ html.outis-dark .hljs-strong {
    `language-*` container CodeBlock.svelte wraps the code in, so it can't
    reach any other `bg-black` in the app. */
 html.outis-dark div:has(> div[class*='language-']) .dark\:bg-black {
-	background-color: #0f1512;
+	background-color: var(--outis-code-bg);
 }
 
 /* Same chrome, its text: `text-white`, which left the language label and the

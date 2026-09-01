@@ -31,7 +31,7 @@ import { EditorView } from '@codemirror/view';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 
-const bg = '#eff5f2'; // --color-gray-50
+const bg = 'var(--outis-code-bg, #eff5f2)'; // --color-gray-50
 const gutterBg = '#e4ede8'; // --color-gray-100
 const text = '#3a4d43'; // identifiers, same weight as prose body
 const muted = '#5f7368'; // operators, punctuation -- 4.6:1

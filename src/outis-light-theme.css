@@ -108,6 +108,12 @@ html.outis-light {
 	/* Consumed by the autofill rules in outis-theme-shared.css. */
 	--outis-input-bg: #fafdfc;
 	--outis-input-fg: #27372f;
+
+	/* Code-block surface. A touch deeper than gray-50 so the fill is felt
+	   rather than guessed, and a hairline to give it an actual edge -- at
+	   1.08:1 from the paper the old fill alone did neither. */
+	--outis-code-bg: #eaf2ed;
+	--outis-code-border: #d3e0d8;
 }
 
 /* app.css's `body { background: #fff; color: #000 }` is a hardcoded literal,
@@ -210,16 +216,16 @@ html.outis-light .markdown-prose-sm,
 html.outis-light .markdown-prose-xs,
 html.outis-light .input-prose,
 html.outis-light .input-prose-sm {
-	--tw-prose-headings: #543900;
-	--tw-prose-bold: #37473f;
-	--tw-prose-body: #3f5047;
-	--tw-prose-kbd: #37473f;
-	--tw-prose-lead: #607369;
-	--tw-prose-quotes: #607369;
-	--tw-prose-captions: #607369;
-	--tw-prose-counters: #607369;
-	--tw-prose-bullets: #76897f;
-	--tw-prose-links: #007548;
+	--tw-prose-headings: #5a3f0a;
+	--tw-prose-bold: #3d4d44;
+	--tw-prose-body: #42544a;
+	--tw-prose-kbd: #3d4d44;
+	--tw-prose-lead: #61756b;
+	--tw-prose-quotes: #61756b;
+	--tw-prose-captions: #61756b;
+	--tw-prose-counters: #61756b;
+	--tw-prose-bullets: #788b81;
+	--tw-prose-links: #00784a;
 	--tw-prose-hr: #d7e3dd;
 	--tw-prose-quote-borders: #d7e3dd;
 	--tw-prose-th-borders: #d7e3dd;
@@ -269,7 +275,7 @@ html.outis-light .input-prose-sm :not(pre) > code {
  * ------------------------------------------------------------------ */
 
 html.outis-light .hljs {
-	background: #eff5f2;
+	background: var(--outis-code-bg);
 	color: #3a4d43;
 }
 
@@ -358,7 +364,7 @@ html.outis-light .hljs-strong {
    CodeBlock.svelte wraps the code in, so it can't reach any other
    `bg-white` in the app. (outis-dark does the same for `dark:bg-black`.) */
 html.outis-light div:has(> div[class*='language-']) [class~='bg-white'] {
-	background-color: #eff5f2;
+	background-color: var(--outis-code-bg);
 }
 
 /* The Outis mark (static/favicon.png) is a single flat fill of the DARK
