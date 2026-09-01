@@ -302,6 +302,47 @@ source of the default. One Google Fonts request covers all seven families (29.6 
 Verified live: picking a face applies without reload, survives a reload, and the picker is absent
 under Dark / OLED Dark / Light / Her.
 
+## One ratio drives every size (found live, now fixed)
+
+Reported from a screenshot of the running app: the sidebar read larger and looser than the answer
+beside it. Measured, the hierarchy was upside down — sidebar and chat titles **13px**, a model's
+description **14px**, the placeholder's model name **24px**, against an answer body of **12px** —
+with line-heights split four ways (1.33 / 1.5 / 1.54 / 1.63).
+
+The cause was scope, not taste. `--outis-prose-scale` reached the prose classes and one arbitrary
+value; every `text-sm` / `text-xs` / `text-2xl` in the app stayed at stock size. Shrinking the
+reading area therefore pushed it _below_ its own furniture.
+
+The ratio now drives the whole system, all in `outis-theme-shared.css`:
+
+- **Tailwind's type scale** — `--text-xs` … `--text-3xl` are `calc(<stock> * var(--outis-prose-scale))`.
+  Utilities resolve font-size through these, and Tailwind's line-height tokens are unitless
+  ratios, so leading follows on its own and the four competing ratios collapse to one system.
+- **The sidebar's own literal** — `text-[0.8125rem] leading-5`, the twin of the reading-chrome
+  `text-[0.9375rem]` rule, on the brand, New Chat, Search, Notes, Workspace and every chat title.
+- **Chat-row geometry** — `app.css` sizes `#sidebar-chat-item` in fixed pixels off the UI Scale
+  slider, which knows nothing about this ratio, so rows kept 32px height and 20px title lines
+  around text that had shrunk. Both now carry the ratio as well, so the slider still works.
+- **Code** — the `language-*` wrapper and both CodeMirror themes take
+  `calc(0.9375rem * var(--outis-prose-scale))`, the reading area's own expression rather than a
+  copy of its result, so code and prose stay the same size at any ratio.
+- **Headings** — the three hardcoded `.markdown-prose h1/h2/h3` overrides were **deleted**.
+  `app.css` already gives them `prose-h1:text-xl prose-h2:text-lg prose-h3:text-base`, which now
+  resolve through the scaled tokens. They were a second place the size relationship was
+  expressed, and the first place it would drift again.
+
+The ratio itself moved **0.80 → 0.85**. 0.80 was picked when it governed the reading area alone
+and only had to look right against unscaled chrome; now that it moves the sidebar and every label
+too, 0.80 drove those to 10.4px and 9.6px. At 0.85 the hierarchy is monotonic and the right way
+up:
+
+|     | h1   | h2   | h3   | body | `text-sm` | sidebar | `text-xs` |
+| --- | ---- | ---- | ---- | ---- | --------- | ------- | --------- |
+| px  | 17.0 | 15.3 | 13.6 | 12.8 | 11.9      | 11.1    | 10.2      |
+
+One number changes all of it, and the two wide faces still hold line length through their own
+scale overrides.
+
 ## Non-goals
 
 - Changing the default theme. `outis-mneme` stays default; `outis-light` is opt-in.
