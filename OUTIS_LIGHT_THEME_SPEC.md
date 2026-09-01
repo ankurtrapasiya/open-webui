@@ -343,6 +343,47 @@ up:
 One number changes all of it, and the two wide faces still hold line length through their own
 scale overrides.
 
+## Diagrams (found live, now fixed)
+
+Diagrams are rendered by the `kroki_diagram_renderer` Open WebUI function, not by this repo: it
+rewrites `plantuml / `dot / ```vega fences in `outlet`, renders them through the Kroki
+container, and puts the result back into the message. It already carried a full Outis skin and
+both palettes — but the palette was chosen by a server-side valve and baked into a base64
+`data:` URI, and an image is opaque to CSS. Since the theme is a per-browser setting the server
+cannot know, a dark mindmap sat in the middle of the light theme.
+
+Four changes, three of them in this repo:
+
+1. **`HTMLToken.svelte` renders inline SVG.** It handled only video / audio / iframe / status and
+   dropped everything else to plain text, which is why the function had to encode in the first
+   place. The new branch renders DOMPurify's output — verified in a browser to keep shapes, text,
+   `data-` attributes, inline `style` and `var()` while stripping `script`, `javascript:` hrefs
+   and event handlers.
+2. **The renderer emits `var(--outis-diagram-*, <dark value>)`** for every colour it paints, and
+   wraps the SVG in `<div class="outis-diagram">`. `var()` is legal in an SVG presentation
+   attribute and inside `style` (verified). Dark values are the fallbacks, so the dark theme
+   needs no CSS and `outis-light-theme.css` carries the whole light palette. One render now
+   follows the theme toggle.
+3. **The wrapper is the contract.** marked only produces an `html` token for a tag it knows as
+   block-level; a bare `<svg>` is parsed as a _paragraph_ and never reaches `HTMLToken.svelte`.
+   The `<div>` is what marked recognises, and the class is what the component matches.
+4. **The skin matches the UI**: `DejaVu Sans Mono` (the only monospace Kroki ships — the family
+   must be one Kroki has, because PlantUML measures every label with it to lay the diagram out,
+   so swapping it in CSS afterwards keeps the baked geometry and runs text out of its boxes),
+   `FontSize 13` against the 12.8px reading area, and `RoundCorner 0` against a theme whose every
+   other surface is square.
+
+One palette conflict had to be resolved: the colours are keyed by hex, so two roles sharing a hex
+in dark cannot be given different values in light. Dark drew the connector in branch 6's green,
+which light wants distinct, so the connector moved `#5a8f64` → `#5b9065` — imperceptible, and each
+role now owns a hex.
+
+The function lives in the instance's database, not in this repo. It is backed up to
+`~/kroki_diagram_renderer.backup.<timestamp>.py` before each change.
+
+**Follow-up:** getting the UI's own IBM Plex Mono into diagrams means adding the font to the Kroki
+image. `DejaVu Sans Mono` is the closest available without that.
+
 ## Non-goals
 
 - Changing the default theme. `outis-mneme` stays default; `outis-light` is opt-in.
