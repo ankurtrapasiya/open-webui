@@ -20,6 +20,22 @@
 	let themes = ['dark', 'light', 'oled-dark', 'outis-mneme', 'outis-light'];
 	let selectedTheme = 'outis-mneme';
 
+	// The face the Outis themes render in. Stored separately from the theme
+	// because it is orthogonal to it -- either theme can wear any of these --
+	// and applied by stamping `data-outis-font` on <html>, which
+	// outis-theme-shared.css turns into a --outis-font override. 'ibm-plex-mono'
+	// is the stylesheet's own default, so picking it stores nothing.
+	const OUTIS_FONTS = [
+		{ id: 'ibm-plex-mono', label: 'IBM Plex Mono' },
+		{ id: 'jetbrains-mono', label: 'JetBrains Mono' },
+		{ id: 'azeret-mono', label: 'Azeret Mono' },
+		{ id: 'courier-prime', label: 'Courier Prime' },
+		{ id: 'dm-mono', label: 'DM Mono' },
+		{ id: 'martian-mono', label: 'Martian Mono' },
+		{ id: 'space-mono', label: 'Space Mono' }
+	];
+	let selectedFont = 'ibm-plex-mono';
+
 	let languages: Awaited<ReturnType<typeof getLanguages>> = [];
 	let lang = $i18n.language;
 	let system = '';
@@ -112,6 +128,7 @@
 
 	onMount(async () => {
 		selectedTheme = localStorage.theme ?? 'outis-mneme';
+		selectedFont = localStorage.outisFont ?? 'ibm-plex-mono';
 
 		languages = await getLanguages();
 
@@ -228,6 +245,18 @@
 		localStorage.setItem('theme', _theme);
 		applyTheme(_theme);
 	};
+
+	const fontChangeHandler = (_font: string) => {
+		if (_font === 'ibm-plex-mono') {
+			// The default lives in the stylesheet, so record it by absence --
+			// nothing to migrate later if the default ever changes.
+			localStorage.removeItem('outisFont');
+			document.documentElement.removeAttribute('data-outis-font');
+		} else {
+			localStorage.setItem('outisFont', _font);
+			document.documentElement.setAttribute('data-outis-font', _font);
+		}
+	};
 </script>
 
 <div class="flex flex-col h-full justify-between text-sm" id="tab-general">
@@ -256,6 +285,24 @@
 					{/if}
 				</SettingsSelect>
 			</UserSettingRow>
+
+			{#if selectedTheme === 'outis-mneme' || selectedTheme === 'outis-light'}
+				<UserSettingRow
+					label={$i18n.t('Font')}
+					description={$i18n.t('Choose the typeface the Outis themes render in.')}
+				>
+					<SettingsSelect
+						bind:value={selectedFont}
+						ariaLabel={$i18n.t('Font')}
+						placeholder={$i18n.t('Select a font')}
+						on:change={() => fontChangeHandler(selectedFont)}
+					>
+						{#each OUTIS_FONTS as font}
+							<option value={font.id}>{font.label}</option>
+						{/each}
+					</SettingsSelect>
+				</UserSettingRow>
+			{/if}
 
 			<UserSettingRow
 				label={$i18n.t('Language')}

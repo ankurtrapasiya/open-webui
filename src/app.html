@@ -61,6 +61,14 @@
 					localStorage.theme = 'outis-mneme';
 				}
 
+				// The face is a separate preference from the theme: it only means
+				// anything under an Outis theme (the CSS rules are scoped to those
+				// classes), but it is stamped unconditionally and before first paint
+				// so switching into one never flashes the previous font.
+				if (localStorage?.outisFont) {
+					document.documentElement.setAttribute('data-outis-font', localStorage.outisFont);
+				}
+
 				if (localStorage.theme === 'system') {
 					document.documentElement.classList.add(prefersDarkTheme ? 'dark' : 'light');
 					metaThemeColorTag.setAttribute('content', prefersDarkTheme ? '#171717' : '#ffffff');

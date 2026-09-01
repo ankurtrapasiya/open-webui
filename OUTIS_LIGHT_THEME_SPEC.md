@@ -267,6 +267,41 @@ stock, so Save & Create renders pale mint there while its other CTAs render acce
 rather than changing the dark theme's appearance as a side effect of adding a light one —
 **a follow-up if you want the two idioms unified in Outis-Mneme too.**
 
+## The face, and switching it
+
+Both themes take their typeface from one variable, `--outis-font`, in
+`src/outis-theme-shared.css`. The default is **IBM Plex Mono**: IBM commissioned it as the
+successor to its own corporate type, so the mainframe lineage is literal rather than evoked, and
+its humanist warmth suits the ink-on-paper half of the system in a way JetBrains Mono's neutral
+screen-first drawing does not.
+
+Six alternates ship alongside it and are switchable at runtime from **Settings → General → Font**,
+which appears only while an Outis theme is selected:
+
+| Face                      | Advance/em | `--outis-prose-scale` |
+| ------------------------- | ---------- | --------------------- |
+| IBM Plex Mono _(default)_ | 0.60       | 0.80                  |
+| JetBrains Mono            | 0.60       | 0.80                  |
+| Courier Prime             | 0.60       | 0.80                  |
+| DM Mono                   | 0.60       | 0.80                  |
+| Space Mono                | 0.61       | 0.80                  |
+| Azeret Mono               | 0.65       | 0.74                  |
+| Martian Mono              | 0.70       | 0.69                  |
+
+Advance widths were measured in the browser, not estimated. The two wide faces carry
+`0.8 × (0.60 ÷ their advance)` so a line of prose holds roughly the same number of characters
+whichever face is picked; the rest share the ratio unchanged.
+
+The mechanism mirrors the theme switcher one level down: `localStorage.outisFont` is stamped onto
+`<html>` as `data-outis-font`, in `app.html` before first paint and by the picker thereafter, and
+`outis-theme-shared.css` turns that attribute into a `--outis-font` override. Choosing the default
+_removes_ the key and the attribute rather than writing them, so the stylesheet stays the single
+source of the default. One Google Fonts request covers all seven families (29.6 KB of CSS, ~72
+`@font-face` blocks); only the selected family's WOFF2 files are actually fetched.
+
+Verified live: picking a face applies without reload, survives a reload, and the picker is absent
+under Dark / OLED Dark / Light / Her.
+
 ## Non-goals
 
 - Changing the default theme. `outis-mneme` stays default; `outis-light` is opt-in.
