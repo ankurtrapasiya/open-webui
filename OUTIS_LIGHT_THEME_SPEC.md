@@ -50,14 +50,14 @@ re-points the whole palette.
 The differences from `outis-dark` come from one fact: **this theme does not add the `dark`
 class.** It applies `light outis-light`. That flips which half of the codebase is live:
 
-|                        | `outis-dark` (`dark outis-dark`)      | `outis-light` (`light outis-light`)                |
+|                        | `outis-dark` (`dark outis-dark`)        | `outis-light` (`light outis-light`)                |
 | ---------------------- | --------------------------------------- | -------------------------------------------------- |
 | Active utilities       | `dark:*` variants                       | base utilities                                     |
 | Prose vars             | `--tw-prose-invert-*`                   | `--tw-prose-*`                                     |
 | Main surface literal   | `dark:bg-black`, `dark:bg-white` scrims | `bg-white` (118 usages) — the ground itself        |
 | Primary CTA half       | `dark:bg-white dark:text-black`         | `bg-black text-white`                              |
 | Body rule in `app.css` | `.dark body { background:#171717 }`     | `body { background:#fff; color:#000 }`             |
-| CodeMirror             | `outisDark` theme                      | previously `[]` (stock light) — needs `outisLight` |
+| CodeMirror             | `outisDark` theme                       | previously `[]` (stock light) — needs `outisLight` |
 | highlight.js           | `github-dark.min.css` re-coloured dark  | same import, re-coloured **light**                 |
 
 So the two themes share all their _shape_ (font, radius, sizes, focus behaviour) and share none
@@ -69,12 +69,12 @@ of their _colour_. That split is the file structure below.
 than copying ~120 lines of it into a second theme, which is how the size-inconsistency bug in
 `OUTIS_DARK_CONSISTENCY_SPEC.md` Finding 1 happened in the first place.
 
-| File                                              | Responsibility                                                                                                                                                                                                                                                                                                             |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File                                              | Responsibility                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/outis-theme-shared.css` _(new)_              | Hue-free rules for **both** themes, selected by `html:is(.outis-dark, .outis-light)`: JetBrains Mono, radius flattening, `rounded-full`, sonner corners, SVG stroke caps, the whole prose/reading-chrome size scale, editor focus-ring suppression, code-block padding alignment, autofill (via two per-theme variables). |
-| `src/outis-dark-theme.css` _(trimmed)_           | Dark palette + dark-only colour rules only.                                                                                                                                                                                                                                                                                |
-| `src/outis-light-theme.css` _(new)_               | Light palette + light-only colour rules.                                                                                                                                                                                                                                                                                   |
-| `src/lib/codemirror-outis-light-theme.ts` _(new)_ | The light CodeMirror theme + highlight style.                                                                                                                                                                                                                                                                              |
+| `src/outis-dark-theme.css` _(trimmed)_            | Dark palette + dark-only colour rules only.                                                                                                                                                                                                                                                                               |
+| `src/outis-light-theme.css` _(new)_               | Light palette + light-only colour rules.                                                                                                                                                                                                                                                                                  |
+| `src/lib/codemirror-outis-light-theme.ts` _(new)_ | The light CodeMirror theme + highlight style.                                                                                                                                                                                                                                                                             |
 | `src/lib/codemirror-outis-theme.ts` _(new)_       | `outisEditorTheme()` — returns the extension array matching the classes currently on `<html>`. Replaces the `isDark ? outisDark : []` ternary duplicated across 4 editor components.                                                                                                                                      |
 
 `:is()` takes the specificity of its most specific argument, so `html:is(.outis-dark, .outis-light) .x`
@@ -384,6 +384,40 @@ The function lives in the instance's database, not in this repo. It is backed up
 **Follow-up:** getting the UI's own IBM Plex Mono into diagrams means adding the font to the Kroki
 image. `DejaVu Sans Mono` is the closest available without that.
 
+## Reading tone and heading proportion (found live, now fixed)
+
+Reported from a real answer: headings read "quite big" against the text, and both themes wanted
+to be easier on the eyes for long study sessions.
+
+**Headings are a proportion now, not a size.** They are set in `em` — 1.18 / 1.09 / 1.00 — so they
+follow `--outis-prose-scale` and the UI Scale slider with nothing to keep in sync. Through the
+scaled `--text-*` tokens they had landed at 17 / 15.3 / 13.6px against a 12.8px body: an h1 a third
+larger than the text under it, which is a document's proportion. A chat answer is a stream of short
+sections where a heading is a signpost, not a title page. Now 15.0 / 13.9 / 12.8 — three levels in
+a much narrower band, with h3 separating by weight (`prose-headings:font-medium`) rather than size.
+
+**Both ladders were pulled in.** The spread between body and headings is what made a page feel
+loud; on a near-black ground the top of it also halates during sustained reading.
+
+| Role     | Dark before → after | Light before → after |
+| -------- | ------------------- | -------------------- |
+| headings | 13.1:1 → **11.0:1** | 10.5:1 → **9.5:1**   |
+| bold     | 12.2:1 → **10.2:1** | 9.6:1 → **8.8:1**    |
+| body     | 10.5:1 → **9.1:1**  | 8.4:1 → **7.9:1**    |
+| links    | 10.2:1 → **7.5:1**  | 5.6:1 → **5.4:1**    |
+| quiet    | 6.4:1 → **5.8:1**   | 4.9:1 → **4.8:1**    |
+
+Every rung stays above its role's floor, and the order is unchanged — only the range is narrower.
+Light moves less than dark because reducing contrast on paper means lighter text, which is the
+wrong direction past a point.
+
+**Code blocks got an edge.** The light block's fill sat 1.08:1 from the paper, which is a tint
+rather than a boundary, so a snippet did not read as a distinct surface. Both themes now take
+`--outis-code-bg` and a 1px `--outis-code-border`; light's fill also drops a step to `#eaf2ed`. The
+border goes on the `language-*` container only — `CodeBlock.svelte` nests the `pre` inside it, so
+covering both would draw two borders a pixel apart. The CodeMirror themes read the same variable,
+with their literal as the fallback.
+
 ## Non-goals
 
 - Changing the default theme. `outis-dark` stays default; `outis-light` is opt-in.
@@ -416,9 +450,9 @@ Driven against a production `npm run build`, served with a stub backend, in head
 
 | Check                                                 | Result                                                                                                                                                                                                                                                                                                                                                                 |
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Acceptance 1 — theme listed, applies, survives reload | Dropdown reads `⚙️ System / 🌑 Dark / 🌃 OLED Dark / 🟢 Outis-Dark / 🟩 Outis-Light / ☀️ Light`; `<html class="light outis-light">`, body `#fafdfc`, meta theme-color `#fafdfc`, applied pre-boot with no flash                                                                                                                                                       |
-| Acceptance 2 — no stale inline properties             | Outis-Dark → Outis-Light → OLED Dark → Outis-Light → Dark → Outis-Light through the real Settings dropdown; on every Outis-Light step `documentElement.style` holds only the app's own `--sidebar-width` / `--app-text-scale`                                                                                                                                         |
-| Acceptance 3 — Outis-Dark unchanged                  | Rule-level diff of the split: every rule byte-identical apart from the three intended renames. Screenshots of the chat home and the CodeMirror tools editor, before vs. after, **byte-identical PNGs**                                                                                                                                                                 |
+| Acceptance 1 — theme listed, applies, survives reload | Dropdown reads `⚙️ System / 🌑 Dark / 🌃 OLED Dark / 🟢 Outis-Dark / 🟩 Outis-Light / ☀️ Light`; `<html class="light outis-light">`, body `#fafdfc`, meta theme-color `#fafdfc`, applied pre-boot with no flash                                                                                                                                                        |
+| Acceptance 2 — no stale inline properties             | Outis-Dark → Outis-Light → OLED Dark → Outis-Light → Dark → Outis-Light through the real Settings dropdown; on every Outis-Light step `documentElement.style` holds only the app's own `--sidebar-width` / `--app-text-scale`                                                                                                                                          |
+| Acceptance 3 — Outis-Dark unchanged                   | Rule-level diff of the split: every rule byte-identical apart from the three intended renames. Screenshots of the chat home and the CodeMirror tools editor, before vs. after, **byte-identical PNGs**                                                                                                                                                                 |
 | Acceptance 4 — contrast                               | Body 8.38:1, headings 10.46:1, links 5.64:1, accent-500 4.70:1, syntax ring 7.01–7.03:1 (0.02 spread), comments 4.05:1                                                                                                                                                                                                                                                 |
 | Acceptance 5 — no recolour when streaming ends        | highlight.js and CodeMirror share one palette; chrome, spacer and collapsed body all resolve to `rgb(239,245,242)` against CodeBlock's real DOM shape, in both themes                                                                                                                                                                                                  |
 | Acceptance 6 — corners, font, accent                  | `border-radius: 0px`, `JetBrains Mono`, primary CTA `rgb(0,110,67)` on paper text, focus ring `rgb(0,131,80)`                                                                                                                                                                                                                                                          |

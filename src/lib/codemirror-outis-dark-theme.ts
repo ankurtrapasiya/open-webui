@@ -39,7 +39,7 @@ import { EditorView } from '@codemirror/view';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 
-const bg = '#0f1512'; // --color-gray-900
+const bg = 'var(--outis-code-bg, #0f1512)'; // --color-gray-900
 const gutterBg = '#090d0c'; // --color-gray-950
 const text = '#b9d9cb'; // --color-gray-100 -- identifiers, same weight as prose body
 const muted = '#819388'; // operators, punctuation -- 5.7:1
