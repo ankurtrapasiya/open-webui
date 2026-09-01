@@ -426,3 +426,46 @@ html:is(.outis-dark, .outis-light) .outis-diagram > svg {
 html:is(.outis-dark, .outis-light) div[class*='language-'] {
 	border: 1px solid var(--outis-code-border);
 }
+
+/* High Contrast mode's focus ring, on a code block.
+ *
+ * app.css gives that mode a deliberate ring on the focused editor:
+ *
+ *     html.high-contrast :is(input, textarea, [contenteditable='true'],
+ *     .ProseMirror):focus-visible { outline: 2px solid ...; outline-offset: -2px }
+ *
+ * CodeMirror's `.cm-content` is that `[contenteditable='true']`, and it is a
+ * sibling of the gutter rather than its parent -- so the ring lands between
+ * the line numbers and the first column, and the -2px inset pulls it over the
+ * code itself. Reported live as a bright green bar down the middle of a code
+ * block.
+ *
+ * The indicator is the point of the mode, so it is moved rather than removed:
+ * onto the `.cm-editor` that wraps gutter and content together, where it reads
+ * as "this block has focus" instead of as a rule drawn through the text. Same
+ * width and colour, so the contrast the mode exists for is unchanged. */
+html:is(.outis-dark, .outis-light).high-contrast .cm-content:focus-visible {
+	outline: none;
+}
+
+html:is(.outis-dark, .outis-light).high-contrast .cm-editor:has(.cm-content:focus-visible) {
+	outline: 2px solid var(--color-blue-500);
+	outline-offset: -1px;
+}
+
+/* app.css paints CodeMirror's own surfaces with literals, and with
+   `!important`:
+ *
+ *     .cm-gutters { @apply !bg-white dark:!bg-black !border-none }
+ *     .cm-editor  { @apply bg-white dark:bg-black }
+ *
+ * so an editor inside a code block sits on #000000 in the dark theme while
+ * the block's header, spacer and collapsed body sit on --outis-code-bg --
+ * a visible two-tone seam through every interactive code block, and the same
+ * split in light where they resolve to the paper. The chrome was already
+ * pulled onto the one token; this brings the editor and its gutter with it.
+ * `!important` is answered in kind, because that is what it takes. */
+html:is(.outis-dark, .outis-light) div[class*='language-'] .cm-editor,
+html:is(.outis-dark, .outis-light) div[class*='language-'] .cm-gutters {
+	background-color: var(--outis-code-bg) !important;
+}
