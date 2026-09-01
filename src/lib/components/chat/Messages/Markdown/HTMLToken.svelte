@@ -83,15 +83,23 @@
 		{:else}
 			{token.text}
 		{/if}
-	{:else if html && html.trimStart().startsWith('<svg')}
+	{:else if html && html.includes('outis-diagram')}
 		<!-- A rendered diagram, inline rather than as an <img src="data:..."> so
-		     the theme can reach it: kroki bakes one palette into the SVG, and an
+		     the theme can reach it: Kroki bakes one palette into the SVG, and an
 		     image is opaque to CSS, so a diagram rendered for one theme stayed
 		     wrong under the other. Inline, its colours are var() references that
-		     resolve per theme, and its type takes the UI's own face.
-		     `html` is DOMPurify's output, which strips script, event handlers and
-		     foreignObject while keeping SVG shapes and text. -->
-		<div class="outis-diagram my-2 w-full overflow-x-auto">
+		     resolve per theme.
+
+		     Matched on the marker class rather than on `<svg`, because marked
+		     only treats a known block-level tag as an html token -- a bare <svg>
+		     comes through as a *paragraph* and never reaches this component at
+		     all. The renderer wraps it in <div class="outis-diagram">, which
+		     marked does recognise, so the class is the contract between the two.
+
+		     `html` is DOMPurify's output: shapes, text, data- attributes, inline
+		     style and var() survive; script, javascript: hrefs and event handlers
+		     do not. -->
+		<div class="my-2 w-full overflow-x-auto">
 			{@html html}
 		</div>
 	{:else if token.text && token.text.includes('<status')}
