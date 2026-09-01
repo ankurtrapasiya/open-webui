@@ -83,6 +83,17 @@
 		{:else}
 			{token.text}
 		{/if}
+	{:else if html && html.trimStart().startsWith('<svg')}
+		<!-- A rendered diagram, inline rather than as an <img src="data:..."> so
+		     the theme can reach it: kroki bakes one palette into the SVG, and an
+		     image is opaque to CSS, so a diagram rendered for one theme stayed
+		     wrong under the other. Inline, its colours are var() references that
+		     resolve per theme, and its type takes the UI's own face.
+		     `html` is DOMPurify's output, which strips script, event handlers and
+		     foreignObject while keeping SVG shapes and text. -->
+		<div class="outis-diagram my-2 w-full overflow-x-auto">
+			{@html html}
+		</div>
 	{:else if token.text && token.text.includes('<status')}
 		{@const match = token.text.match(/<status title="([^"]+)" done="(true|false)" ?\/?>/)}
 		{@const statusTitle = match && match[1]}
