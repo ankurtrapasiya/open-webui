@@ -394,3 +394,56 @@ html.outis-light img[src$='favicon.png'] {
 html.outis-light div:has(> div[class*='language-']) > .sticky {
 	color: #596f63;
 }
+
+/* ---------------------------------------------------------------------
+ * Rendered diagrams
+ *
+ * The kroki_diagram_renderer function renders a fence through Kroki and
+ * inlines the result (HTMLToken.svelte grew a branch for it). PlantUML
+ * bakes colour into the file, so a diagram used to be locked to whichever
+ * palette the server-side valve chose -- which is why a dark mindmap sat
+ * in the middle of the light theme. The function now rewrites each colour
+ * it painted as `var(--outis-diagram-*, <its dark value>)`, so the dark
+ * theme needs no rule at all and this block is the entire light palette.
+ * A diagram rendered once now follows the theme toggle.
+ *
+ * One var per role, and roles that share a colour in dark share one here
+ * too -- a participant is branch 1, an actor is branch 2. The exception is
+ * the connector, which dark drew in branch 6's green; it was moved one step
+ * off (#5a8f64 -> #5b9065, imperceptible) so each role owns a hex and the
+ * two can differ here, where they must.
+ *
+ * Not a mechanical inversion: dark needed contrast pulled down to stop text
+ * halating, light does not, so these pastels sit at 8.3:1 to 9.2:1 against
+ * the text colour and separate from the ground by a mid-tone border rather
+ * than by their own fill.
+ * ------------------------------------------------------------------ */
+html.outis-light .outis-diagram {
+	--outis-diagram-ground: #fafdfc; /* page ground */
+	--outis-diagram-fill: #eff5f2; /* node fill, and notes */
+	--outis-diagram-border: #c3d2ca; /* node border */
+	--outis-diagram-text: #27372f; /* all label text */
+	--outis-diagram-deep: #e4ede8; /* sunken fill, and group bodies */
+	--outis-diagram-arrow: #a7bab0; /* arrowheads */
+	--outis-diagram-root-fill: #e6fcee; /* mindmap root */
+	--outis-diagram-root-text: #006e43; /* mindmap root label */
+	--outis-diagram-root-border: #008350; /* mindmap root border */
+	--outis-diagram-line: #596f63; /* connectors */
+	--outis-diagram-b1-fill: #bfe0dc; /* branch 1, and participants */
+	--outis-diagram-b1-border: #23524f; /* branch 1 border */
+	--outis-diagram-b2-fill: #c6d9ec; /* branch 2, and actors */
+	--outis-diagram-b2-border: #274a66; /* branch 2 border */
+	--outis-diagram-actor-border: #274a66; /* actor border */
+	--outis-diagram-b3-fill: #d8cdeb; /* branch 3, and stores */
+	--outis-diagram-b3-border: #4a3a6d; /* branch 3 border */
+	--outis-diagram-b4-fill: #ecdcb4; /* branch 4, and queues */
+	--outis-diagram-b4-border: #60481c; /* branch 4 border */
+	--outis-diagram-b5-fill: #eccdd3; /* branch 5 */
+	--outis-diagram-b5-border: #713845; /* branch 5 border */
+	--outis-diagram-b6-fill: #c6e2cc; /* branch 6 */
+	--outis-diagram-b6-border: #2e5637; /* branch 6 border */
+	--outis-diagram-b7-fill: #c2dee8; /* branch 7 */
+	--outis-diagram-b7-border: #275865; /* branch 7 border */
+	--outis-diagram-b8-fill: #eed6bf; /* branch 8 */
+	--outis-diagram-b8-border: #6d4020; /* branch 8 border */
+}

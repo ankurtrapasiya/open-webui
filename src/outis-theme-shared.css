@@ -384,3 +384,14 @@ html:is(.outis-mneme, .outis-light) svg {
 	stroke-linecap: square;
 	stroke-linejoin: miter;
 }
+
+/* A rendered diagram scales to its column and takes the UI's own face.
+   Kroki measures text with the font PlantUML was told to use, so the family
+   is pinned there (DejaVu Sans Mono -- the only mono Kroki ships) and not
+   overridden here; swapping it in CSS alone would keep the baked layout and
+   let labels run out of their boxes. What CSS can do safely is stop the SVG
+   overflowing its column. */
+html:is(.outis-mneme, .outis-light) .outis-diagram > svg {
+	max-width: 100%;
+	height: auto;
+}
