@@ -35,7 +35,7 @@ export const USAGE_POOL: Writable<null | string[]> = writable(null);
 
 // Initial value only; +layout.svelte overwrites it from localStorage on mount.
 // app.html seeds that value and is the authoritative default.
-export const theme = writable('outis-mneme');
+export const theme = writable('outis-dark');
 
 export const shortCodesToEmojis = writable(
 	Object.entries(emojiShortCodes).reduce((acc, [key, value]) => {

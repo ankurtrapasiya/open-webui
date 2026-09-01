@@ -1,18 +1,18 @@
 /*
- * Outis-Mneme theme (dark) — see ../OUTIS_MNEME_THEME_SPEC.md
+ * Outis-Dark theme (dark) — see ../OUTIS_DARK_THEME_SPEC.md
  *
  * Colour only. The typeface, flat corners, reading-size scale and focus
  * behaviour this theme shares with outis-light live in
  * outis-theme-shared.css, which +layout.svelte imports first.
  *
- * Everything here is a CSS custom property override scoped to `html.outis-mneme`
+ * Everything here is a CSS custom property override scoped to `html.outis-dark`
  * (added by the theme switcher alongside the standard `dark` class — see
  * app.html / General.svelte / +layout.svelte). No component files change:
  * every `bg-gray-900`, `text-blue-500`, `rounded-lg`, etc. utility class
  * across the app already resolves through these same variable names.
  */
 
-html.outis-mneme {
+html.outis-dark {
 	/* Neutral scale — near-black, green-tinted (replaces the default grays) */
 	--color-gray-50: #d4ede2;
 	--color-gray-100: #b9d9cb;
@@ -39,7 +39,7 @@ html.outis-mneme {
 	   or the neutral scale -- so anything using blue-600/700 (a normal
 	   Tailwind hover/default pairing, ~5 direct usages found in components)
 	   read markedly dimmer than the 500 used for links/focus rings, with
-	   nothing perceptually in between. See OUTIS_MNEME_CONSISTENCY_SPEC.md
+	   nothing perceptually in between. See OUTIS_DARK_CONSISTENCY_SPEC.md
 	   Finding 2 for the full derivation and contrast numbers. */
 	--color-blue-50: #eafff5;
 	--color-blue-100: #d0ffe8;
@@ -76,7 +76,7 @@ html.outis-mneme {
 	--outis-input-fg: #d4ede2;
 }
 
-/* Finding 3 (OUTIS_MNEME_CONSISTENCY_SPEC.md): literal `text-white`/
+/* Finding 3 (OUTIS_DARK_CONSISTENCY_SPEC.md): literal `text-white`/
    `dark:text-white` (368 usages, 159 files -- sidebar labels, modal headers,
    primary buttons) sat at ~20:1 contrast, competing with the theme's own
    near-white gray-50 (15.8:1) and the prose ladder's amber headings (13.1:1)
@@ -97,11 +97,11 @@ html.outis-mneme {
    `text-white` is that pattern's *light-mode* half, meant to be overridden
    by `dark:text-black` once dark mode is active; overriding it unconditionally
    here out-specificities that dark: override via this rule's own
-   `html.outis-mneme` prefix, forcing near-white text onto what should have
+   `html.outis-dark` prefix, forcing near-white text onto what should have
    been a dark-text-on-white button and making it unreadable. `dark:text-white`
    has no such pairing to fight -- it is already conditional on dark mode, so
    there is nothing for it to override. */
-html.outis-mneme [class~='dark:text-white'] {
+html.outis-dark [class~='dark:text-white'] {
 	color: var(--color-gray-50);
 }
 
@@ -116,15 +116,31 @@ html.outis-mneme [class~='dark:text-white'] {
    same hue every other interactive surface (links, focus rings, the Sign-in
    button) already uses -- so a primary CTA reads as "the" accent color, not
    a separate, unthemed white/black pair. Text stays dark for contrast against
-   the now-green fill. */
-html.outis-mneme [class~='dark:bg-white'] {
+   the now-green fill.
+
+   `dark:bg-gray-100` / `dark:bg-gray-200` are the same idea spelled a second
+   way -- `bg-gray-900 ... dark:bg-gray-100 dark:text-gray-900` -- behind
+   ConfirmDialog's confirm button, Save & Create in the Tool/Skill/Function
+   editors, SyncStatsModal's progress bar and PromptEditor's active marker.
+   Covering only the first spelling left those at gray-100 (#b9d9cb, 15.8:1),
+   reported live as a near-white box in the delete-chat confirmation -- the one
+   bright block in an otherwise dark dialog. Every bare `bg-gray-900` usage is
+   a filled control rather than a panel, and outis-light already re-skins both
+   spellings, so covering both here is what makes the two themes agree on what
+   a filled control looks like. */
+html.outis-dark [class~='dark:bg-white'],
+html.outis-dark [class~='dark:bg-gray-100'],
+html.outis-dark [class~='dark:bg-gray-200'] {
 	background-color: var(--color-blue-500);
 }
-html.outis-mneme [class~='dark:hover:bg-gray-100'] {
+html.outis-dark [class~='dark:hover:bg-gray-100'],
+html.outis-dark [class~='dark:hover:bg-gray-100/90']:hover,
+html.outis-dark [class~='dark:hover:bg-white']:hover,
+html.outis-dark [class~='dark:hover:bg-gray-200']:hover {
 	background-color: var(--color-blue-400);
 }
-html.outis-mneme [class~='dark:text-black'],
-html.outis-mneme [class~='dark:text-gray-900'] {
+html.outis-dark [class~='dark:text-black'],
+html.outis-dark [class~='dark:text-gray-900'] {
 	color: var(--color-gray-950);
 }
 
@@ -140,7 +156,7 @@ html.outis-mneme [class~='dark:text-gray-900'] {
    already-correct text colors, or no text color at all (a loading bar), so a
    compound selector requiring both tokens on the same element is precise --
    it can't reach those. */
-html.outis-mneme [class~='bg-blue-500'][class~='text-white'] {
+html.outis-dark [class~='bg-blue-500'][class~='text-white'] {
 	color: var(--color-gray-950);
 }
 
@@ -148,7 +164,7 @@ html.outis-mneme [class~='bg-blue-500'][class~='text-white'] {
    literal, not a `var(--color-gray-*)` reference like everything else — the
    one exception to the token system found during testing. Override it
    directly rather than relying on custom-property cascade. */
-html.outis-mneme body {
+html.outis-dark body {
 	background: #090d0c;
 	color: #d4ede2;
 }
@@ -159,10 +175,10 @@ html.outis-mneme body {
    compose, Notes) rendered in the stock blue, unrelated to the theme.
    Reported live via screenshot ("select all" text). Reuses the exact
    rgba(45, 255, 143, 0.16) accentSoft value already used for CodeMirror's
-   own selection highlight (codemirror-outis-mneme-theme.ts), so the two
+   own selection highlight (codemirror-outis-dark-theme.ts), so the two
    selection highlights read as one consistent color rather than two
    different green tints. */
-html.outis-mneme .editor-selection {
+html.outis-dark .editor-selection {
 	background: rgba(45, 255, 143, 0.16);
 }
 
@@ -176,10 +192,10 @@ html.outis-mneme .editor-selection {
    fell back to Chrome's stock light blue. That's what was actually visible
    in the screenshot this was reported from. Same accentSoft value as
    .editor-selection and CodeMirror's own `::selection` override
-   (codemirror-outis-mneme-theme.ts's `.cm-content ::selection` rule), so all
+   (codemirror-outis-dark-theme.ts's `.cm-content ::selection` rule), so all
    three selection surfaces in the app -- native text selection, the
    editor's blur-preserved selection, and code blocks -- read as one color. */
-html.outis-mneme ::selection {
+html.outis-dark ::selection {
 	background: rgba(45, 255, 143, 0.16);
 }
 
@@ -218,11 +234,11 @@ html.outis-mneme ::selection {
  * code end up drawing from one palette. That leaves green meaning
  * exactly one thing in the reading area: interactive.
  * ------------------------------------------------------------------ */
-html.outis-mneme .markdown-prose,
-html.outis-mneme .markdown-prose-sm,
-html.outis-mneme .markdown-prose-xs,
-html.outis-mneme .input-prose,
-html.outis-mneme .input-prose-sm {
+html.outis-dark .markdown-prose,
+html.outis-dark .markdown-prose-sm,
+html.outis-dark .markdown-prose-xs,
+html.outis-dark .input-prose,
+html.outis-dark .input-prose-sm {
 	--tw-prose-invert-headings: #ebd0a7;
 	--tw-prose-invert-bold: #c1d0c8;
 	--tw-prose-invert-body: #b2c2b9;
@@ -246,11 +262,11 @@ html.outis-mneme .input-prose-sm {
    code blocks use for identifiers, so a snippet in a sentence and a
    snippet in a block are the same color. `:not(pre) > code` keeps this
    off fenced blocks, which CodeMirror and highlight.js own. */
-html.outis-mneme .markdown-prose :not(pre) > code,
-html.outis-mneme .markdown-prose-sm :not(pre) > code,
-html.outis-mneme .markdown-prose-xs :not(pre) > code,
-html.outis-mneme .input-prose :not(pre) > code,
-html.outis-mneme .input-prose-sm :not(pre) > code {
+html.outis-dark .markdown-prose :not(pre) > code,
+html.outis-dark .markdown-prose-sm :not(pre) > code,
+html.outis-dark .markdown-prose-xs :not(pre) > code,
+html.outis-dark .input-prose :not(pre) > code,
+html.outis-dark .input-prose-sm :not(pre) > code {
 	color: #b9d9cb;
 	background: #141c19;
 	padding: 0.1em 0.35em;
@@ -263,7 +279,7 @@ html.outis-mneme .input-prose-sm :not(pre) > code {
  * A chat code block renders through one of two paths (CodeBlock.svelte):
  * CodeMirror when the block is interactive, and highlight.js
  * (github-dark.min.css) otherwise — e.g. while a response is still
- * streaming. CodeMirror is handled in codemirror-outis-mneme-theme.ts;
+ * streaming. CodeMirror is handled in codemirror-outis-dark-theme.ts;
  * these rules give the highlight.js path the same palette, so a block
  * doesn't recolor itself as it finishes streaming.
  *
@@ -272,86 +288,86 @@ html.outis-mneme .input-prose-sm :not(pre) > code {
  * reading code depends on telling token categories apart at a glance. The
  * four hues are one OKLCH ring (L 0.76 / C 0.078, hue varying), so no
  * token outshines its neighbours. Keep these in sync with
- * codemirror-outis-mneme-theme.ts, which explains the reasoning in full.
+ * codemirror-outis-dark-theme.ts, which explains the reasoning in full.
  * ------------------------------------------------------------------ */
 
-html.outis-mneme .hljs {
+html.outis-dark .hljs {
 	background: #0f1512;
 	color: #b9d9cb;
 }
 
 /* Keywords */
-html.outis-mneme .hljs-keyword,
-html.outis-mneme .hljs-selector-tag,
-html.outis-mneme .hljs-subst {
+html.outis-dark .hljs-keyword,
+html.outis-dark .hljs-selector-tag,
+html.outis-dark .hljs-subst {
 	color: #8cc099;
 }
 
 /* Names: functions, types, classes, tags, selectors */
-html.outis-mneme .hljs-title,
-html.outis-mneme .hljs-title.class_,
-html.outis-mneme .hljs-title.function_,
-html.outis-mneme .hljs-section,
-html.outis-mneme .hljs-type,
-html.outis-mneme .hljs-built_in,
-html.outis-mneme .hljs-name,
-html.outis-mneme .hljs-attr,
-html.outis-mneme .hljs-attribute,
-html.outis-mneme .hljs-meta,
-html.outis-mneme .hljs-selector-id,
-html.outis-mneme .hljs-selector-class,
-html.outis-mneme .hljs-selector-attr,
-html.outis-mneme .hljs-selector-pseudo {
+html.outis-dark .hljs-title,
+html.outis-dark .hljs-title.class_,
+html.outis-dark .hljs-title.function_,
+html.outis-dark .hljs-section,
+html.outis-dark .hljs-type,
+html.outis-dark .hljs-built_in,
+html.outis-dark .hljs-name,
+html.outis-dark .hljs-attr,
+html.outis-dark .hljs-attribute,
+html.outis-dark .hljs-meta,
+html.outis-dark .hljs-selector-id,
+html.outis-dark .hljs-selector-class,
+html.outis-dark .hljs-selector-attr,
+html.outis-dark .hljs-selector-pseudo {
 	color: #74bed0;
 }
 
 /* Literal values */
-html.outis-mneme .hljs-number,
-html.outis-mneme .hljs-literal,
-html.outis-mneme .hljs-symbol,
-html.outis-mneme .hljs-bullet,
-html.outis-mneme .hljs-formula {
+html.outis-dark .hljs-number,
+html.outis-dark .hljs-literal,
+html.outis-dark .hljs-symbol,
+html.outis-dark .hljs-bullet,
+html.outis-dark .hljs-formula {
 	color: #b8a6dc;
 }
 
 /* Text data — the only warm hue */
-html.outis-mneme .hljs-string,
-html.outis-mneme .hljs-regexp,
-html.outis-mneme .hljs-template-tag,
-html.outis-mneme .hljs-template-variable,
-html.outis-mneme .hljs-code {
+html.outis-dark .hljs-string,
+html.outis-dark .hljs-regexp,
+html.outis-dark .hljs-template-tag,
+html.outis-dark .hljs-template-variable,
+html.outis-dark .hljs-code {
 	color: #cdab78;
 }
 
 /* Plain identifiers */
-html.outis-mneme .hljs-variable,
-html.outis-mneme .hljs-params {
+html.outis-dark .hljs-variable,
+html.outis-dark .hljs-params {
 	color: #b9d9cb;
 }
 
 /* Structure */
-html.outis-mneme .hljs-operator,
-html.outis-mneme .hljs-punctuation {
+html.outis-dark .hljs-operator,
+html.outis-dark .hljs-punctuation {
 	color: #819388;
 }
 
-html.outis-mneme .hljs-comment,
-html.outis-mneme .hljs-quote,
-html.outis-mneme .hljs-doctag {
+html.outis-dark .hljs-comment,
+html.outis-dark .hljs-quote,
+html.outis-dark .hljs-doctag {
 	color: #71867b;
 	font-style: italic;
 }
 
-html.outis-mneme .hljs-addition {
+html.outis-dark .hljs-addition {
 	color: #8cc099;
 }
-html.outis-mneme .hljs-deletion {
+html.outis-dark .hljs-deletion {
 	color: #dd6969;
 }
-html.outis-mneme .hljs-emphasis {
+html.outis-dark .hljs-emphasis {
 	font-style: italic;
 }
-html.outis-mneme .hljs-strong {
+html.outis-dark .hljs-strong {
 	font-weight: 600;
 }
 
@@ -364,7 +380,7 @@ html.outis-mneme .hljs-strong {
    so one rule covers the set — and covers any future one. Scoped by the
    `language-*` container CodeBlock.svelte wraps the code in, so it can't
    reach any other `bg-black` in the app. */
-html.outis-mneme div:has(> div[class*='language-']) .dark\:bg-black {
+html.outis-dark div:has(> div[class*='language-']) .dark\:bg-black {
 	background-color: #0f1512;
 }
 
@@ -372,6 +388,6 @@ html.outis-mneme div:has(> div[class*='language-']) .dark\:bg-black {
    Collapse/Run/Save/Copy controls brighter than any token in the code below
    them. They're furniture, not content — drop them to gray-300 so the code
    is the brightest thing in its own block. */
-html.outis-mneme div:has(> div[class*='language-']) > .sticky {
+html.outis-dark div:has(> div[class*='language-']) > .sticky {
 	color: #7aab98;
 }

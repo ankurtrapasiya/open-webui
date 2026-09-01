@@ -1,20 +1,20 @@
 # Outis-Light Theme — Spec
 
-A light counterpart to `outis-mneme`: the same monospace, flat-cornered, one-accent identity,
+A light counterpart to `outis-dark`: the same monospace, flat-cornered, one-accent identity,
 rebuilt for a light ground. Added as a fifth selectable theme alongside
-`dark` / `oled-dark` / `light` / `her` / `outis-mneme` — it replaces none of them, and
-`outis-mneme` stays this build's default.
+`dark` / `oled-dark` / `light` / `her` / `outis-dark` — it replaces none of them, and
+`outis-dark` stays this build's default.
 
 ## Goal
 
 Selecting **Outis-Light** in Settings → General → Theme re-skins the whole app to a light
 version of the Outis identity, without touching the ~800 Svelte component files that reference
-Tailwind utility classes. Someone who knows `outis-mneme` should recognise this as the same
+Tailwind utility classes. Someone who knows `outis-dark` should recognise this as the same
 theme with the lamp turned around — not as "the stock light theme with green bits".
 
 ## Design direction
 
-`outis-mneme` is a phosphor tube: light is _emitted_, so the ground is near-black and every
+`outis-dark` is a phosphor tube: light is _emitted_, so the ground is near-black and every
 colour is a glow on top of it. Inverting that literally (bright green on white) is unreadable
 and reads as a different product.
 
@@ -24,11 +24,11 @@ figure and ground exchanged.
 
 Three consequences drive every value below:
 
-1. **The pigments swap places, they don't change.** `outis-mneme`'s darkest surface
+1. **The pigments swap places, they don't change.** `outis-dark`'s darkest surface
    (`#0f1512`) is almost exactly this theme's darkest ink (`#0e1913`). The neutral scale is one
    green-tinted hue (OKLCH H162), read from the other end.
 2. **The paper is cool, not cream.** Warm cream with a serif is the reflex light-theme move and
-   would break the family resemblance — `outis-mneme` has no warm neutrals anywhere. The ground
+   would break the family resemblance — `outis-dark` has no warm neutrals anywhere. The ground
    is `#fafdfc`, a faint green-grey, so a screenshot of either theme is obviously the same
    product.
 3. **Every role keeps its meaning, only its lightness flips.** Green still means _interactive_
@@ -37,27 +37,27 @@ Three consequences drive every value below:
    token outshines its neighbour.
 
 The one place this theme is louder than a stock light theme, and deliberately so: primary
-buttons are the accent green rather than black-on-white, exactly as `outis-mneme` makes them
+buttons are the accent green rather than black-on-white, exactly as `outis-dark` makes them
 accent green rather than white-on-black. In both themes a primary action is _the_ accent colour.
 
 ## Why this is possible without touching components
 
-Identical mechanism to `outis-mneme` — see `OUTIS_MNEME_THEME_SPEC.md` § "Why this is possible
+Identical mechanism to `outis-dark` — see `OUTIS_DARK_THEME_SPEC.md` § "Why this is possible
 without touching components". Every `bg-gray-50`, `text-blue-500`, `rounded-lg` compiles to a
 `var(--color-*)` / `var(--radius-*)` reference, so a stylesheet scoped to `html.outis-light`
 re-points the whole palette.
 
-The differences from `outis-mneme` come from one fact: **this theme does not add the `dark`
+The differences from `outis-dark` come from one fact: **this theme does not add the `dark`
 class.** It applies `light outis-light`. That flips which half of the codebase is live:
 
-|                        | `outis-mneme` (`dark outis-mneme`)      | `outis-light` (`light outis-light`)                |
+|                        | `outis-dark` (`dark outis-dark`)      | `outis-light` (`light outis-light`)                |
 | ---------------------- | --------------------------------------- | -------------------------------------------------- |
 | Active utilities       | `dark:*` variants                       | base utilities                                     |
 | Prose vars             | `--tw-prose-invert-*`                   | `--tw-prose-*`                                     |
 | Main surface literal   | `dark:bg-black`, `dark:bg-white` scrims | `bg-white` (118 usages) — the ground itself        |
 | Primary CTA half       | `dark:bg-white dark:text-black`         | `bg-black text-white`                              |
 | Body rule in `app.css` | `.dark body { background:#171717 }`     | `body { background:#fff; color:#000 }`             |
-| CodeMirror             | `outisMneme` theme                      | previously `[]` (stock light) — needs `outisLight` |
+| CodeMirror             | `outisDark` theme                      | previously `[]` (stock light) — needs `outisLight` |
 | highlight.js           | `github-dark.min.css` re-coloured dark  | same import, re-coloured **light**                 |
 
 So the two themes share all their _shape_ (font, radius, sizes, focus behaviour) and share none
@@ -65,20 +65,20 @@ of their _colour_. That split is the file structure below.
 
 ## File structure
 
-`outis-mneme-theme.css` currently mixes both. This spec extracts the shape half once rather
+`outis-dark-theme.css` currently mixes both. This spec extracts the shape half once rather
 than copying ~120 lines of it into a second theme, which is how the size-inconsistency bug in
-`OUTIS_MNEME_CONSISTENCY_SPEC.md` Finding 1 happened in the first place.
+`OUTIS_DARK_CONSISTENCY_SPEC.md` Finding 1 happened in the first place.
 
 | File                                              | Responsibility                                                                                                                                                                                                                                                                                                             |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/outis-theme-shared.css` _(new)_              | Hue-free rules for **both** themes, selected by `html:is(.outis-mneme, .outis-light)`: JetBrains Mono, radius flattening, `rounded-full`, sonner corners, SVG stroke caps, the whole prose/reading-chrome size scale, editor focus-ring suppression, code-block padding alignment, autofill (via two per-theme variables). |
-| `src/outis-mneme-theme.css` _(trimmed)_           | Dark palette + dark-only colour rules only.                                                                                                                                                                                                                                                                                |
+| `src/outis-theme-shared.css` _(new)_              | Hue-free rules for **both** themes, selected by `html:is(.outis-dark, .outis-light)`: JetBrains Mono, radius flattening, `rounded-full`, sonner corners, SVG stroke caps, the whole prose/reading-chrome size scale, editor focus-ring suppression, code-block padding alignment, autofill (via two per-theme variables). |
+| `src/outis-dark-theme.css` _(trimmed)_           | Dark palette + dark-only colour rules only.                                                                                                                                                                                                                                                                                |
 | `src/outis-light-theme.css` _(new)_               | Light palette + light-only colour rules.                                                                                                                                                                                                                                                                                   |
 | `src/lib/codemirror-outis-light-theme.ts` _(new)_ | The light CodeMirror theme + highlight style.                                                                                                                                                                                                                                                                              |
-| `src/lib/codemirror-outis-theme.ts` _(new)_       | `outisEditorTheme()` — returns the extension array matching the classes currently on `<html>`. Replaces the `isDark ? outisMneme : []` ternary duplicated across 4 editor components.                                                                                                                                      |
+| `src/lib/codemirror-outis-theme.ts` _(new)_       | `outisEditorTheme()` — returns the extension array matching the classes currently on `<html>`. Replaces the `isDark ? outisDark : []` ternary duplicated across 4 editor components.                                                                                                                                      |
 
-`:is()` takes the specificity of its most specific argument, so `html:is(.outis-mneme, .outis-light) .x`
-has exactly the specificity `html.outis-mneme .x` had. Nothing in the mneme theme changes weight.
+`:is()` takes the specificity of its most specific argument, so `html:is(.outis-dark, .outis-light) .x`
+has exactly the specificity `html.outis-dark .x` had. Nothing in the mneme theme changes weight.
 The shared file is imported **before** both palettes so a palette can still win a tie.
 
 ## Token mapping
@@ -113,10 +113,10 @@ Contrast on paper: 1.08 / 1.17 / 1.29 / 1.53 / 1.99 / 2.68 / **5.29** / **7.94**
 `500` is anchored at **4.70:1** on paper — the AA floor for the links, focus rings and
 `bg-blue-500 text-white` badges that use it — and `500 → 950` is an even OKLCH lightness ramp
 (ΔL ≈ 0.062/step) with chroma tapering alongside, the same correction
-`OUTIS_MNEME_CONSISTENCY_SPEC.md` Finding 2 applied to the dark ramp. `600` (6.20:1) carries
+`OUTIS_DARK_CONSISTENCY_SPEC.md` Finding 2 applied to the dark ramp. `600` (6.20:1) carries
 hover states and filled buttons.
 
-Unlike `outis-mneme`, `bg-blue-500 text-white` needs **no** override here: paper text on
+Unlike `outis-dark`, `bg-blue-500 text-white` needs **no** override here: paper text on
 `#008350` is 4.70:1. The mneme rule that flips that pairing to dark text is dark-only and is
 staying in the mneme file.
 
@@ -201,13 +201,13 @@ These have no mneme equivalent — they exist because base (non-`dark:`) utiliti
 
 ## Integration points
 
-Every place `outis-mneme` is registered gets an `outis-light` sibling. The class list applied is
+Every place `outis-dark` is registered gets an `outis-light` sibling. The class list applied is
 `light outis-light` (no `dark`).
 
 1. `src/app.html` — the pre-boot FOUC guard: an `else if (localStorage.theme === 'outis-light')`
    branch adding `light outis-light`, clearing the four inline `--color-gray-*` properties that
-   `dark`/`oled-dark`/`outis-mneme` may have left behind, and setting `meta[theme-color]` to
-   `#fafdfc`. The default stays `outis-mneme`.
+   `dark`/`oled-dark`/`outis-dark` may have left behind, and setting `meta[theme-color]` to
+   `#fafdfc`. The default stays `outis-dark`.
 2. `src/lib/components/chat/Settings/General.svelte` — `themes` array, the `themeToApply`
    ternary (`'light outis-light'`), the `meta[theme-color]` ternary, the inline-property block,
    and a `<option value="outis-light">` in the dropdown.
@@ -215,16 +215,16 @@ Every place `outis-mneme` is registered gets an `outis-light` sibling. The class
    handler, plus `import '../outis-theme-shared.css'` and `import '../outis-light-theme.css'`.
 4. The four CodeMirror hosts — `common/CodeEditor.svelte`, `chat/FileNav/CellEditor.svelte`,
    `chat/FileNav/FileCodeEditor.svelte`, `chat/Messages/OutputEditView.svelte` — switch from
-   `isDark ? outisMneme : []` to the shared `outisEditorTheme()` helper.
+   `isDark ? outisDark : []` to the shared `outisEditorTheme()` helper.
 
 ### Inline-style hazard
 
-`oled-dark` and `outis-mneme` set `--color-gray-800/850/900/950` as **inline** properties on
+`oled-dark` and `outis-dark` set `--color-gray-800/850/900/950` as **inline** properties on
 `<html>`, and inline style beats any class selector. A theme that only adds a class inherits
-whatever the previous theme left inline. `outis-mneme` handles this by setting its own four
+whatever the previous theme left inline. `outis-dark` handles this by setting its own four
 values inline; `outis-light` instead **removes** all four properties at each of the three switch
 sites, so its stylesheet's own `--color-gray-*` values apply with nothing overriding them.
-See `OUTIS_MNEME_THEME_SPEC.md` § "Inline-style hazard".
+See `OUTIS_DARK_THEME_SPEC.md` § "Inline-style hazard".
 
 ## Found during implementation (now fixed)
 
@@ -236,11 +236,11 @@ browser rather than by reading the CSS.
 `app.css` writes the a11y focus ring as `outline: 2px solid theme(--color-blue-500)`. Tailwind
 v4's `theme()` _function_ resolves at build time to a literal: the compiled CSS reads
 `outline: 2px solid oklch(62.3% .214 259.815)`. Unlike every `var(--color-*)` reference in the
-app, it does not follow a theme's override — so `outis-mneme` has been painting a stock-blue ring
+app, it does not follow a theme's override — so `outis-dark` has been painting a stock-blue ring
 on every focused button, link and menu item since it shipped, the one piece of interactive chrome
 outside its accent hue. Fixed in `outis-theme-shared.css` by re-pointing `outline-color` only, so
 app.css keeps its width, offset, and its deliberate high-contrast ring on editors. Verified by
-keyboard: the ring is now `#008350` on Outis-Light and `#2dff8f` on Outis-Mneme.
+keyboard: the ring is now `#008350` on Outis-Light and `#2dff8f` on Outis-Dark.
 
 ### The Outis mark is drawn in the dark theme's accent
 
@@ -262,10 +262,10 @@ message, `Switch`'s ON state, SyncStatsModal's progress bar, and ModelEditor's a
 14 bare `bg-gray-900` usages are filled controls, never panels, so both idioms are re-skinned
 together and a filled control means one thing across the theme.
 
-`outis-mneme` has the mirrored gap: its `dark:bg-gray-100` / `dark:bg-gray-200` half is still
+`outis-dark` has the mirrored gap: its `dark:bg-gray-100` / `dark:bg-gray-200` half is still
 stock, so Save & Create renders pale mint there while its other CTAs render accent. Left alone
 rather than changing the dark theme's appearance as a side effect of adding a light one —
-**a follow-up if you want the two idioms unified in Outis-Mneme too.**
+**a follow-up if you want the two idioms unified in Outis-Dark too.**
 
 ## The face, and switching it
 
@@ -386,7 +386,7 @@ image. `DejaVu Sans Mono` is the closest available without that.
 
 ## Non-goals
 
-- Changing the default theme. `outis-mneme` stays default; `outis-light` is opt-in.
+- Changing the default theme. `outis-dark` stays default; `outis-light` is opt-in.
 - A light `high-contrast` variant. `app.css`'s existing `html.high-contrast:not(.dark)` rules
   already apply, and the shared focus-ring suppression yields to them via `:not(.high-contrast)`
   exactly as it does for mneme.
@@ -398,9 +398,9 @@ image. `DejaVu Sans Mono` is the closest available without that.
 
 1. Settings → General → Theme lists **Outis-Light**; selecting it re-skins the app immediately,
    and the choice survives a reload with no white flash on first paint.
-2. Switching Outis-Mneme → Outis-Light → OLED Dark → Outis-Light in sequence leaves no stale
+2. Switching Outis-Dark → Outis-Light → OLED Dark → Outis-Light in sequence leaves no stale
    inline `--color-gray-*` values (verified by reading `document.documentElement.style`).
-3. `outis-mneme` renders identically before and after the shared-file extraction.
+3. `outis-dark` renders identically before and after the shared-file extraction.
 4. Body text on paper measures ≥ 8:1; links, focus rings and accent badges ≥ 4.5:1; every code
    token ≥ 4:1 with the four syntax hues within 0.1 of each other.
 5. A code block does not change colour when a streaming response finishes (highlight.js and
@@ -416,9 +416,9 @@ Driven against a production `npm run build`, served with a stub backend, in head
 
 | Check                                                 | Result                                                                                                                                                                                                                                                                                                                                                                 |
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Acceptance 1 — theme listed, applies, survives reload | Dropdown reads `⚙️ System / 🌑 Dark / 🌃 OLED Dark / 🟢 Outis-Mneme / 🟩 Outis-Light / ☀️ Light`; `<html class="light outis-light">`, body `#fafdfc`, meta theme-color `#fafdfc`, applied pre-boot with no flash                                                                                                                                                       |
-| Acceptance 2 — no stale inline properties             | Outis-Mneme → Outis-Light → OLED Dark → Outis-Light → Dark → Outis-Light through the real Settings dropdown; on every Outis-Light step `documentElement.style` holds only the app's own `--sidebar-width` / `--app-text-scale`                                                                                                                                         |
-| Acceptance 3 — Outis-Mneme unchanged                  | Rule-level diff of the split: every rule byte-identical apart from the three intended renames. Screenshots of the chat home and the CodeMirror tools editor, before vs. after, **byte-identical PNGs**                                                                                                                                                                 |
+| Acceptance 1 — theme listed, applies, survives reload | Dropdown reads `⚙️ System / 🌑 Dark / 🌃 OLED Dark / 🟢 Outis-Dark / 🟩 Outis-Light / ☀️ Light`; `<html class="light outis-light">`, body `#fafdfc`, meta theme-color `#fafdfc`, applied pre-boot with no flash                                                                                                                                                       |
+| Acceptance 2 — no stale inline properties             | Outis-Dark → Outis-Light → OLED Dark → Outis-Light → Dark → Outis-Light through the real Settings dropdown; on every Outis-Light step `documentElement.style` holds only the app's own `--sidebar-width` / `--app-text-scale`                                                                                                                                         |
+| Acceptance 3 — Outis-Dark unchanged                  | Rule-level diff of the split: every rule byte-identical apart from the three intended renames. Screenshots of the chat home and the CodeMirror tools editor, before vs. after, **byte-identical PNGs**                                                                                                                                                                 |
 | Acceptance 4 — contrast                               | Body 8.38:1, headings 10.46:1, links 5.64:1, accent-500 4.70:1, syntax ring 7.01–7.03:1 (0.02 spread), comments 4.05:1                                                                                                                                                                                                                                                 |
 | Acceptance 5 — no recolour when streaming ends        | highlight.js and CodeMirror share one palette; chrome, spacer and collapsed body all resolve to `rgb(239,245,242)` against CodeBlock's real DOM shape, in both themes                                                                                                                                                                                                  |
 | Acceptance 6 — corners, font, accent                  | `border-radius: 0px`, `JetBrains Mono`, primary CTA `rgb(0,110,67)` on paper text, focus ring `rgb(0,131,80)`                                                                                                                                                                                                                                                          |

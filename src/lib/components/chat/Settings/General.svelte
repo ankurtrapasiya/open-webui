@@ -17,8 +17,8 @@
 	export let getModels: Function;
 
 	// General
-	let themes = ['dark', 'light', 'oled-dark', 'outis-mneme', 'outis-light'];
-	let selectedTheme = 'outis-mneme';
+	let themes = ['dark', 'light', 'oled-dark', 'outis-dark', 'outis-light'];
+	let selectedTheme = 'outis-dark';
 
 	// The face the Outis themes render in. Stored separately from the theme
 	// because it is orthogonal to it -- either theme can wear any of these --
@@ -127,7 +127,7 @@
 	};
 
 	onMount(async () => {
-		selectedTheme = localStorage.theme ?? 'outis-mneme';
+		selectedTheme = localStorage.theme ?? 'outis-dark';
 		selectedFont = localStorage.outisFont ?? 'ibm-plex-mono';
 
 		languages = await getLanguages();
@@ -148,8 +148,8 @@
 				? 'dark'
 				: _theme === 'her'
 					? 'light'
-					: _theme === 'outis-mneme'
-						? 'dark outis-mneme'
+					: _theme === 'outis-dark'
+						? 'dark outis-dark'
 						: _theme === 'outis-light'
 							? 'light outis-light'
 							: _theme;
@@ -195,7 +195,7 @@
 							? '#000000'
 							: _theme === 'her'
 								? '#983724'
-								: _theme === 'outis-mneme'
+								: _theme === 'outis-dark'
 									? '#090d0c'
 									: _theme === 'outis-light'
 										? '#fafdfc'
@@ -216,15 +216,15 @@
 			document.documentElement.classList.add('dark');
 		}
 
-		if (_theme === 'outis-mneme') {
-			// Explicit setProperty (not just the html.outis-mneme CSS rule) because inline
+		if (_theme === 'outis-dark') {
+			// Explicit setProperty (not just the html.outis-dark CSS rule) because inline
 			// style always beats a class selector — without this, switching from
 			// Dark/OLED Dark would leave their inline overrides in place.
 			document.documentElement.style.setProperty('--color-gray-800', '#1a2823');
 			document.documentElement.style.setProperty('--color-gray-850', '#141c19');
 			document.documentElement.style.setProperty('--color-gray-900', '#0f1512');
 			document.documentElement.style.setProperty('--color-gray-950', '#090d0c');
-			document.documentElement.classList.add('dark', 'outis-mneme');
+			document.documentElement.classList.add('dark', 'outis-dark');
 		}
 
 		if (_theme === 'outis-light') {
@@ -277,7 +277,7 @@
 					<option value="system">⚙️ {$i18n.t('System')}</option>
 					<option value="dark">🌑 {$i18n.t('Dark')}</option>
 					<option value="oled-dark">🌃 {$i18n.t('OLED Dark')}</option>
-					<option value="outis-mneme">🟢 Outis-Mneme</option>
+					<option value="outis-dark">🟢 Outis-Dark</option>
 					<option value="outis-light">🟩 Outis-Light</option>
 					<option value="light">☀️ {$i18n.t('Light')}</option>
 					{#if $config?.features?.enable_easter_eggs}
@@ -286,7 +286,7 @@
 				</SettingsSelect>
 			</UserSettingRow>
 
-			{#if selectedTheme === 'outis-mneme' || selectedTheme === 'outis-light'}
+			{#if selectedTheme === 'outis-dark' || selectedTheme === 'outis-light'}
 				<UserSettingRow
 					label={$i18n.t('Font')}
 					description={$i18n.t('Choose the typeface the Outis themes render in.')}

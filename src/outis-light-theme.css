@@ -3,7 +3,7 @@
  *
  * The light half of the Outis identity. Colour only: the typeface, flat
  * corners, reading-size scale and focus behaviour are shared with
- * outis-mneme and live in outis-theme-shared.css.
+ * outis-dark and live in outis-theme-shared.css.
  *
  * Scoped to `html.outis-light`, which the theme switcher adds alongside
  * `light` (not `dark` — see app.html / General.svelte / +layout.svelte).
@@ -13,11 +13,11 @@
  * Typography resolves `--tw-prose-*` instead of `--tw-prose-invert-*`, and
  * `bg-white` stops being a scrim and becomes the app's ground.
  *
- * Design note. outis-mneme is a phosphor tube: light is emitted, so the
+ * Design note. outis-dark is a phosphor tube: light is emitted, so the
  * ground is near-black and every colour glows on top of it. Inverting that
  * literally would be unreadable, so this theme takes the other half of the
  * same lineage — ink on paper, the line-printer page. Same green-tinted
- * hue family (OKLCH H162), read from the other end: outis-mneme's darkest
+ * hue family (OKLCH H162), read from the other end: outis-dark's darkest
  * surface (#0f1512) is almost exactly this theme's darkest ink (#0e1913).
  * The paper is deliberately cool rather than cream, so a screenshot of
  * either theme is obviously the same product.
@@ -46,7 +46,7 @@ html.outis-light {
 
 	/* The paper, and the ink.
 
-	   outis-mneme deliberately does NOT override --color-white: in dark mode
+	   outis-dark deliberately does NOT override --color-white: in dark mode
 	   `bg-white` is a scrim and `text-white` is a one-off contrast fix, so a
 	   blanket override there is all risk and no payoff. In light mode the
 	   opposite holds — `bg-white` (118 usages) is the app's ground, and
@@ -58,17 +58,17 @@ html.outis-light {
 
 	/* Accent (H158). Blue is the interactive/focus/link colour throughout the
 	   app and green is already "positive", so both map to one scale and the
-	   whole app reads as a single accent hue — same rule as outis-mneme, one
+	   whole app reads as a single accent hue — same rule as outis-dark, one
 	   ramp rebuilt for a light ground.
 
 	   500 is anchored at 4.70:1 on the paper: the AA floor for the links,
 	   focus rings and `bg-blue-500 text-white` badges that use it. 500 -> 950
 	   is an even OKLCH lightness ramp (ΔL ≈ 0.062/step) with chroma tapering
-	   alongside, the correction OUTIS_MNEME_CONSISTENCY_SPEC.md Finding 2
+	   alongside, the correction OUTIS_DARK_CONSISTENCY_SPEC.md Finding 2
 	   applied to the dark ramp. 600 (6.20:1) carries hover states and filled
 	   buttons.
 
-	   Note this theme needs no equivalent of outis-mneme's
+	   Note this theme needs no equivalent of outis-dark's
 	   `bg-blue-500 text-white` override: paper text on #008350 is 4.70:1, so
 	   that pairing is already correct here. */
 	--color-blue-50: #e6fcee;
@@ -112,7 +112,7 @@ html.outis-light {
 
 /* app.css's `body { background: #fff; color: #000 }` is a hardcoded literal,
    not a `var(--color-*)` reference like everything else — the light-mode
-   twin of the `.dark body` rule outis-mneme overrides for the same reason.
+   twin of the `.dark body` rule outis-dark overrides for the same reason.
    Override it directly rather than relying on custom-property cascade. */
 html.outis-light body {
 	background: #fafdfc;
@@ -135,14 +135,14 @@ html.outis-light body {
    control, never a panel: `bg-gray-900` is a near-black, and light mode has
    no reason to paint a surface with it.
 
-   outis-mneme re-skins the dark half of the first pattern onto the accent so
+   outis-dark re-skins the dark half of the first pattern onto the accent so
    a primary CTA reads as *the* accent colour rather than an unthemed
    white/black pair. This does the same for the light half of both, so a
    filled control means one thing across the whole theme, and matches what
-   the same control looks like in outis-mneme. blue-600 holds paper text at
+   the same control looks like in outis-dark. blue-600 holds paper text at
    6.20:1 and `text-gray-100` at 5.6:1; the hover partners step to blue-700.
 
-   (outis-mneme covers only the first pattern -- its `dark:bg-gray-100` /
+   (outis-dark covers only the first pattern -- its `dark:bg-gray-100` /
    `dark:bg-gray-200` half is still stock, so Save & Create renders pale mint
    there while other CTAs render accent. Same gap, mirrored; left alone here
    rather than changing the dark theme's appearance as a side effect of
@@ -181,11 +181,11 @@ html.outis-light ::selection {
 /* ---------------------------------------------------------------------
  * The reading area's color system
  *
- * The light-mode mirror of outis-mneme's prose ladder. Tailwind Typography
+ * The light-mode mirror of outis-dark's prose ladder. Tailwind Typography
  * hardcodes literal colors for every role but exposes each as a
  * --tw-prose-* custom property, so this is a set of variable swaps rather
  * than per-element restyling. Without `dark`, it is these properties that
- * resolve rather than the --tw-prose-invert-* ones outis-mneme sets.
+ * resolve rather than the --tw-prose-invert-* ones outis-dark sets.
  *
  * Same role order as the dark theme, lightness flipped — headings carry
  * the most contrast, then bold, then body, then the quiet roles:
@@ -232,7 +232,7 @@ html.outis-light .input-prose-sm {
    reads as ordinary prose. Given a real rule, and the same colour the code
    blocks use for identifiers, so a snippet in a sentence and a snippet in a
    block match. Its ground is one step off the block's own, the mirror of
-   what outis-mneme does. `:not(pre) > code` keeps this off fenced blocks,
+   what outis-dark does. `:not(pre) > code` keeps this off fenced blocks,
    which CodeMirror and highlight.js own. */
 html.outis-light .markdown-prose :not(pre) > code,
 html.outis-light .markdown-prose-sm :not(pre) > code,
@@ -356,7 +356,7 @@ html.outis-light .hljs-strong {
    all carry the same `bg-white` utility, so one rule covers the set — and
    covers any future one. Scoped by the `language-*` container
    CodeBlock.svelte wraps the code in, so it can't reach any other
-   `bg-white` in the app. (outis-mneme does the same for `dark:bg-black`.) */
+   `bg-white` in the app. (outis-dark does the same for `dark:bg-black`.) */
 html.outis-light div:has(> div[class*='language-']) [class~='bg-white'] {
 	background-color: #eff5f2;
 }

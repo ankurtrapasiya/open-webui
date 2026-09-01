@@ -1,4 +1,4 @@
-# Outis-Mneme Theme — Spec
+# Outis-Dark Theme — Spec
 
 A new selectable UI theme: a dark, green-accented, monospace, flat-cornered "terminal" look,
 added as an option alongside the existing `dark` / `oled-dark` / `light` / `her` themes — not a
@@ -6,7 +6,7 @@ replacement for them.
 
 ## Goal
 
-Add an `outis-mneme` theme option that a user can pick from Settings → General → Theme, same as
+Add an `outis-dark` theme option that a user can pick from Settings → General → Theme, same as
 any built-in theme. Selecting it should re-skin the whole app (colors, corner radius, base font)
 without touching the ~800 Svelte component files that reference Tailwind utility classes like
 `bg-gray-900`, `text-blue-500`, `rounded-lg`, etc.
@@ -34,7 +34,7 @@ The codebase already proves this pattern works: the built-in `oled-dark` theme i
 overriding 4 of the gray steps (`--color-gray-800/850/900/950`) via inline
 `style.setProperty()` calls at theme-switch time (see `src/app.html`, `General.svelte`,
 `+layout.svelte`). This spec extends that same mechanism — override more of the palette, via a
-proper CSS file instead of inline JS, scoped to a new `html.outis-mneme` class.
+proper CSS file instead of inline JS, scoped to a new `html.outis-dark` class.
 
 ## Scope
 
@@ -58,7 +58,7 @@ proper CSS file instead of inline JS, scoped to a new `html.outis-mneme` class.
   one-off contrast fixes (badge text, overlay scrims) unrelated to the theme scale; blanket
   override risk is high for low visual payoff. Spot-fix individually later if specific elements
   look wrong.
-- Splash screen (`html.her` has bespoke splash-screen CSS in `app.html`; `outis-mneme` does not,
+- Splash screen (`html.her` has bespoke splash-screen CSS in `app.html`; `outis-dark` does not,
   it reuses the existing dark splash) and favicon/meta theme-color art.
 - Per-component structural changes (e.g. an actual sidebar-nav-with-badges layout swap). This
   pass is a **palette + corner + font reskin** of the existing layout, not a layout rebuild.
@@ -81,7 +81,7 @@ surface `#0f1512`, card `#141c19`, border `#1a2823`, accent `#2dff8f`, muted `#4
 
 `gray-850` (an Open WebUI-specific extra step between 800/900, used for `oled-dark`'s own
 overrides) is left as Tailwind computes it from the surrounding scale — not independently themed,
-since `outis-mneme` doesn't use the `oled-dark` code path.
+since `outis-dark` doesn't use the `oled-dark` code path.
 
 Font: `'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace` (loaded via Google Fonts
 `@import` in the new theme stylesheet — see Integration points below).
@@ -91,33 +91,33 @@ Font: `'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace` (loaded
 Exactly the three places `oled-dark` already touches, plus one new CSS file:
 
 1. **`src/app.html`** (inline boot script, avoids flash-of-wrong-theme) — add an `else if
-   (localStorage.theme === 'outis-mneme')` branch: add classes `dark outis-mneme` to
+   (localStorage.theme === 'outis-dark')` branch: add classes `dark outis-dark` to
    `documentElement`, set the meta theme-color to `#090d0c`. Also explicitly `setProperty()` the
    four `--color-gray-800/850/900/950` steps here (see "Inline-style hazard" below) so the values
    are correct even before the stylesheet's class rule would otherwise apply.
-2. **`src/lib/components/chat/Settings/General.svelte`** — add `'outis-mneme'` to the theme
+2. **`src/lib/components/chat/Settings/General.svelte`** — add `'outis-dark'` to the theme
    picker `<option>` list and to `applyTheme()`'s class bookkeeping (same shape as the
    `oled-dark` branch), plus the same explicit `setProperty()` calls as above.
 3. **`src/routes/+layout.svelte`** — mirror the same branch in the desktop-app `theme:update`
    event handler, for parity with the other two entry points (this file's comment literally says
    "mirrors logic from chat/Settings/General.svelte").
-4. **New file `src/outis-mneme-theme.css`**, imported once from `src/routes/+layout.svelte`
+4. **New file `src/outis-dark-theme.css`**, imported once from `src/routes/+layout.svelte`
    (alongside the existing `tailwind.css`/`app.css` imports) — the actual
-   `html.outis-mneme { --color-gray-50: ...; ...; font-family: ...; }` block from the token
+   `html.outis-dark { --color-gray-50: ...; ...; font-family: ...; }` block from the token
    mapping above, plus the radius-flattening block. One file, one place to tune later.
 
 No other file needs to change. Every Svelte component keeps its existing `bg-gray-900
 dark:text-white rounded-lg` etc. classes exactly as-is; they just resolve to different values
-when `html.outis-mneme` is the active scope.
+when `html.outis-dark` is the active scope.
 
 ### Inline-style hazard (why step 1/2 also set properties via JS, not just CSS)
 
 `dark` and `oled-dark` both set `--color-gray-800/850/900/950` via **inline style** on
 `documentElement` (`style.setProperty(...)`), which has higher CSS specificity than any class
-selector. If a user selects "Dark" or "OLED Dark" first and then switches to "Outis-Mneme", those
+selector. If a user selects "Dark" or "OLED Dark" first and then switches to "Outis-Dark", those
 four inline-set properties would persist and silently override the same four properties defined
-in `html.outis-mneme { ... }`, since inline style always wins over a stylesheet rule regardless of
-selector specificity. Fix: the `outis-mneme` branch explicitly calls `setProperty()` for those
+in `html.outis-dark { ... }`, since inline style always wins over a stylesheet rule regardless of
+selector specificity. Fix: the `outis-dark` branch explicitly calls `setProperty()` for those
 same four steps with its own values, exactly like `oled-dark` already does — this guarantees
 correctness regardless of which theme was active immediately before.
 
@@ -127,14 +127,14 @@ correctness regardless of which theme was active immediately before.
 background: #fff; color: #000 } .dark body { background: #171717; color: #eee }` is a hardcoded
 literal color, not a variable reference. Confirmed via `getComputedStyle` during local testing —
 every other surface picked up the theme correctly, but `document.body`'s own background stayed at
-Tailwind's stock `#171717` regardless of the `html.outis-mneme` override. Fixed with a direct
-`html.outis-mneme body { background: #090d0c; color: #d4ede2 }` rule (specificity naturally wins
+Tailwind's stock `#171717` regardless of the `html.outis-dark` override. Fixed with a direct
+`html.outis-dark body { background: #090d0c; color: #d4ede2 }` rule (specificity naturally wins
 over `.dark body`, no `!important` needed).
 
 ### `--font-sans` / `--font-mono` tokens (found during testing, now fixed)
 
 The user-menu dropdown (and likely other components using the same pattern) rendered in Inter
-instead of JetBrains Mono, despite the `html.outis-mneme` rule setting `font-family` directly.
+instead of JetBrains Mono, despite the `html.outis-dark` rule setting `font-family` directly.
 Root cause: that dropdown's wrapper has an explicit Tailwind `font-sans` utility class, which
 resolves through `var(--font-sans)` — a *different* token than the one we set. Components that
 just inherit typography pick up the `html`-level `font-family`; components that explicitly opt
@@ -151,7 +151,7 @@ arbitrary value in `app.css`) read noticeably larger once switched to JetBrains 
 the nominal size didn't change. Monospace faces generally read bigger/wider than a proportional
 face like Inter at the same rem value — fixed-width glyphs and a taller x-height take up more
 visual room. Sized down to `0.75rem`/12px specifically for `.markdown-prose` under
-`html.outis-mneme` (needs `!important` to beat the `!text-[0.9375rem]` it's overriding) — an
+`html.outis-dark` (needs `!important` to beat the `!text-[0.9375rem]` it's overriding) — an
 intermediate `0.8125rem`/13px pass still read too big in live use, 12px matched the reading
 density most monospace-first terminal/dashboard UIs settle on. Scoped to the reading area only — not a change to the
 font-size scale generally.
@@ -178,7 +178,7 @@ accent color, everything else muted" approach — reported as visually loud/eye-
 via `StyleModule`, which assigns each style a hashed, per-instance class name — there's no stable
 selector to target from outside. The only real fix is supplying a different `HighlightStyle`.
 
-Added `src/lib/codemirror-outis-mneme-theme.ts` — same structure as `oneDark`'s source
+Added `src/lib/codemirror-outis-dark-theme.ts` — same structure as `oneDark`'s source
 (`node_modules/@codemirror/theme-one-dark/dist/index.js`: an `EditorView.theme()` for chrome +
 a `HighlightStyle.define([...])` mapping `@lezer/highlight` tags to colors), recolored to the
 theme's actual palette:
@@ -193,7 +193,7 @@ theme's actual palette:
   as the rest of the app, not oneDark's separate `#282c34`/`#21252b`/etc. palette
 
 All 4 import sites swapped `import { oneDark } from '@codemirror/theme-one-dark'` for
-`import { outisMneme } from '$lib/codemirror-outis-mneme-theme'` and renamed the local usages —
+`import { outisDark } from '$lib/codemirror-outis-dark-theme'` and renamed the local usages —
 otherwise unchanged (same conditional dark-mode wiring). Verified live at `/workspace/tools/create`
 (the built-in Python tool editor, reachable without a model connection) — keywords read as a single
 calm green against near-white identifiers, no rainbow.
@@ -201,20 +201,20 @@ calm green against near-white identifiers, no rainbow.
 ## Testing plan
 
 1. `npm install` (fresh checkout, no `node_modules` yet), `npm run dev`.
-2. Confirm the theme dropdown lists "Outis-Mneme" and selecting it doesn't throw.
+2. Confirm the theme dropdown lists "Outis-Dark" and selecting it doesn't throw.
 3. Visual pass over: chat view (message bubbles, input bar, model selector), sidebar (nav, chat
    list, buttons), Settings modal (tabs, inputs, toggles), a modal/dialog (rounded corners should
    read as flat), any visible focus rings/links (should read green, not blue).
-4. Switch **Dark → Outis-Mneme** and **OLED Dark → Outis-Mneme** specifically — confirms the
+4. Switch **Dark → Outis-Dark** and **OLED Dark → Outis-Dark** specifically — confirms the
    inline-style hazard above is actually handled, not just working by accident on first load.
 5. Confirm `dark`/`oled-dark`/`light`/`her`/`system` still work unmodified — this is an addition,
    not a replacement, so regressing the existing themes is the one thing that must not happen.
-6. Reload the page after selecting Outis-Mneme — confirm no flash of the wrong theme (the
+6. Reload the page after selecting Outis-Dark — confirm no flash of the wrong theme (the
    `app.html` boot script is what prevents this).
 
 ## Default theme
 
-Outis-Mneme is the default for anyone without a stored preference — signed in or not, admin or
+Outis-Dark is the default for anyone without a stored preference — signed in or not, admin or
 not. The theme is a browser-local `localStorage.theme` value with no server-side counterpart, so
 "new user" here means "browser with no stored preference"; the same person on a second machine
 gets the default again.
@@ -231,14 +231,14 @@ Verified by booting each stored value and reading back the applied state:
 
 | `localStorage.theme` | html classes | meta theme-color |
 |---|---|---|
-| *(unset — new user)* | `dark outis-mneme` | `#090d0c` |
+| *(unset — new user)* | `dark outis-dark` | `#090d0c` |
 | `light` | `light` | `#ffffff` |
 | `system` | `light` / `dark` per OS | per OS |
 | `oled-dark` | `dark` + `--color-gray-900: #000000` | `#000000` |
 
 ## Acceptance
 
-Selecting "Outis-Mneme" from Settings turns the whole app dark-near-black with a single green
+Selecting "Outis-Dark" from Settings turns the whole app dark-near-black with a single green
 accent, flat (non-rounded) corners everywhere except genuine circles (avatars, dots,
 circular icon buttons), and a monospace UI font — while every other theme option continues to
 work exactly as it did before this change.
@@ -246,24 +246,24 @@ work exactly as it did before this change.
 ## Running the prebuilt image
 
 The theme ships as a container image so it can be tried without a local build.
-`.github/workflows/docker-outis-mneme.yaml` publishes it on every push to `theme/outis-mneme`, or
+`.github/workflows/docker-outis-dark.yaml` publishes it on every push to `theme/outis-dark`, or
 on demand via workflow dispatch.
 
 ```bash
 docker run -d -p 3000:8080 \
   -v open-webui:/app/backend/data \
   --name open-webui \
-  ghcr.io/ankurtrapasiya/open-webui:outis-mneme
+  ghcr.io/ankurtrapasiya/open-webui:outis-dark
 ```
 
-Then open http://localhost:3000. Outis-Mneme is this build's default theme, so it applies
+Then open http://localhost:3000. Outis-Dark is this build's default theme, so it applies
 immediately — no need to select anything. Every other theme is still available and unchanged in
 Settings → General → Theme.
 
 Tags:
 
-- `outis-mneme` — the newest build of the theme branch. Moves.
-- `outis-mneme-<short-sha>` — one specific commit. Never moves; use this to pin.
+- `outis-dark` — the newest build of the theme branch. Moves.
+- `outis-dark-<short-sha>` — one specific commit. Never moves; use this to pin.
 
 Built for `linux/amd64` and `linux/arm64`. This is the standard variant only; the CUDA, Ollama and
 slim variants are unchanged by this branch, so pull those from upstream
