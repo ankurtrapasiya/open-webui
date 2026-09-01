@@ -6,6 +6,9 @@
  * focus behaviour. Only colour differs between the two, and colour lives in
  * outis-mneme-theme.css / outis-light-theme.css.
  *
+ * The face itself is one variable, --outis-font, so Settings -> General can
+ * switch it at runtime and both themes follow.
+ *
  * Splitting it this way is not tidiness for its own sake: the second theme
  * would otherwise carry a verbatim copy of ~120 lines of size and radius
  * rules, and the one bug this theme has already shipped twice
@@ -20,7 +23,7 @@
  * See OUTIS_MNEME_THEME_SPEC.md and OUTIS_LIGHT_THEME_SPEC.md.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Martian+Mono:wght@400;500;700&family=Azeret+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 
 html:is(.outis-mneme, .outis-light) {
 	/* Flat corners everywhere the radius scale reaches. */
@@ -34,12 +37,23 @@ html:is(.outis-mneme, .outis-light) {
 	--radius-4xl: 0px;
 	--radius: 0px;
 
-	font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	/* The face. One variable so a change lands in a single place -- and so
+	   the picker in Settings -> General can switch it at runtime by
+	   stamping `data-outis-font` on <html>, the same shape the theme
+	   switcher already uses. IBM Plex Mono is the default: IBM commissioned
+	   it as the successor to its own corporate type, so the mainframe
+	   lineage is literal, and its humanist warmth suits the ink-on-paper
+	   half of the system. */
+	--outis-font: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-	/* JetBrains Mono reads ~20% larger than Inter at an equal rem size (fixed
-	   width, taller x-height) -- validated live on .markdown-prose (15px felt
-	   right sized down to 12px). One shared ratio, applied to every
-	   reading-density class below instead of re-deriving it per class. */
+	font-family: var(--outis-font);
+
+	/* A monospace face reads ~20% larger than Inter at an equal rem size
+	   (fixed width, taller x-height) -- validated live on .markdown-prose
+	   (15px felt right sized down to 12px). One shared ratio, applied to
+	   every reading-density class below instead of re-derived per class.
+	   Faces whose advance width differs from the 0.60em the default four
+	   share adjust it in their own block below. */
 	--outis-prose-scale: 0.8;
 
 	/* Tailwind's own --font-sans/--font-mono tokens — separate from the
@@ -47,12 +61,48 @@ html:is(.outis-mneme, .outis-light) {
 	   `font-sans`/`font-mono` utility class (menus, dropdowns, etc.) don't
 	   inherit the html-level font-family; they resolve through these
 	   instead. Found via a real dropdown menu still rendering in Inter. */
-	--font-sans: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-	--font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	--font-sans: var(--outis-font);
+	--font-mono: var(--outis-font);
+}
+
+/* Alternate faces. `data-outis-font` is stamped on <html> from
+   `localStorage.outisFont` -- in app.html before first paint, and by the
+   Font picker in Settings -> General. An unset attribute keeps the default
+   above, so the common case stores nothing.
+ 
+   The scale overrides are measured, not estimated: advance width per em is
+   0.60 for JetBrains Mono, IBM Plex Mono, Courier Prime and DM Mono, 0.61
+   for Space Mono, 0.65 for Azeret Mono and 0.70 for Martian Mono. The two
+   wide faces get 0.8 x (0.60 / their advance) so a line of prose holds
+   roughly the same number of characters whichever face is picked. */
+html:is(.outis-mneme, .outis-light)[data-outis-font='jetbrains-mono'] {
+	--outis-font: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html:is(.outis-mneme, .outis-light)[data-outis-font='courier-prime'] {
+	--outis-font: 'Courier Prime', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html:is(.outis-mneme, .outis-light)[data-outis-font='space-mono'] {
+	--outis-font: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html:is(.outis-mneme, .outis-light)[data-outis-font='dm-mono'] {
+	--outis-font: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html:is(.outis-mneme, .outis-light)[data-outis-font='azeret-mono'] {
+	--outis-font: 'Azeret Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	--outis-prose-scale: 0.74;
+}
+
+html:is(.outis-mneme, .outis-light)[data-outis-font='martian-mono'] {
+	--outis-font: 'Martian Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	--outis-prose-scale: 0.69;
 }
 
 html:is(.outis-mneme, .outis-light) pre {
-	font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-family: var(--outis-font);
 }
 
 /* The login/signup email+password inputs (and any other input a browser
