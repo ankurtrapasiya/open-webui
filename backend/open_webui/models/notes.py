@@ -31,6 +31,21 @@ class Note(Base):
     updated_at = Column(BigInteger)
 
 
+def normalize_folder(folder) -> Optional[str]:
+    """Folder paths are '/'-separated, no leading/trailing/empty segments. None means unfiled."""
+    if not isinstance(folder, str):
+        return None
+    parts = [p.strip() for p in folder.split('/')]
+    parts = [p for p in parts if p]
+    return '/'.join(parts) or None
+
+
+def folder_filter(stmt, folder: str):
+    """Restrict to notes whose meta.folder is `folder` or lives under it."""
+    expr = Note.meta['folder'].as_string()
+    return stmt.filter(or_(expr == folder, expr.like(folder + '/%')))
+
+
 def sanitize_note_data(data: Optional[dict]) -> Optional[dict]:
     """Sanitize malformed note.data so content.md is always markdown text."""
     if data is None:
@@ -179,6 +194,9 @@ class NoteTable:
                 }
             )
 
+            if note.meta and 'folder' in note.meta:
+                note.meta = {**note.meta, 'folder': normalize_folder(note.meta.get('folder'))}
+
             new_note = Note(**note.model_dump(exclude={'access_grants', 'is_pinned'}))
 
             db.add(new_note)
@@ -228,6 +246,10 @@ class NoteTable:
                                 ).ilike(f'%{word}%'),
                             )
                         )
+
+                folder = normalize_folder(filter.get('folder'))
+                if folder:
+                    stmt = folder_filter(stmt, folder)
 
                 view_option = filter.get('view_option')
                 if view_option == 'created':
@@ -304,6 +326,17 @@ class NoteTable:
 
             return NoteListResponse(items=notes, total=total)
 
+    async def get_folders(self, filter: dict, db: Optional[AsyncSession] = None) -> list[str]:
+        """Distinct meta.folder paths across notes the caller can read, sorted."""
+        async with get_async_db_context(db) as db:
+            expr = Note.meta['folder'].as_string()
+            stmt = select(expr).filter(expr.isnot(None), expr != '').distinct()
+            stmt = self._has_permission(db, stmt, filter, permission='read')
+            result = await db.execute(stmt)
+            folders = {normalize_folder(f) for f in result.scalars().all()}
+            folders.discard(None)
+            return sorted(folders)
+
     async def get_notes_by_user_id(
         self,
         user_id: str,
@@ -354,6 +387,8 @@ class NoteTable:
                 note.data = {**(note.data or {}), **(form_data['data'] or {})}
             if 'meta' in form_data:
                 note.meta = {**(note.meta or {}), **(form_data['meta'] or {})}
+                if 'folder' in note.meta:
+                    note.meta = {**note.meta, 'folder': normalize_folder(note.meta.get('folder'))}
 
             if not db.is_modified(note) and 'access_grants' not in form_data:
                 return await self._to_note_model(note, db=db)
