@@ -153,6 +153,7 @@ async def search_notes(
     permission: Optional[str] = None,
     order_by: Optional[str] = None,
     direction: Optional[str] = None,
+    folder: Optional[str] = None,
     page: Optional[int] = 1,
     user=Depends(get_verified_user),
     db: AsyncSession = Depends(get_async_session),
@@ -182,6 +183,8 @@ async def search_notes(
         filter['order_by'] = order_by
     if direction:
         filter['direction'] = direction
+    if folder:
+        filter['folder'] = folder
 
     if not user.role == 'admin' or not BYPASS_ADMIN_ACCESS_CONTROL:
         groups = await Groups.get_groups_by_member_id(user.id, db=db)
@@ -196,6 +199,37 @@ async def search_notes(
         note.is_pinned = note.id in pinned_note_ids
         note.data = _truncate_note_data(note.data)
     return result
+
+
+############################
+# GetNoteFolders
+############################
+
+
+@router.get('/folders', response_model=list[str])
+async def get_note_folders(
+    request: Request,
+    user=Depends(get_verified_user),
+    db: AsyncSession = Depends(get_async_session),
+):
+    """Every folder path (note.meta.folder) the caller can see. Folders are
+    implied by the notes in them; there is no folder table."""
+    if user.role != 'admin' and not await has_permission(
+        user.id, 'features.notes', await Config.get('user.permissions'), db=db
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ERROR_MESSAGES.UNAUTHORIZED,
+        )
+
+    filter = {}
+    if not user.role == 'admin' or not BYPASS_ADMIN_ACCESS_CONTROL:
+        groups = await Groups.get_groups_by_member_id(user.id, db=db)
+        if groups:
+            filter['group_ids'] = [group.id for group in groups]
+        filter['user_id'] = user.id
+
+    return await Notes.get_folders(filter, db=db)
 
 
 ############################

@@ -16,6 +16,7 @@ on:
   push:
     branches:
       - theme/outis-mneme
+      - feature/note-folders
 
 concurrency:
   group: outis-mneme-${{ github.ref }}
