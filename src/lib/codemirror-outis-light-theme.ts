@@ -1,5 +1,5 @@
 // Outis-Light CodeMirror theme — the light counterpart to
-// codemirror-outis-mneme-theme.ts.
+// codemirror-outis-dark-theme.ts.
 //
 // Light mode previously passed `[]` here, i.e. CodeMirror's stock light
 // theme, which is a different colour system from anything else in the app.
@@ -51,7 +51,7 @@ export const outisLightEditorTheme = /*@__PURE__*/ EditorView.theme(
 	{
 		// @codemirror/view's own baseTheme hardcodes .cm-editor { font-size: 14px },
 		// unrelated to anything in this theme -- but the reading area is 12px
-		// (OUTIS_MNEME_CONSISTENCY_SPEC.md Finding 1), so code would read visibly
+		// (OUTIS_DARK_CONSISTENCY_SPEC.md Finding 1), so code would read visibly
 		// larger than the text around it. Takes the reading area's own
 		// expression rather than a copy of its result, so code and prose stay
 		// the same size whatever --outis-prose-scale is set to.

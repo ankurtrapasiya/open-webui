@@ -50,7 +50,7 @@
 				const metaThemeColorTag = document.querySelector('meta[name="theme-color"]');
 				const prefersDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-				// Outis-Mneme is this build's default theme: anyone arriving without a
+				// Outis-Dark is this build's default theme: anyone arriving without a
 				// stored preference gets it, signed in or not. Upstream seeds 'system'
 				// here instead. This is the authoritative default — it runs before the
 				// app boots, so every other reader (the `theme` store, the Settings
@@ -58,7 +58,17 @@
 				// default means changing it here; the fallbacks elsewhere only exist for
 				// the case where localStorage is cleared mid-session.
 				if (!localStorage?.theme) {
-					localStorage.theme = 'outis-mneme';
+					localStorage.theme = 'outis-dark';
+				}
+
+				// The dark theme was called 'outis-mneme' until 2026-09-01. The value is
+				// stored per browser, so without this line every existing reader would
+				// hit the else-branch below and silently land on stock Dark, having
+				// changed nothing themselves. Rewriting the stored value rather than
+				// keeping an alias means this migration runs once per browser and the
+				// old name never has to be understood again.
+				if (localStorage.theme === 'outis-mneme') {
+					localStorage.theme = 'outis-dark';
 				}
 
 				// The face is a separate preference from the theme: it only means
@@ -79,19 +89,19 @@
 					document.documentElement.style.setProperty('--color-gray-950', '#000000');
 					document.documentElement.classList.add('dark');
 					metaThemeColorTag.setAttribute('content', '#000000');
-				} else if (localStorage.theme === 'outis-mneme') {
-					// Explicit setProperty (not just the html.outis-mneme CSS rule) because
+				} else if (localStorage.theme === 'outis-dark') {
+					// Explicit setProperty (not just the html.outis-dark CSS rule) because
 					// inline style always beats a class selector — without this, switching
 					// from Dark/OLED Dark would leave their inline overrides in place.
 					document.documentElement.style.setProperty('--color-gray-800', '#1a2823');
 					document.documentElement.style.setProperty('--color-gray-850', '#141c19');
 					document.documentElement.style.setProperty('--color-gray-900', '#0f1512');
 					document.documentElement.style.setProperty('--color-gray-950', '#090d0c');
-					document.documentElement.classList.add('dark', 'outis-mneme');
+					document.documentElement.classList.add('dark', 'outis-dark');
 					metaThemeColorTag.setAttribute('content', '#090d0c');
 				} else if (localStorage.theme === 'outis-light') {
 					// The dark themes set these four INLINE, and inline style beats any
-					// class selector -- so switching away from Dark/OLED Dark/Outis-Mneme
+					// class selector -- so switching away from Dark/OLED Dark/Outis-Dark
 					// would leave their near-black values sitting on top of this theme's
 					// own --color-gray-* rules. Clearing them is what lets the light
 					// palette apply. See OUTIS_LIGHT_THEME_SPEC.md, "Inline-style hazard".

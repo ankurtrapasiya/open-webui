@@ -1,10 +1,10 @@
 /*
  * Outis themes — shared, hue-free rules.
  *
- * Everything here is true of BOTH `outis-mneme` (dark) and `outis-light`
+ * Everything here is true of BOTH `outis-dark` (dark) and `outis-light`
  * (light): the typeface, the flat corners, the reading-size scale, the
  * focus behaviour. Only colour differs between the two, and colour lives in
- * outis-mneme-theme.css / outis-light-theme.css.
+ * outis-dark-theme.css / outis-light-theme.css.
  *
  * The face itself is one variable, --outis-font, so Settings -> General can
  * switch it at runtime and both themes follow.
@@ -12,20 +12,20 @@
  * Splitting it this way is not tidiness for its own sake: the second theme
  * would otherwise carry a verbatim copy of ~120 lines of size and radius
  * rules, and the one bug this theme has already shipped twice
- * (OUTIS_MNEME_CONSISTENCY_SPEC.md Findings 1 and 10) is exactly "a size was
+ * (OUTIS_DARK_CONSISTENCY_SPEC.md Findings 1 and 10) is exactly "a size was
  * fixed in one place and not the other."
  *
  * `:is()` takes the specificity of its most specific argument, so
- * `html:is(.outis-mneme, .outis-light) .x` weighs the same as the
- * `html.outis-mneme .x` these rules were written as. +layout.svelte imports
+ * `html:is(.outis-dark, .outis-light) .x` weighs the same as the
+ * `html.outis-dark .x` these rules were written as. +layout.svelte imports
  * this file BEFORE both palettes, so a palette still wins a tie.
  *
- * See OUTIS_MNEME_THEME_SPEC.md and OUTIS_LIGHT_THEME_SPEC.md.
+ * See OUTIS_DARK_THEME_SPEC.md and OUTIS_LIGHT_THEME_SPEC.md.
  */
 
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Martian+Mono:wght@400;500;700&family=Azeret+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 
-html:is(.outis-mneme, .outis-light) {
+html:is(.outis-dark, .outis-light) {
 	/* Flat corners everywhere the radius scale reaches. */
 	--radius-xs: 0px;
 	--radius-sm: 0px;
@@ -100,33 +100,33 @@ html:is(.outis-mneme, .outis-light) {
    for Space Mono, 0.65 for Azeret Mono and 0.70 for Martian Mono. The two
    wide faces get 0.8 x (0.60 / their advance) so a line of prose holds
    roughly the same number of characters whichever face is picked. */
-html:is(.outis-mneme, .outis-light)[data-outis-font='jetbrains-mono'] {
+html:is(.outis-dark, .outis-light)[data-outis-font='jetbrains-mono'] {
 	--outis-font: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html:is(.outis-mneme, .outis-light)[data-outis-font='courier-prime'] {
+html:is(.outis-dark, .outis-light)[data-outis-font='courier-prime'] {
 	--outis-font: 'Courier Prime', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html:is(.outis-mneme, .outis-light)[data-outis-font='space-mono'] {
+html:is(.outis-dark, .outis-light)[data-outis-font='space-mono'] {
 	--outis-font: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html:is(.outis-mneme, .outis-light)[data-outis-font='dm-mono'] {
+html:is(.outis-dark, .outis-light)[data-outis-font='dm-mono'] {
 	--outis-font: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html:is(.outis-mneme, .outis-light)[data-outis-font='azeret-mono'] {
+html:is(.outis-dark, .outis-light)[data-outis-font='azeret-mono'] {
 	--outis-font: 'Azeret Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 	--outis-prose-scale: 0.74;
 }
 
-html:is(.outis-mneme, .outis-light)[data-outis-font='martian-mono'] {
+html:is(.outis-dark, .outis-light)[data-outis-font='martian-mono'] {
 	--outis-font: 'Martian Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 	--outis-prose-scale: 0.69;
 }
 
-html:is(.outis-mneme, .outis-light) pre {
+html:is(.outis-dark, .outis-light) pre {
 	font-family: var(--outis-font);
 }
 
@@ -146,17 +146,17 @@ html:is(.outis-mneme, .outis-light) pre {
 
    The two colours are the one thing here that differs per theme, so they
    come in as variables each palette file sets. */
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill,
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill:hover,
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill:focus,
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill:active {
+html:is(.outis-dark, .outis-light) input:-webkit-autofill,
+html:is(.outis-dark, .outis-light) input:-webkit-autofill:hover,
+html:is(.outis-dark, .outis-light) input:-webkit-autofill:focus,
+html:is(.outis-dark, .outis-light) input:-webkit-autofill:active {
 	box-shadow: 0 0 0 1000px var(--outis-input-bg) inset !important;
 	-webkit-text-fill-color: var(--outis-input-fg) !important;
 	caret-color: var(--outis-input-fg);
 	transition: background-color 5000s ease-in-out 0s;
 }
 
-html:is(.outis-mneme, .outis-light) input:autofill {
+html:is(.outis-dark, .outis-light) input:autofill {
 	background-color: var(--outis-input-bg) !important;
 	color: var(--outis-input-fg) !important;
 }
@@ -169,7 +169,7 @@ html:is(.outis-mneme, .outis-light) input:autofill {
    One known gap: a single inline `border-radius: 50%` in a scoped
    <style> block (Message.svelte's swipe-reply icon) isn't reachable by a
    global class selector; low-traffic enough to leave for a follow-up. */
-html:is(.outis-mneme, .outis-light) .rounded-full {
+html:is(.outis-dark, .outis-light) .rounded-full {
 	border-radius: 0;
 }
 
@@ -178,16 +178,16 @@ html:is(.outis-mneme, .outis-light) .rounded-full {
    (a 4px action button, a 50% circular close button) -- none of it routes
    through Tailwind's --radius-* scale, so the flattening above never
    reached it. */
-html:is(.outis-mneme, .outis-light) [data-sonner-toaster] {
+html:is(.outis-dark, .outis-light) [data-sonner-toaster] {
 	--border-radius: 0px;
 }
 
-html:is(.outis-mneme, .outis-light) [data-sonner-toast] [data-button],
-html:is(.outis-mneme, .outis-light) [data-sonner-toast] [data-close-button] {
+html:is(.outis-dark, .outis-light) [data-sonner-toast] [data-button],
+html:is(.outis-dark, .outis-light) [data-sonner-toast] [data-close-button] {
 	border-radius: 0;
 }
 
-html:is(.outis-mneme, .outis-light) .sonner-loading-bar {
+html:is(.outis-dark, .outis-light) .sonner-loading-bar {
 	border-radius: 0;
 }
 
@@ -201,10 +201,10 @@ html:is(.outis-mneme, .outis-light) .sonner-loading-bar {
    chrome not in the accent hue. Only the colour is re-pointed; the width and
    offset app.css chose stay as they are, and so does the high-contrast rule's
    deliberate ring on editors. */
-html:is(.outis-mneme, .outis-light)
+html:is(.outis-dark, .outis-light)
 	:focus-visible:not(.ProseMirror):not([contenteditable='true']):not(input):not(textarea),
-html:is(.outis-mneme, .outis-light) .focus-ring:focus-visible,
-html:is(.outis-mneme, .outis-light).high-contrast
+html:is(.outis-dark, .outis-light) .focus-ring:focus-visible,
+html:is(.outis-dark, .outis-light).high-contrast
 	:is(input, textarea, [contenteditable='true'], .ProseMirror):focus-visible {
 	outline-color: var(--color-blue-500);
 }
@@ -239,9 +239,9 @@ html:is(.outis-mneme, .outis-light).high-contrast
    so the whole selector carries id-level specificity and silently beats that
    rule -- removing a focus indicator from exactly the users who asked for
    stronger ones. The `:not(.high-contrast)` guard yields to it instead. */
-html:is(.outis-mneme, .outis-light):not(.high-contrast)
+html:is(.outis-dark, .outis-light):not(.high-contrast)
 	:is([contenteditable]:not([contenteditable='false']), #chat-input-container):focus-visible,
-html:is(.outis-mneme, .outis-light):not(.high-contrast)
+html:is(.outis-dark, .outis-light):not(.high-contrast)
 	:focus-visible:has(> :is(.ProseMirror, .tiptap, [contenteditable])) {
 	outline: none;
 }
@@ -265,19 +265,19 @@ html:is(.outis-mneme, .outis-light):not(.high-contrast)
  * `.input-prose-sm` (citations, tool valve descriptions, notes) have the
  * same defect one step removed, at their own Tailwind text-sm/text-xs
  * bases. All five share the one `--outis-prose-scale` ratio instead of a
- * size hand-picked per class. See OUTIS_MNEME_CONSISTENCY_SPEC.md Finding 1.
+ * size hand-picked per class. See OUTIS_DARK_CONSISTENCY_SPEC.md Finding 1.
  * ------------------------------------------------------------------ */
-html:is(.outis-mneme, .outis-light) .markdown-prose,
-html:is(.outis-mneme, .outis-light) .input-prose {
+html:is(.outis-dark, .outis-light) .markdown-prose,
+html:is(.outis-dark, .outis-light) .input-prose {
 	font-size: calc(0.9375rem * var(--outis-prose-scale)) !important; /* 12px */
 }
 
-html:is(.outis-mneme, .outis-light) .markdown-prose-sm,
-html:is(.outis-mneme, .outis-light) .input-prose-sm {
+html:is(.outis-dark, .outis-light) .markdown-prose-sm,
+html:is(.outis-dark, .outis-light) .input-prose-sm {
 	font-size: calc(0.875rem * var(--outis-prose-scale)) !important; /* 11.2px */
 }
 
-html:is(.outis-mneme, .outis-light) .markdown-prose-xs {
+html:is(.outis-dark, .outis-light) .markdown-prose-xs {
 	font-size: calc(0.75rem * var(--outis-prose-scale)) !important; /* 9.6px */
 }
 
@@ -299,7 +299,7 @@ html:is(.outis-mneme, .outis-light) .markdown-prose-xs {
    onto this same token (it was `text-sm`, a different literal) rather than
    given its own separate scale, so there's one convention for "message
    reading chrome text size," not two. */
-html:is(.outis-mneme, .outis-light) [class~='text-[0.9375rem]'] {
+html:is(.outis-dark, .outis-light) [class~='text-[0.9375rem]'] {
 	font-size: calc(0.9375rem * var(--outis-prose-scale));
 }
 
@@ -312,10 +312,10 @@ html:is(.outis-mneme, .outis-light) [class~='text-[0.9375rem]'] {
    TIP-callout border) is deliberately left alone: that component assigns a
    distinct hue per alert type (note/tip/important/warning/caution) on
    purpose, and only the text color is what's visibly inconsistent here. */
-html:is(.outis-mneme, .outis-light) [class~='text-emerald-500'],
-html:is(.outis-mneme, .outis-light) [class~='text-emerald-600'],
-html:is(.outis-mneme, .outis-light) [class~='text-emerald-700'],
-html:is(.outis-mneme, .outis-light) [class~='dark:text-emerald-400'] {
+html:is(.outis-dark, .outis-light) [class~='text-emerald-500'],
+html:is(.outis-dark, .outis-light) [class~='text-emerald-600'],
+html:is(.outis-dark, .outis-light) [class~='text-emerald-700'],
+html:is(.outis-dark, .outis-light) [class~='dark:text-emerald-400'] {
 	color: var(--color-blue-500);
 }
 
@@ -325,11 +325,11 @@ html:is(.outis-mneme, .outis-light) [class~='dark:text-emerald-400'] {
    type scale nor its line-height ratios reach them, and 13px/20px is what
    made the sidebar read larger and looser than the answer. Scaled together
    so the row keeps its proportion rather than just its height. */
-html:is(.outis-mneme, .outis-light) [class~='text-[0.8125rem]'] {
+html:is(.outis-dark, .outis-light) [class~='text-[0.8125rem]'] {
 	font-size: calc(0.8125rem * var(--outis-prose-scale));
 }
 
-html:is(.outis-mneme, .outis-light) [class~='text-[0.8125rem]'][class~='leading-5'] {
+html:is(.outis-dark, .outis-light) [class~='text-[0.8125rem]'][class~='leading-5'] {
 	line-height: calc(1.25rem * var(--outis-prose-scale));
 }
 
@@ -338,12 +338,12 @@ html:is(.outis-mneme, .outis-light) [class~='text-[0.8125rem]'][class~='leading-
    kept their 32px height and 20px title line around text that had shrunk,
    leaving the list airier than anything else in the app. Same ratio, so the
    slider still works and the rows still track it. */
-html:is(.outis-mneme, .outis-light) #sidebar-chat-item {
+html:is(.outis-dark, .outis-light) #sidebar-chat-item {
 	min-height: calc(32px * var(--app-text-scale, 1) * var(--outis-prose-scale));
 	padding-block: calc(6px * var(--app-text-scale, 1) * var(--outis-prose-scale));
 }
 
-html:is(.outis-mneme, .outis-light) #sidebar-chat-item div[dir='auto'] {
+html:is(.outis-dark, .outis-light) #sidebar-chat-item div[dir='auto'] {
 	height: calc(20px * var(--app-text-scale, 1) * var(--outis-prose-scale));
 	line-height: calc(20px * var(--app-text-scale, 1) * var(--outis-prose-scale));
 }
@@ -360,7 +360,7 @@ html:is(.outis-mneme, .outis-light) #sidebar-chat-item div[dir='auto'] {
    highlight.js path while a response is still streaming (before CodeMirror
    takes over) -- same 14px-vs-12px mismatch fixed for CodeMirror itself in
    the codemirror-outis-*-theme.ts files, same reason. */
-html:is(.outis-mneme, .outis-light) div[class*='language-'] {
+html:is(.outis-dark, .outis-light) div[class*='language-'] {
 	font-size: calc(0.9375rem * var(--outis-prose-scale));
 }
 
@@ -369,7 +369,7 @@ html:is(.outis-mneme, .outis-light) div[class*='language-'] {
    pixels right of the language label it should line up under. Only
    visible once the two stopped sharing a background colour. 14px matches
    the rest of the block. */
-html:is(.outis-mneme, .outis-light) div[class*='language-'] > div.pt-1.pb-2.px-4 {
+html:is(.outis-dark, .outis-light) div[class*='language-'] > div.pt-1.pb-2.px-4 {
 	padding-inline: 0.875rem;
 }
 
@@ -380,7 +380,7 @@ html:is(.outis-mneme, .outis-light) div[class*='language-'] > div.pt-1.pb-2.px-4
    surfaces everywhere else. stroke-linecap/stroke-linejoin are real CSS
    properties (not just SVG presentation attributes), so one global
    selector overrides all 182 components without touching any of them. */
-html:is(.outis-mneme, .outis-light) svg {
+html:is(.outis-dark, .outis-light) svg {
 	stroke-linecap: square;
 	stroke-linejoin: miter;
 }
@@ -391,7 +391,7 @@ html:is(.outis-mneme, .outis-light) svg {
    overridden here; swapping it in CSS alone would keep the baked layout and
    let labels run out of their boxes. What CSS can do safely is stop the SVG
    overflowing its column. */
-html:is(.outis-mneme, .outis-light) .outis-diagram > svg {
+html:is(.outis-dark, .outis-light) .outis-diagram > svg {
 	max-width: 100%;
 	height: auto;
 }

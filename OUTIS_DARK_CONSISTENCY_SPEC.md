@@ -1,12 +1,12 @@
-# Outis-Mneme Theme — Consistency Spec
+# Outis-Dark Theme — Consistency Spec
 
-A follow-up audit of `OUTIS_MNEME_THEME_SPEC.md`. That spec re-skinned the app correctly at the
+A follow-up audit of `OUTIS_DARK_THEME_SPEC.md`. That spec re-skinned the app correctly at the
 mechanism level (variable overrides, one file, no component churn) and already fixed several
 real bugs found from live use (prose glare, reading-area size, code-block seams). This pass looks
 past "does it work" to "does it hang together as one system," against the three symptoms
 reported: **font-size consistency**, **code color-coding**, **uneven font brightness**. All
-numbers below are computed from the actual values in `src/outis-mneme-theme.css` and
-`src/lib/codemirror-outis-mneme-theme.ts` (WCAG relative-luminance contrast, OKLCH lightness/chroma
+numbers below are computed from the actual values in `src/outis-dark-theme.css` and
+`src/lib/codemirror-outis-dark-theme.ts` (WCAG relative-luminance contrast, OKLCH lightness/chroma
 via the sRGB→OKLab transform) — not eyeballed. Script used:
 `/private/tmp/.../scratchpad/contrast.py` (ephemeral, not part of this diff).
 
@@ -48,31 +48,31 @@ attached to.
 prose-family class, not just the one that was live-tested:
 
 ```css
-html.outis-mneme {
+html.outis-dark {
 	/* JetBrains Mono reads ~20% larger than Inter at equal rem (validated: 15px felt right
 	   at 12px live). One ratio, applied everywhere text is sized for the font it no longer is. */
-	--outis-mneme-prose-scale: 0.8;
+	--outis-dark-prose-scale: 0.8;
 }
 
-html.outis-mneme .markdown-prose,
-html.outis-mneme .input-prose {
-	font-size: calc(0.9375rem * var(--outis-mneme-prose-scale)) !important; /* 12px */
+html.outis-dark .markdown-prose,
+html.outis-dark .input-prose {
+	font-size: calc(0.9375rem * var(--outis-dark-prose-scale)) !important; /* 12px */
 }
 
-html.outis-mneme .markdown-prose-sm,
-html.outis-mneme .input-prose-sm {
-	font-size: calc(0.875rem * var(--outis-mneme-prose-scale)) !important; /* 11.2px */
+html.outis-dark .markdown-prose-sm,
+html.outis-dark .input-prose-sm {
+	font-size: calc(0.875rem * var(--outis-dark-prose-scale)) !important; /* 11.2px */
 }
 
-html.outis-mneme .markdown-prose-xs {
-	font-size: calc(0.75rem * var(--outis-mneme-prose-scale)) !important; /* 9.6px */
+html.outis-dark .markdown-prose-xs {
+	font-size: calc(0.75rem * var(--outis-dark-prose-scale)) !important; /* 9.6px */
 }
 ```
 
 Verify live at: the compose box against a rendered response (should now match), `NoteEditor`, the
 citation modal, and a tool's Valves panel. If 11.2px/9.6px read too small in practice the way the
 original 13px pass did, that's exactly the kind of thing the previous round of live-testing
-existed to catch — tune the one `--outis-mneme-prose-scale` number, not four separate literals.
+existed to catch — tune the one `--outis-dark-prose-scale` number, not four separate literals.
 
 ## Finding 2 — The accent ramp has a brightness cliff; the neutral ramp doesn't
 
@@ -80,7 +80,7 @@ existed to catch — tune the one `--outis-mneme-prose-scale` number, not four s
 stops — the same axis Tailwind's own stock gray scale is authored on (`src/tailwind.css` defines
 gray 50→950 directly in `oklch(...)`, evenly enough that no step exceeds `L`≈0.18).
 
-Outis-Mneme's neutral scale is fine — steps range `0.029`–`0.114`, comparable to stock Tailwind's
+Outis-Dark's neutral scale is fine — steps range `0.029`–`0.114`, comparable to stock Tailwind's
 `0.02`–`0.18`. The accent scale (`--color-blue-*`/`--color-green-*`, the app's one interactive
 hue) is not:
 
@@ -137,7 +137,7 @@ UI" — there are three, from three different unrelated sources, often visible i
 
 None of these three is wrong in isolation — the prose ladder in particular was carefully built
 (headings/strong/body/quiet as a deliberate contrast progression, documented in
-`outis-mneme-theme.css` lines 127–199). The inconsistency is that they don't share a source of
+`outis-dark-theme.css` lines 127–199). The inconsistency is that they don't share a source of
 truth: a sidebar label in un-themed pure white, a chat heading in warm amber, and body copy in
 cool mint-gray can all be on screen together with no common ceiling relating them, which is a
 second, independent contributor to "uneven brightness" — distinct from the accent-ramp cliff in
@@ -153,8 +153,8 @@ the original spec avoided (1,160 combined usages, most of them legitimately lite
 class tokens directly instead:
 
 ```css
-html.outis-mneme [class~='text-white'],
-html.outis-mneme [class~='dark:text-white'] {
+html.outis-dark [class~='text-white'],
+html.outis-dark [class~='dark:text-white'] {
 	color: var(--color-gray-50);
 }
 ```
@@ -167,8 +167,8 @@ now converge on one ceiling: the theme's own `gray-50` (15.8:1), not a separate 
 
 ## Finding 4 — Code-color scheme is solid; retracted a false alarm
 
-The CodeMirror ring (`codemirror-outis-mneme-theme.ts`) and the highlight.js rules
-(`outis-mneme-theme.css` lines 219–297) use **identical hex values** for all six token roles
+The CodeMirror ring (`codemirror-outis-dark-theme.ts`) and the highlight.js rules
+(`outis-dark-theme.css` lines 219–297) use **identical hex values** for all six token roles
 (keyword `#8cc099`, name `#74bed0`, literal `#b8a6dc`, string `#cdab78`, identifier `#b9d9cb`,
 comment `#71867b`) — confirmed by direct comparison, not assumed. A code block does not recolor
 itself as it finishes streaming and switches rendering paths. The four-hue ring is genuinely
@@ -178,21 +178,21 @@ touching.**
 
 **Correction (this pass originally flagged a gap here that doesn't hold up):** the first draft of
 this spec claimed `github-dark.min.css`'s compound selectors (e.g. `.hljs-variable.language_`,
-used for `self`/`this`/`super`) out-specificity `outis-mneme-theme.css`'s plain `.hljs-variable`
+used for `self`/`this`/`super`) out-specificity `outis-dark-theme.css`'s plain `.hljs-variable`
 rule and win regardless of load order. That compared the two rules' class/type counts incorrectly
-— every rule in `outis-mneme-theme.css` is written as `html.outis-mneme .hljs-variable`, not bare
-`.hljs-variable`. That `html.outis-mneme` prefix adds one class *and* one type selector that
+— every rule in `outis-dark-theme.css` is written as `html.outis-dark .hljs-variable`, not bare
+`.hljs-variable`. That `html.outis-dark` prefix adds one class *and* one type selector that
 `github-dark`'s bare, unscoped rules don't have, e.g.:
 
 | selector | classes | types | specificity |
 |---|---|---|---|
-| `html.outis-mneme .hljs-variable` (this theme) | 2 (`.outis-mneme`, `.hljs-variable`) | 1 (`html`) | `(0,2,1)` |
+| `html.outis-dark .hljs-variable` (this theme) | 2 (`.outis-dark`, `.hljs-variable`) | 1 (`html`) | `(0,2,1)` |
 | `.hljs-variable.language_` (github-dark) | 2 | 0 | `(0,2,0)` |
 
 `(0,2,1) > (0,2,0)` — the theme's rule wins outright, deterministically, independent of stylesheet
 import order. Checked every compound selector github-dark's theme defines (`.hljs-variable.language_`,
 `.hljs-title.class_.inherited__`, the `.hljs-meta .hljs-keyword`/`.hljs-meta .hljs-string`
-descendant rules) against outis-mneme's corresponding rule the same way — the `html.outis-mneme`
+descendant rules) against outis-dark's corresponding rule the same way — the `html.outis-dark`
 prefix wins every one. No fix needed; not implementing the `!important`/explicit-compound-selector
 change this spec originally proposed here, since there's nothing for it to guard against.
 
@@ -210,8 +210,8 @@ sixth mismatch the original audit didn't cover: rendered code blocks computed to
 Before this pass code (14px) and prose (15px Inter) were already close to parity by coincidence.
 Finding 1 dropped prose to 12px without touching either code path, breaking that parity for the
 first time. Fixed by setting both to `0.75rem` directly: `fontSize: '0.75rem'` added to the `'&'`
-block in `codemirror-outis-mneme-theme.ts`, and `html.outis-mneme div[class*='language-'] {
-font-size: 0.75rem; }` added to `outis-mneme-theme.css` for the streaming path. Verified live —
+block in `codemirror-outis-dark-theme.ts`, and `html.outis-dark div[class*='language-'] {
+font-size: 0.75rem; }` added to `outis-dark-theme.css` for the streaming path. Verified live —
 `.cm-content` and `.markdown-prose` both compute to `12px` now.
 
 ## Finding 6 — `rounded-full` and third-party toast corners (scope expansion, live request)
@@ -220,7 +220,7 @@ Live use also surfaced that `rounded-full` — deliberately left round by the or
 ("those are genuine circles: avatars, dots, icon buttons") — reads as inconsistent with the flat
 aesthetic once you're looking at real pill-shaped buttons (Sign in, Check Again) next to it. Per
 explicit direction, flattened everywhere, not just corner-radius elements: added
-`html.outis-mneme .rounded-full { border-radius: 0; }` (144 component files use the class; wins on
+`html.outis-dark .rounded-full { border-radius: 0; }` (144 component files use the class; wins on
 specificity the same way every other override in this file does, so no `!important` needed — see
 Finding 4's correction for why). This is a deliberate reversal of the original spec's stated
 reasoning for that one utility, not a bug fix.
@@ -254,10 +254,10 @@ shadow the size of the field (visually replacing the background, since browsers 
 through:
 
 ```css
-html.outis-mneme input:-webkit-autofill,
-html.outis-mneme input:-webkit-autofill:hover,
-html.outis-mneme input:-webkit-autofill:focus,
-html.outis-mneme input:-webkit-autofill:active {
+html.outis-dark input:-webkit-autofill,
+html.outis-dark input:-webkit-autofill:hover,
+html.outis-dark input:-webkit-autofill:focus,
+html.outis-dark input:-webkit-autofill:active {
 	box-shadow: 0 0 0 1000px var(--color-gray-950) inset !important;
 	-webkit-text-fill-color: var(--color-gray-50) !important;
 	caret-color: var(--color-gray-50);
@@ -285,7 +285,7 @@ distinct, widespread pattern: `bg-black hover:bg-gray-900 text-white dark:bg-whi
 dark:hover:bg-gray-100` — Open WebUI's "invert" primary-button convention (192 usages of
 `dark:bg-white` across 92 files: Save, Create, Send, and other primary CTAs). It's meant to pop
 white-on-black in light mode and invert to black-on-white in dark mode via `dark:text-black`.
-Finding 3's rule, scoped under `html.outis-mneme` for every property it touches, carries more
+Finding 3's rule, scoped under `html.outis-dark` for every property it touches, carries more
 specificity than Tailwind's `dark:` variant selector for `color` — so it beat `dark:text-black`
 outright, forcing near-white text onto what should have been dark text on a white button.
 Fixed by narrowing Finding 3 to `dark:text-white` only, which has no light-mode counterpart to
@@ -297,10 +297,10 @@ one-green-accent UI — not fixable by a text-color correction alone. Re-skinned
 of the pattern onto the accent scale instead of literal white/black:
 
 ```css
-html.outis-mneme [class~='dark:bg-white'] { background-color: var(--color-blue-500); }
-html.outis-mneme [class~='dark:hover:bg-gray-100'] { background-color: var(--color-blue-400); }
-html.outis-mneme [class~='dark:text-black'],
-html.outis-mneme [class~='dark:text-gray-900'] { color: var(--color-gray-950); }
+html.outis-dark [class~='dark:bg-white'] { background-color: var(--color-blue-500); }
+html.outis-dark [class~='dark:hover:bg-gray-100'] { background-color: var(--color-blue-400); }
+html.outis-dark [class~='dark:text-black'],
+html.outis-dark [class~='dark:text-gray-900'] { color: var(--color-gray-950); }
 ```
 
 `dark:hover:bg-gray-100` (70 usages) was checked for collateral matches before targeting it: 69 of
@@ -324,8 +324,8 @@ and structured-output rendering. One rule catches all of them, since they share 
 class token:
 
 ```css
-html.outis-mneme [class~='text-[0.9375rem]'] {
-	font-size: calc(0.9375rem * var(--outis-mneme-prose-scale));
+html.outis-dark [class~='text-[0.9375rem]'] {
+	font-size: calc(0.9375rem * var(--outis-dark-prose-scale));
 }
 ```
 
@@ -342,10 +342,10 @@ that this theme never touched — a third green hue sitting next to the theme's 
 accent instead:
 
 ```css
-html.outis-mneme [class~='text-emerald-500'],
-html.outis-mneme [class~='text-emerald-600'],
-html.outis-mneme [class~='text-emerald-700'],
-html.outis-mneme [class~='dark:text-emerald-400'] {
+html.outis-dark [class~='text-emerald-500'],
+html.outis-dark [class~='text-emerald-600'],
+html.outis-dark [class~='text-emerald-700'],
+html.outis-dark [class~='dark:text-emerald-400'] {
 	color: var(--color-blue-500);
 }
 ```
@@ -358,7 +358,7 @@ synthetic element with `text-emerald-500` computes to `rgb(45, 255, 143)`, the a
 ## Priority
 
 1. **Finding 1** (font size) — highest user-visible impact, lowest risk. **Implemented** in
-   `src/outis-mneme-theme.css`.
+   `src/outis-dark-theme.css`.
 2. **Finding 2** (accent cliff) — quantitatively the largest single defect found (a `0.306` `L`
    jump against a `~0.08` baseline). **Implemented** (600–900 re-derived; 500/950 anchors
    untouched, per the plan above). Verified live post-deploy; the new 600/700 read fine in
@@ -366,8 +366,8 @@ synthetic element with `text-emerald-500` computes to `rgb(45, 255, 143)`, the a
 3. **Finding 4** — investigated, no code change; the suspected gap doesn't exist (see correction
    above).
 4. **Finding 5** (code-block font size) — found live after 1/2 landed, exactly the kind of
-   follow-up this pass anticipated. **Implemented** in both `codemirror-outis-mneme-theme.ts` and
-   `outis-mneme-theme.css`.
+   follow-up this pass anticipated. **Implemented** in both `codemirror-outis-dark-theme.ts` and
+   `outis-dark-theme.css`.
 5. **Finding 6** (`rounded-full` / toast corners) — scope expansion per explicit live direction.
    **Implemented**.
 6. **Finding 3** (competing white/mint/amber ceilings) — turned out to have a one-rule fix once
@@ -387,7 +387,7 @@ synthetic element with `text-emerald-500` computes to `rgb(45, 255, 143)`, the a
   main thread, not at their pre-theme Inter measurements. ✅
 - No accent-scale step between `500` and `900` drops WCAG contrast below `4.5:1` in one jump from
   its neighbor the way `500→600` currently did. ✅ (`500→600` now `14.7:1→9.5:1`, `600→700` now
-  `9.5:1→5.8:1`) — verified live: `getComputedStyle` on `html.outis-mneme` returns the new hexes.
+  `9.5:1→5.8:1`) — verified live: `getComputedStyle` on `html.outis-dark` returns the new hexes.
 - A code block and the prose paragraph next to it read at the same size. ✅ (Finding 5; verified
   live: `.cm-content` and `.markdown-prose` both compute to `12px`)
 - `rounded-full` elements (avatars, buttons, status dots) and toast notifications are flat. ✅
@@ -401,8 +401,8 @@ synthetic element with `text-emerald-500` computes to `rgb(45, 255, 143)`, the a
 - The "invert" primary-button pattern (Create/Save/Send) reads as the theme's green accent with
   dark, legible text, not a stark white box. ✅ (Finding 8; screenshot-verified live)
 - `dark`/`oled-dark`/`light`/`her`/`system` remain unmodified — this is a same-theme consistency
-  pass, not a scope change. ✅ (only `outis-mneme-theme.css` and
-  `codemirror-outis-mneme-theme.ts` touched, all CSS changes scoped to `html.outis-mneme`)
+  pass, not a scope change. ✅ (only `outis-dark-theme.css` and
+  `codemirror-outis-dark-theme.ts` touched, all CSS changes scoped to `html.outis-dark`)
 
 ## Verification and deployment record
 
@@ -413,20 +413,20 @@ the real Open WebUI backend container on `outis` (port `3001`, tunneled to local
 `getComputedStyle` in the running app, not just visual inspection, for every item checked off
 above.
 
-Shipped as commit `3b0c5b1d9` on `theme/outis-mneme`
-(https://github.com/ankurtrapasiya/open-webui), built by `.github/workflows/docker-outis-mneme.yaml`
-into `ghcr.io/ankurtrapasiya/open-webui:outis-mneme-3b0c5b1` (pinned) /
-`:outis-mneme` (moving).
+Shipped as commit `3b0c5b1d9` on `theme/outis-dark`
+(https://github.com/ankurtrapasiya/open-webui), built by `.github/workflows/docker-outis-dark.yaml`
+into `ghcr.io/ankurtrapasiya/open-webui:outis-dark-3b0c5b1` (pinned) /
+`:outis-dark` (moving).
 
 First deploy attempt used a manual `docker stop/rm/run` on `outis`, matching the running
 container's config by hand. It got silently reverted about 30 minutes later: `outis` runs this
-stack from `/home/ankurtrapasiya/GithubProjects/outis-mneme/docker-compose.yml`
+stack from `/home/ankurtrapasiya/GithubProjects/outis-dark/docker-compose.yml`
 (`name: llama-server`, which is also why the network is `llama-server_default` and the volume is
 `llama-server_open-webui-data`), and that file still pinned `open-webui`'s image to the old
-`outis-mneme-ddc98bb` tag. A `docker compose up` — triggered by something checking disk usage
+`outis-dark-ddc98bb` tag. A `docker compose up` — triggered by something checking disk usage
 inside the container (`docker events` shows an `exec` for `du -sh` on the data dirs right before
 the revert) — reconciled the running container back to what the compose file declared, undoing
 the manual swap. Fixed properly the second time: edited the `image:` line in that compose file to
-`outis-mneme-3b0c5b1` and ran `docker compose up -d open-webui`, so the pinned tag is now the
+`outis-dark-3b0c5b1` and ran `docker compose up -d open-webui`, so the pinned tag is now the
 actual source of truth and won't get reverted by a future reconcile. That compose-file edit lives
 only on `outis`, outside this repo's git history — not committed anywhere by this pass.

@@ -4,7 +4,7 @@
 
 **Goal:** Add a selectable `outis-light` theme — the Outis identity (monospace, flat, one green accent) on a light ground — without touching component markup.
 
-**Architecture:** Extract the hue-free half of `outis-mneme-theme.css` into a shared stylesheet keyed on `html:is(.outis-mneme, .outis-light)`, leave each theme file holding only its palette, and register `outis-light` at the three theme-switch sites plus the four CodeMirror hosts.
+**Architecture:** Extract the hue-free half of `outis-dark-theme.css` into a shared stylesheet keyed on `html:is(.outis-dark, .outis-light)`, leave each theme file holding only its palette, and register `outis-light` at the three theme-switch sites plus the four CodeMirror hosts.
 
 **Tech Stack:** Tailwind CSS v4 custom properties, SvelteKit, CodeMirror 6, highlight.js.
 
@@ -12,14 +12,14 @@
 were found by driving the built app in a browser and are written up in the spec under
 "Found during implementation".
 
-**Spec:** `OUTIS_LIGHT_THEME_SPEC.md` (and `OUTIS_MNEME_THEME_SPEC.md` for the mechanism it reuses)
+**Spec:** `OUTIS_LIGHT_THEME_SPEC.md` (and `OUTIS_DARK_THEME_SPEC.md` for the mechanism it reuses)
 
 ## Global Constraints
 
 - Theme id is `outis-light`; the class list applied to `<html>` is `light outis-light` — never `dark`.
-- `outis-mneme` stays the default theme (`src/app.html` is the authoritative default).
+- `outis-dark` stays the default theme (`src/app.html` is the authoritative default).
 - No Svelte component's markup/classes change for colour reasons. Only the four CodeMirror hosts change, and only to call a shared helper.
-- Every rule scoped to `html.outis-light` or `html:is(.outis-mneme, .outis-light)`. Nothing global.
+- Every rule scoped to `html.outis-light` or `html:is(.outis-dark, .outis-light)`. Nothing global.
 - Shared stylesheet is imported **before** both palette stylesheets in `+layout.svelte`.
 - Palette values are fixed by the spec's token tables. Do not re-derive them.
 - Accent green never appears in code syntax.
@@ -31,19 +31,19 @@ were found by driving the built app in a browser and are written up in the spec 
 **Files:**
 
 - Create: `src/outis-theme-shared.css`
-- Modify: `src/outis-mneme-theme.css` (remove the extracted rules; keep palette + dark colour rules)
+- Modify: `src/outis-dark-theme.css` (remove the extracted rules; keep palette + dark colour rules)
 - Modify: `src/routes/+layout.svelte:51` (import the shared file before the mneme file)
 
 **Interfaces:**
 
-- Produces: selector prefix `html:is(.outis-mneme, .outis-light)`; variables `--outis-prose-scale`, `--outis-input-bg`, `--outis-input-fg` (each theme file must define the latter two).
+- Produces: selector prefix `html:is(.outis-dark, .outis-light)`; variables `--outis-prose-scale`, `--outis-input-bg`, `--outis-input-fg` (each theme file must define the latter two).
 
-- [x] **Step 1: Move these rules out of `outis-mneme-theme.css` verbatim, changing only the selector prefix**
+- [x] **Step 1: Move these rules out of `outis-dark-theme.css` verbatim, changing only the selector prefix**
 
   The JetBrains Mono `@import`; `font-family` + `--font-sans` + `--font-mono` + the `pre` rule;
   `--radius-*` flattening; `.rounded-full`; the three `[data-sonner-*]` rules and
   `.sonner-loading-bar`; `svg { stroke-linecap: square; stroke-linejoin: miter }`;
-  `--outis-mneme-prose-scale` (renamed `--outis-prose-scale`); the `.markdown-prose` /
+  `--outis-dark-prose-scale` (renamed `--outis-prose-scale`); the `.markdown-prose` /
   `.input-prose` / `-sm` / `-xs` font-size rules; `[class~='text-[0.9375rem]']`; the three
   `.markdown-prose h1/h2/h3` rules; `div[class*='language-'] { font-size: 0.75rem }`; the
   `div[class*='language-'] > div.pt-1.pb-2.px-4` padding rule; the `:focus-visible` suppression
@@ -52,10 +52,10 @@ were found by driving the built app in a browser and are written up in the spec 
 - [x] **Step 2: Re-point the autofill rules at variables instead of the gray scale**
 
 ```css
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill,
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill:hover,
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill:focus,
-html:is(.outis-mneme, .outis-light) input:-webkit-autofill:active {
+html:is(.outis-dark, .outis-light) input:-webkit-autofill,
+html:is(.outis-dark, .outis-light) input:-webkit-autofill:hover,
+html:is(.outis-dark, .outis-light) input:-webkit-autofill:focus,
+html:is(.outis-dark, .outis-light) input:-webkit-autofill:active {
 	box-shadow: 0 0 0 1000px var(--outis-input-bg) inset !important;
 	-webkit-text-fill-color: var(--outis-input-fg) !important;
 	caret-color: var(--outis-input-fg);
@@ -63,7 +63,7 @@ html:is(.outis-mneme, .outis-light) input:-webkit-autofill:active {
 }
 ```
 
-- [x] **Step 3: Define the two new variables in `outis-mneme-theme.css`**
+- [x] **Step 3: Define the two new variables in `outis-dark-theme.css`**
 
 ```css
 --outis-input-bg: #090d0c;
@@ -74,20 +74,20 @@ html:is(.outis-mneme, .outis-light) input:-webkit-autofill:active {
 
 ```js
 import '../outis-theme-shared.css';
-import '../outis-mneme-theme.css';
+import '../outis-dark-theme.css';
 ```
 
-- [x] **Step 5: Verify `outis-mneme` is unchanged**
+- [x] **Step 5: Verify `outis-dark` is unchanged**
 
 Run: `npm run check`
-Then load the app on `outis-mneme` and confirm: square corners, JetBrains Mono, 12px reading
+Then load the app on `outis-dark` and confirm: square corners, JetBrains Mono, 12px reading
 area, no focus ring on the composer, square toast corners. Any difference here is a regression,
 not a light-theme problem.
 
 - [x] **Step 6: Commit**
 
 ```bash
-git add src/outis-theme-shared.css src/outis-mneme-theme.css src/routes/+layout.svelte
+git add src/outis-theme-shared.css src/outis-dark-theme.css src/routes/+layout.svelte
 git commit -m "Split the theme's hue-free rules into a shared stylesheet"
 ```
 
@@ -145,20 +145,20 @@ git commit -m "Add the Outis-Light palette"
 - Produces: `export const outisLight: Extension[]` and `export function outisEditorTheme(): Extension[]`.
 
 - [x] **Step 1: Write `codemirror-outis-light-theme.ts`** — the same shape as
-      `codemirror-outis-mneme-theme.ts` (same tag groups, same rule set), with the light ring, and
+      `codemirror-outis-dark-theme.ts` (same tag groups, same rule set), with the light ring, and
       `{ dark: false }` passed to `EditorView.theme`.
 
 - [x] **Step 2: Write the selector helper**
 
 ```ts
 import type { Extension } from '@codemirror/state';
-import { outisMneme } from './codemirror-outis-mneme-theme';
+import { outisDark } from './codemirror-outis-dark-theme';
 import { outisLight } from './codemirror-outis-light-theme';
 
 export function outisEditorTheme(): Extension[] {
 	const cls = document.documentElement.classList;
 	if (cls.contains('outis-light')) return outisLight;
-	if (cls.contains('dark')) return outisMneme;
+	if (cls.contains('dark')) return outisDark;
 	return [];
 }
 ```
@@ -170,7 +170,7 @@ export function outisEditorTheme(): Extension[] {
 - [x] **Step 4: Verify**
 
 Run: `npm run check`
-Then open a chat code block and the Workspace → Tools editor on Outis-Light and on Outis-Mneme,
+Then open a chat code block and the Workspace → Tools editor on Outis-Light and on Outis-Dark,
 and switch themes with an editor open — the editor must recolour without a reload.
 
 - [x] **Step 5: Commit**
@@ -220,7 +220,7 @@ and add `html.outis-light #splash-screen { background: #fafdfc; }` to the bottom
 
 Run: `npm run lint:frontend && npm run check`
 Then walk the acceptance list in `OUTIS_LIGHT_THEME_SPEC.md` § Acceptance, in particular #2:
-switch Outis-Mneme → Outis-Light → OLED Dark → Outis-Light and read
+switch Outis-Dark → Outis-Light → OLED Dark → Outis-Light and read
 `document.documentElement.style.cssText` — it must be empty on Outis-Light.
 
 - [x] **Step 5: Commit**
