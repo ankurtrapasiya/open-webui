@@ -149,6 +149,29 @@ html.outis-dark [class~='dark:text-gray-900'] {
 	color: var(--color-gray-950);
 }
 
+/* The label on those controls, set from the fill rather than from whatever
+   utility the markup happens to carry.
+ *
+ * ConfirmDialog's confirm button writes its text as `dark:text-gray-800`, and
+ * app.css lifts that for High Contrast mode:
+ *
+ *     html:where(.high-contrast).dark
+ *     :is(.dark\:text-gray-700, .dark\:text-gray-800) { color: gray-300 }
+ *
+ * -- correct while the button is dark-on-dark, backwards once this theme has
+ * made its fill the bright accent. Reported live from a screenshot: "Confirm"
+ * in pale mint on green, about 1.5:1, barely legible.
+ *
+ * Keyed on the fill utilities rather than on the text ones, because the fill is
+ * what actually decides this: any element this theme paints accent needs dark
+ * text, whichever way its markup spelled the colour. Unlayered, so it outranks
+ * the `@layer utilities` rule above without !important. */
+html.outis-dark [class~='dark:bg-white'],
+html.outis-dark [class~='dark:bg-gray-100'],
+html.outis-dark [class~='dark:bg-gray-200'] {
+	color: var(--color-gray-950);
+}
+
 /* Same white-text-on-accent-background problem as the invert-button pattern
    above, different shape: `bg-blue-500 text-white` (unconditional, no dark:
    prefix -- calendar "today" badges in CalendarView.svelte/CalendarSidebar.svelte,
