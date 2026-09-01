@@ -38,7 +38,9 @@
 		getNoteList,
 		searchNotes,
 		toggleNotePinnedStatusById,
-		getPinnedNoteList
+		getPinnedNoteList,
+		getNoteFolders,
+		updateNoteById
 	} from '$lib/apis/notes';
 	import { capitalizeFirstLetter, copyToClipboard, formatNumber, getTimeRange } from '$lib/utils';
 	import { downloadPdf, createNoteHandler } from './utils';
@@ -57,6 +59,8 @@
 	import SplitCreateButton from '../common/SplitCreateButton.svelte';
 	import ChevronDown from '../icons/ChevronDown.svelte';
 	import ChevronUp from '../icons/ChevronUp.svelte';
+	import FolderIcon from '../icons/Folder.svelte';
+	import FolderOpen from '../icons/FolderOpen.svelte';
 
 	let loaded = false;
 
@@ -82,6 +86,81 @@
 	let permission = null;
 
 	let page = 1;
+
+	// Folders are implied by note.meta.folder ("A/B/C"); nothing exists server-side
+	// beyond the notes themselves. `folder` is the one currently open (null = all).
+	let folder: string | null = null;
+	let folders: string[] = [];
+	let showMoveDialog = false;
+	let showNewFolderDialog = false;
+
+	// A folder exists only through the notes in it. A freshly created, still
+	// empty folder is remembered per browser so it survives a reload until its
+	// first note lands; once the server reports it, the local copy is dropped.
+	const emptyFolders = (): string[] => {
+		try {
+			return JSON.parse(localStorage.noteEmptyFolders ?? '[]');
+		} catch {
+			return [];
+		}
+	};
+	const mergeFolders = (server: string[]) => {
+		const pending = emptyFolders().filter((f) => !server.includes(f));
+		localStorage.noteEmptyFolders = JSON.stringify(pending);
+		folders = [...new Set([...server, ...pending])].sort();
+	};
+	const newFolderHandler = (name: string) => {
+		const path = [folder, name]
+			.filter(Boolean)
+			.join('/')
+			.split('/')
+			.map((s) => s.trim())
+			.filter(Boolean)
+			.join('/');
+		if (!path) return;
+		localStorage.noteEmptyFolders = JSON.stringify([...new Set([...emptyFolders(), path])]);
+		openFolder(path);
+	};
+
+	$: breadcrumb = folder ? folder.split('/') : [];
+	$: childFolders = [
+		...new Set(
+			folders
+				.filter((f) => (folder ? f.startsWith(folder + '/') : true))
+				.map((f) => (folder ? f.slice(folder.length + 1) : f).split('/')[0])
+		)
+	].sort();
+
+	const openFolder = (f: string | null) => {
+		folder = f;
+		if (f) {
+			localStorage.noteFolder = f;
+		} else {
+			delete localStorage.noteFolder;
+		}
+		init();
+	};
+
+	// Path of a note relative to the open folder, for the chip beside its title.
+	const relativeFolder = (note) => {
+		const f = note?.meta?.folder;
+		if (!f) return null;
+		if (!folder) return f;
+		return f === folder ? null : f.slice(folder.length + 1);
+	};
+
+	const moveNoteHandler = async (target: string) => {
+		const res = await updateNoteById(localStorage.token, selectedNote.id, {
+			title: selectedNote.title,
+			meta: { folder: target }
+		}).catch((error) => {
+			toast.error(`${error}`);
+			return null;
+		});
+		if (res) {
+			init();
+		}
+	};
 
 	let itemsLoading = false;
 	let allItemsLoaded = false;
@@ -148,7 +227,7 @@
 						md: content
 					}
 				},
-				meta: null,
+				meta: folder ? { folder } : null,
 				access_grants: []
 			}).catch((error) => {
 				toast.error(`${error}`);
@@ -182,7 +261,12 @@
 
 	const init = async () => {
 		reset();
-		await getItemsPage();
+		await Promise.all([
+			getItemsPage(),
+			getNoteFolders(localStorage.token)
+				.then((res) => mergeFolders(res))
+				.catch(() => mergeFolders([]))
+		]);
 	};
 
 	const handleSearchInput = () => {
@@ -218,7 +302,8 @@
 			permission,
 			sortKey,
 			page,
-			sortKey ? sortDirection : null
+			sortKey ? sortDirection : null,
+			folder
 		).catch(() => {
 			return [];
 		});
@@ -315,6 +400,7 @@
 	onMount(() => {
 		viewOption = localStorage?.noteViewOption ?? null;
 		displayOption = localStorage?.noteDisplayOption ?? null;
+		folder = localStorage?.noteFolder ?? null;
 
 		loaded = true;
 
@@ -372,6 +458,33 @@
 		/>
 
 		<DeleteConfirmDialog
+			bind:show={showNewFolderDialog}
+			title={$i18n.t('New folder')}
+			input={true}
+			inputPlaceholder={folder
+				? $i18n.t('Folder name (created inside {{folder}})', { folder })
+				: $i18n.t('Folder name, e.g. ML4T or ML4T/Murphy')}
+			confirmLabel={$i18n.t('Create')}
+			on:confirm={(e) => {
+				newFolderHandler(e.detail);
+				showNewFolderDialog = false;
+			}}
+		/>
+
+		<DeleteConfirmDialog
+			bind:show={showMoveDialog}
+			title={$i18n.t('Move to folder')}
+			input={true}
+			inputValue={selectedNote?.meta?.folder ?? folder ?? ''}
+			inputPlaceholder={$i18n.t('Folder path, e.g. ML4T/Murphy. Enter / to remove from folder.')}
+			confirmLabel={$i18n.t('Move')}
+			on:confirm={(e) => {
+				moveNoteHandler(e.detail);
+				showMoveDialog = false;
+			}}
+		/>
+
+		<DeleteConfirmDialog
 			bind:show={showDeleteConfirm}
 			title={$i18n.t('Delete note?')}
 			on:confirm={() => {
@@ -421,11 +534,23 @@
 								id: 'notes-new',
 								label: $i18n.t('Create'),
 								onClick: async () => {
-									const res = await createNoteHandler(dayjs().format('YYYY-MM-DD'));
+									const res = await createNoteHandler(
+										dayjs().format('YYYY-MM-DD'),
+										undefined,
+										undefined,
+										folder
+									);
 
 									if (res) {
 										goto(`/notes/${res.id}`);
 									}
+								}
+							},
+							{
+								id: 'notes-new-folder',
+								label: $i18n.t('New folder'),
+								onClick: () => {
+									showNewFolderDialog = true;
 								}
 							},
 							{
@@ -526,6 +651,48 @@
 				</div>
 			</div>
 
+			{#if folder || childFolders.length > 0}
+				<div class="flex flex-wrap items-center gap-1 px-1 py-1 text-xs">
+					<button
+						type="button"
+						class="rounded-lg px-1.5 py-0.5 transition hover:bg-gray-100 dark:hover:bg-gray-850 {folder
+							? 'text-gray-500'
+							: 'text-gray-800 dark:text-gray-200'}"
+						on:click={() => openFolder(null)}
+					>
+						{$i18n.t('All')}
+					</button>
+					{#each breadcrumb as seg, i}
+						<span class="text-gray-400 dark:text-gray-600">/</span>
+						<button
+							type="button"
+							class="rounded-lg px-1.5 py-0.5 transition hover:bg-gray-100 dark:hover:bg-gray-850 {i ===
+							breadcrumb.length - 1
+								? 'text-gray-800 dark:text-gray-200'
+								: 'text-gray-500'}"
+							on:click={() => openFolder(breadcrumb.slice(0, i + 1).join('/'))}
+						>
+							{seg}
+						</button>
+					{/each}
+				</div>
+
+				{#if childFolders.length > 0}
+					<div class="flex flex-wrap gap-1.5 px-1 pb-2">
+						{#each childFolders as child (child)}
+							<button
+								type="button"
+								class="flex items-center gap-1.5 rounded-xl bg-gray-50 px-2.5 py-1 text-[0.8125rem] text-gray-800 transition hover:bg-gray-100 dark:bg-gray-900/60 dark:text-gray-200 dark:hover:bg-gray-900"
+								on:click={() => openFolder(folder ? `${folder}/${child}` : child)}
+							>
+								<FolderIcon className="size-3.5" />
+								<span class="truncate">{child}</span>
+							</button>
+						{/each}
+					</div>
+				{/if}
+			{/if}
+
 			{#if items !== null && total !== null}
 				{#if (items ?? []).length > 0}
 					{@const groupedNotes = groupNotes(items)}
@@ -602,6 +769,20 @@
 														</div>
 													</Tooltip>
 
+													{#if relativeFolder(note)}
+														<button
+															type="button"
+															class="flex shrink-0 items-center gap-1 rounded-md bg-gray-100 px-1.5 text-[0.6875rem] leading-5 text-gray-500 hover:text-gray-800 dark:bg-gray-850 dark:hover:text-gray-200"
+															on:click={(e) => {
+																e.stopPropagation();
+																openFolder(note.meta.folder);
+															}}
+														>
+															<FolderOpen className="size-3" />
+															{relativeFolder(note)}
+														</button>
+													{/if}
+
 													<Tooltip content={dayjs(note.updated_at / 1000000).format('LLLL')}>
 														<div
 															class="shrink-0 truncate text-[0.6875rem] leading-5 text-gray-400 dark:text-gray-600"
@@ -648,6 +829,10 @@
 														onDelete={() => {
 															selectedNote = note;
 															showDeleteConfirm = true;
+														}}
+														onMove={() => {
+															selectedNote = note;
+															showMoveDialog = true;
 														}}
 														isPinned={note.is_pinned ?? false}
 														onPin={async () => {
@@ -718,6 +903,10 @@
 														onDelete={() => {
 															selectedNote = note;
 															showDeleteConfirm = true;
+														}}
+														onMove={() => {
+															selectedNote = note;
+															showMoveDialog = true;
 														}}
 														isPinned={note.is_pinned ?? false}
 														onPin={async () => {
