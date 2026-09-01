@@ -448,9 +448,21 @@ html:is(.outis-dark, .outis-light).high-contrast .cm-content:focus-visible {
 	outline: none;
 }
 
-html:is(.outis-dark, .outis-light).high-contrast .cm-editor:has(.cm-content:focus-visible) {
-	outline: 2px solid var(--color-blue-500);
-	outline-offset: -1px;
+/* and the block's own border becomes the indicator instead.
+ *
+ * An outline on the .cm-editor is drawn inside its box, where CodeMirror's
+ * sticky gutter and the line backgrounds paint over it -- so only the edges
+ * they happen not to cover survive, which is a fragment of a rectangle down
+ * the right and along the bottom. That was the second report on this: the ring
+ * "looks weird".
+ *
+ * The container already carries a 1px border for the block's edge, and it sits
+ * outside the padding box where no child can reach it. Recolouring that is a
+ * whole, unbroken frame around the block, with no layout shift -- and it works
+ * in both contrast modes, so a focused block is legible without High Contrast
+ * having to be on. */
+html:is(.outis-dark, .outis-light) div[class*='language-']:has(.cm-content:focus-visible) {
+	border-color: var(--color-blue-500);
 }
 
 /* app.css paints CodeMirror's own surfaces with literals, and with
