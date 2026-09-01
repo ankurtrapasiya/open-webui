@@ -52,9 +52,14 @@ export const outisLightEditorTheme = /*@__PURE__*/ EditorView.theme(
 		// @codemirror/view's own baseTheme hardcodes .cm-editor { font-size: 14px },
 		// unrelated to anything in this theme -- but the reading area is 12px
 		// (OUTIS_MNEME_CONSISTENCY_SPEC.md Finding 1), so code would read visibly
-		// larger than the text around it. Matches the same 12px so a code block
-		// and the paragraph next to it read at the same size.
-		'&': { color: text, backgroundColor: bg, fontSize: '0.75rem' },
+		// larger than the text around it. Takes the reading area's own
+		// expression rather than a copy of its result, so code and prose stay
+		// the same size whatever --outis-prose-scale is set to.
+		'&': {
+			color: text,
+			backgroundColor: bg,
+			fontSize: 'calc(0.9375rem * var(--outis-prose-scale))'
+		},
 		'.cm-content': { caretColor: accent },
 		'.cm-cursor, .cm-dropCursor': { borderLeftColor: accent },
 		'&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':

@@ -53,8 +53,33 @@ html:is(.outis-mneme, .outis-light) {
 	   (15px felt right sized down to 12px). One shared ratio, applied to
 	   every reading-density class below instead of re-derived per class.
 	   Faces whose advance width differs from the 0.60em the default four
-	   share adjust it in their own block below. */
-	--outis-prose-scale: 0.8;
+	   share adjust it in their own block below.
+
+	   0.85, not the 0.80 this shipped with: 0.80 was chosen when the ratio
+	   reached the reading area alone, so it only had to look right against
+	   unscaled chrome. Now that it drives Tailwind's whole type scale, the
+	   sidebar and every label move with it, and 0.80 pushed those to 10.4px
+	   and 9.6px. At 0.85 the answer sits at 12.8px with its chrome at
+	   11.1px and its labels at 10.2px -- the same relationships, one step
+	   larger, and the hierarchy right way up. */
+	--outis-prose-scale: 0.85;
+
+	/* Tailwind's whole type scale, on the same ratio.
+	
+	   Without this the ratio reached only the prose classes and the two
+	   arbitrary values below, so shrinking the reading area to 12px left
+	   every `text-sm` / `text-xs` / `text-2xl` at stock size -- the sidebar
+	   (13px), a model's description (14px) and the placeholder's model name
+	   (24px) all ended up louder than the answer they frame. Utilities
+	   resolve font-size through these tokens, and their line-height tokens
+	   are unitless ratios, so leading follows on its own. */
+	--text-xs: calc(0.75rem * var(--outis-prose-scale));
+	--text-sm: calc(0.875rem * var(--outis-prose-scale));
+	--text-base: calc(1rem * var(--outis-prose-scale));
+	--text-lg: calc(1.125rem * var(--outis-prose-scale));
+	--text-xl: calc(1.25rem * var(--outis-prose-scale));
+	--text-2xl: calc(1.5rem * var(--outis-prose-scale));
+	--text-3xl: calc(1.875rem * var(--outis-prose-scale));
 
 	/* Tailwind's own --font-sans/--font-mono tokens — separate from the
 	   direct font-family above. Components that opt into an explicit
@@ -294,29 +319,49 @@ html:is(.outis-mneme, .outis-light) [class~='dark:text-emerald-400'] {
 	color: var(--color-blue-500);
 }
 
-/* Headings inside the reading area (app.css's `prose-h1:text-xl
-   prose-h2:text-lg prose-h3:text-base`, i.e. fixed 20px/18px/16px) don't
-   inherit from .markdown-prose's font-size above — they're each given
-   their own explicit size by the prose plugin. Shrinking only the body
-   text widened the heading-to-body contrast (was ~1.3x, became ~1.7x),
-   which read as headings being oddly loud/heavy. Scaled the whole
-   hierarchy down together, keeping the same relative proportions. */
-html:is(.outis-mneme, .outis-light) .markdown-prose h1 {
-	font-size: 1rem !important; /* 16px, was 20px */
+/* The sidebar's own literal, the twin of the reading-chrome one above:
+   `text-[0.8125rem] leading-5` on the brand, New Chat, Search, Notes,
+   Workspace and every chat title. Both halves are hardcoded, so neither the
+   type scale nor its line-height ratios reach them, and 13px/20px is what
+   made the sidebar read larger and looser than the answer. Scaled together
+   so the row keeps its proportion rather than just its height. */
+html:is(.outis-mneme, .outis-light) [class~='text-[0.8125rem]'] {
+	font-size: calc(0.8125rem * var(--outis-prose-scale));
 }
-html:is(.outis-mneme, .outis-light) .markdown-prose h2 {
-	font-size: 0.875rem !important; /* 14px, was 18px */
+
+html:is(.outis-mneme, .outis-light) [class~='text-[0.8125rem]'][class~='leading-5'] {
+	line-height: calc(1.25rem * var(--outis-prose-scale));
 }
-html:is(.outis-mneme, .outis-light) .markdown-prose h3 {
-	font-size: 0.8125rem !important; /* 13px, was 16px */
+
+/* app.css sizes the chat-list row in fixed pixels off --app-text-scale, the
+   UI Scale slider, which knows nothing about this theme's ratio -- so rows
+   kept their 32px height and 20px title line around text that had shrunk,
+   leaving the list airier than anything else in the app. Same ratio, so the
+   slider still works and the rows still track it. */
+html:is(.outis-mneme, .outis-light) #sidebar-chat-item {
+	min-height: calc(32px * var(--app-text-scale, 1) * var(--outis-prose-scale));
+	padding-block: calc(6px * var(--app-text-scale, 1) * var(--outis-prose-scale));
 }
+
+html:is(.outis-mneme, .outis-light) #sidebar-chat-item div[dir='auto'] {
+	height: calc(20px * var(--app-text-scale, 1) * var(--outis-prose-scale));
+	line-height: calc(20px * var(--app-text-scale, 1) * var(--outis-prose-scale));
+}
+
+/* Reading-area headings need no rule of their own any more. app.css gives
+   them `prose-h1:text-xl prose-h2:text-lg prose-h3:text-base`, which now
+   resolve through the scaled --text-* tokens above, so the hierarchy tracks
+   the ratio automatically. Three hardcoded overrides used to sit here and
+   pin them at 16/14/13px; they were a second place the size relationship
+   was expressed, and the first place it would have drifted the next time
+   the ratio changed. */
 
 /* CodeBlock.svelte's wrapper carries `text-sm` (14px), inherited by the
    highlight.js path while a response is still streaming (before CodeMirror
    takes over) -- same 14px-vs-12px mismatch fixed for CodeMirror itself in
    the codemirror-outis-*-theme.ts files, same reason. */
 html:is(.outis-mneme, .outis-light) div[class*='language-'] {
-	font-size: 0.75rem;
+	font-size: calc(0.9375rem * var(--outis-prose-scale));
 }
 
 /* The collapsed body is padded `px-4` while the header above it and the
