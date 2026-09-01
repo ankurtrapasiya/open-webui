@@ -92,6 +92,35 @@
 	let folder: string | null = null;
 	let folders: string[] = [];
 	let showMoveDialog = false;
+	let showNewFolderDialog = false;
+
+	// A folder exists only through the notes in it. A freshly created, still
+	// empty folder is remembered per browser so it survives a reload until its
+	// first note lands; once the server reports it, the local copy is dropped.
+	const emptyFolders = (): string[] => {
+		try {
+			return JSON.parse(localStorage.noteEmptyFolders ?? '[]');
+		} catch {
+			return [];
+		}
+	};
+	const mergeFolders = (server: string[]) => {
+		const pending = emptyFolders().filter((f) => !server.includes(f));
+		localStorage.noteEmptyFolders = JSON.stringify(pending);
+		folders = [...new Set([...server, ...pending])].sort();
+	};
+	const newFolderHandler = (name: string) => {
+		const path = [folder, name]
+			.filter(Boolean)
+			.join('/')
+			.split('/')
+			.map((s) => s.trim())
+			.filter(Boolean)
+			.join('/');
+		if (!path) return;
+		localStorage.noteEmptyFolders = JSON.stringify([...new Set([...emptyFolders(), path])]);
+		openFolder(path);
+	};
 
 	$: breadcrumb = folder ? folder.split('/') : [];
 	$: childFolders = [
@@ -235,8 +264,8 @@
 		await Promise.all([
 			getItemsPage(),
 			getNoteFolders(localStorage.token)
-				.then((res) => (folders = res))
-				.catch(() => {})
+				.then((res) => mergeFolders(res))
+				.catch(() => mergeFolders([]))
 		]);
 	};
 
@@ -429,6 +458,20 @@
 		/>
 
 		<DeleteConfirmDialog
+			bind:show={showNewFolderDialog}
+			title={$i18n.t('New folder')}
+			input={true}
+			inputPlaceholder={folder
+				? $i18n.t('Folder name (created inside {{folder}})', { folder })
+				: $i18n.t('Folder name, e.g. ML4T or ML4T/Murphy')}
+			confirmLabel={$i18n.t('Create')}
+			on:confirm={(e) => {
+				newFolderHandler(e.detail);
+				showNewFolderDialog = false;
+			}}
+		/>
+
+		<DeleteConfirmDialog
 			bind:show={showMoveDialog}
 			title={$i18n.t('Move to folder')}
 			input={true}
@@ -501,6 +544,13 @@
 									if (res) {
 										goto(`/notes/${res.id}`);
 									}
+								}
+							},
+							{
+								id: 'notes-new-folder',
+								label: $i18n.t('New folder'),
+								onClick: () => {
+									showNewFolderDialog = true;
 								}
 							},
 							{
