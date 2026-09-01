@@ -814,7 +814,16 @@
 
 		files = [];
 		selectedToolIds = [];
-		selectedSkillIds = [];
+		// selectedSkillIds is deliberately NOT cleared here. A skill is the
+		// working mode for a conversation -- "grill me", "draw this as graphviz"
+		// -- not an attachment to one message, and clearing it meant a chat
+		// forgot it the moment you sent anything. Reported live: a diagram asked
+		// for in the second turn came back without the graphviz skill's guidance
+		// because the toggle had already reset itself.
+		//
+		// It still resets where a reset is the point: starting a new chat, and
+		// resetInput(). An inline `$skill` invocation is unaffected -- that is
+		// per-message by nature.
 		selectedFilterIds = [];
 		webSearchEnabled = false;
 		imageGenerationEnabled = false;
