@@ -6,7 +6,7 @@
 
 	const i18n = getContext('i18n');
 
-	import { marked } from 'marked';
+	import { editorMarked } from '$lib/utils/marked/editor-marked';
 	import { toast } from 'svelte-sonner';
 	import equal from 'fast-deep-equal';
 
@@ -171,7 +171,7 @@
 	// Computed HTML for editor: fall back to markdown if HTML is missing
 	$: editorHtml =
 		note?.data?.content?.html ||
-		(note?.data?.content?.md ? marked.parse(note.data.content.md) : '');
+		(note?.data?.content?.md ? editorMarked.parse(note.data.content.md) : '');
 
 	const init = async () => {
 		loading = true;
@@ -292,7 +292,7 @@
 		}
 
 		const selection = editor.state.selection;
-		editor.commands.setContent(incomingContent.html || marked.parse(incomingContent.md ?? ''));
+		editor.commands.setContent(incomingContent.html || editorMarked.parse(incomingContent.md ?? ''));
 		await tick();
 
 		const docSize = editor.state.doc.content.size;
