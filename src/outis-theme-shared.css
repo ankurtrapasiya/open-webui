@@ -402,14 +402,28 @@ html:is(.outis-dark, .outis-light) svg {
 	stroke-linejoin: miter;
 }
 
-/* A rendered diagram scales to its column and takes the UI's own face.
+/* A rendered diagram takes the UI's own face and its own size.
    Kroki measures text with the font PlantUML was told to use, so the family
    is pinned there (DejaVu Sans Mono -- the only mono Kroki ships) and not
    overridden here; swapping it in CSS alone would keep the baked layout and
-   let labels run out of their boxes. What CSS can do safely is stop the SVG
-   overflowing its column. */
+   let labels run out of their boxes.
+
+   Native size, not fit-to-column. This was `max-width: 100%`, which is the
+   obvious rule and the wrong one for a diagram: a five-level mindmap comes out
+   of PlantUML around 1300-1700px wide, so fitting it into a ~720px reading
+   column scaled it to 0.55x and rendered its 13px labels at 7px. Measured, not
+   guessed -- 7.2px for a two-level map, 5.5px for a four-level one. That is
+   what "the text doesn't render well" was: the glyphs are correct, they are
+   just too small to read.
+
+   Nothing is lost by dropping it. HTMLToken.svelte already wraps this in
+   `overflow-x-auto`, so a wide diagram scrolls rather than breaking the
+   layout -- that wrapper had nothing to do while max-width guaranteed the SVG
+   could never overflow. A diagram narrower than the column is unaffected.
+   Legibility over fit: this is a study tool, and a diagram you scroll beats
+   one you cannot read. */
 html:is(.outis-dark, .outis-light) .outis-diagram > svg {
-	max-width: 100%;
+	max-width: none;
 	height: auto;
 }
 
