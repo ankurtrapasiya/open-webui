@@ -1,34 +1,11 @@
 <script lang="ts">
 	import { marked } from 'marked';
+	import { editorMarked, editorMarkedOptions } from '$lib/utils/marked/editor-marked';
 	import DOMPurify from 'dompurify';
 	import equal from 'fast-deep-equal';
 	import { skills, terminalSkills } from '$lib/stores';
 
-	marked.use({
-		breaks: true,
-		gfm: true,
-		renderer: {
-			list(body, ordered, start) {
-				const isTaskList = body.includes('data-checked=');
-
-				if (isTaskList) {
-					return `<ul data-type="taskList">${body}</ul>`;
-				}
-
-				const type = ordered ? 'ol' : 'ul';
-				const startatt = ordered && start !== 1 ? ` start="${start}"` : '';
-				return `<${type}${startatt}>${body}</${type}>`;
-			},
-
-			listitem(text, task, checked) {
-				if (task) {
-					const checkedAttr = checked ? 'true' : 'false';
-					return `<li data-type="taskItem" data-checked="${checkedAttr}">${text}</li>`;
-				}
-				return `<li>${text}</li>`;
-			}
-		}
-	});
+	marked.use(editorMarkedOptions);
 
 	import TurndownService from 'turndown';
 	import { gfm } from '@joplin/turndown-plugin-gfm';
@@ -115,6 +92,16 @@
 	});
 
 	// Convert TipTap mention spans -> serialized mention tags.
+	turndownService.addRule('inlineMath', {
+		filter: (node) => node.nodeName === 'SPAN' && node.getAttribute('data-type') === 'inline-math',
+		replacement: (_content, node: HTMLElement) => `$${node.getAttribute('data-latex') ?? ''}$`
+	});
+
+	turndownService.addRule('blockMath', {
+		filter: (node) => node.nodeName === 'DIV' && node.getAttribute('data-type') === 'block-math',
+		replacement: (_content, node: HTMLElement) => `\n\n$$\n${node.getAttribute('data-latex') ?? ''}\n$$\n\n`
+	});
+
 	turndownService.addRule('mentions', {
 		filter: (node) => node.nodeName === 'SPAN' && node.getAttribute('data-type') === 'mention',
 		replacement: (_content, node: HTMLElement) => {
@@ -161,6 +148,8 @@
 	import FileHandler from '@tiptap/extension-file-handler';
 	import Typography from '@tiptap/extension-typography';
 	import Highlight from '@tiptap/extension-highlight';
+	import { Mathematics } from '@tiptap/extension-mathematics';
+	import 'katex/dist/katex.min.css';
 	import Code from '@tiptap/extension-code';
 	import Italic from '@tiptap/extension-italic';
 	import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -434,7 +423,7 @@
 
 		if (insertPromptAsRichText) {
 			const htmlContent = DOMPurify.sanitize(
-				marked
+				editorMarked
 					.parse(text, {
 						breaks: true,
 						gfm: true
@@ -575,7 +564,7 @@
 		const { schema, tr } = state;
 
 		// If content is a string, convert it to a ProseMirror node
-		const htmlContent = marked.parse(content);
+		const htmlContent = editorMarked.parse(content);
 
 		// insert the HTML content at the current selection
 		editor.commands.insertContent(htmlContent);
@@ -795,7 +784,7 @@
 				async function tryParse(value, attempts = 3, interval = 100) {
 					try {
 						// Try parsing the value
-						return marked.parse(value.replaceAll(`\n<br/>`, `<br/>`), {
+						return editorMarked.parse(value.replaceAll(`\n<br/>`, `<br/>`), {
 							breaks: false
 						});
 					} catch (error) {
@@ -856,6 +845,9 @@
 								lowlight
 							}),
 							Typography,
+							Mathematics.configure({
+								katexOptions: { throwOnError: false }
+							}),
 							TableKit.configure({
 								table: { resizable: true }
 							}),
@@ -1410,7 +1402,7 @@
 					editor.commands.setContent(
 						preserveBreaks
 							? value
-							: marked.parse(value.replaceAll(`\n<br/>`, `<br/>`), {
+							: editorMarked.parse(value.replaceAll(`\n<br/>`, `<br/>`), {
 									breaks: false
 								})
 					);
