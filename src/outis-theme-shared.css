@@ -420,11 +420,25 @@ html:is(.outis-dark, .outis-light) .outis-diagram > svg {
    themes take it, from their own token, so a block reads the same way in each.
    The colour lives with the palettes; the shape lives here.
 
-   On the `language-*` container only, not on `.markdown-prose pre` as well:
-   CodeBlock.svelte nests the `pre` inside that container, so covering both
-   draws two borders a pixel apart around every code block in an answer. */
-html:is(.outis-dark, .outis-light) div[class*='language-'] {
-	border: 1px solid var(--outis-code-border);
+   Drawn on CodeBlock.svelte's outer wrapper -- the one that already carries a
+   `border`, and that holds the title bar and the `language-*` container as
+   siblings. Not on the `language-*` container itself: that container is pulled
+   up under the title bar by `-mt-8`, and the bar -- sticky, z-10, opaque --
+   then paints over the container's top edge and both flanks for its own
+   height, leaving a frame missing two sides. And not on
+   `.markdown-prose pre` as well, since the `pre` nests inside the container --
+   that draws two borders a pixel apart around every code block. */
+html:is(.outis-dark, .outis-light) div:has(> div[class*='language-']) {
+	border-color: var(--outis-code-border);
+
+	/* `.language-*` is pulled up by `-mt-8` (32px) to slide under the title
+	   bar, which is only ~29.6px tall -- so it overhangs the wrapper's border
+	   box by a couple of pixels and paints its opaque spacer over the top
+	   border. `clip` trims the overhang at the padding box, which is behind
+	   the title bar and the same colour anyway. `clip` rather than `hidden`:
+	   it does not create a scroll container, so the sticky title bar keeps
+	   sticking to the chat's scroller. */
+	overflow: clip;
 }
 
 /* High Contrast mode's focus ring, on a code block.
@@ -456,12 +470,13 @@ html:is(.outis-dark, .outis-light).high-contrast .cm-content:focus-visible {
  * the right and along the bottom. That was the second report on this: the ring
  * "looks weird".
  *
- * The container already carries a 1px border for the block's edge, and it sits
- * outside the padding box where no child can reach it. Recolouring that is a
- * whole, unbroken frame around the block, with no layout shift -- and it works
- * in both contrast modes, so a focused block is legible without High Contrast
- * having to be on. */
-html:is(.outis-dark, .outis-light) div[class*='language-']:has(.cm-content:focus-visible) {
+ * The wrapper's border sits outside its padding box, where no descendant --
+ * gutter, line background, or sticky title bar -- can paint over it.
+ * Recolouring it is a whole, unbroken frame around the block, with no layout
+ * shift, and it works in both contrast modes, so a focused block is legible
+ * without High Contrast having to be on. */
+html:is(.outis-dark, .outis-light)
+	div:has(> div[class*='language-']):has(.cm-content:focus-visible) {
 	border-color: var(--color-blue-500);
 }
 
