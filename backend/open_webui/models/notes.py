@@ -363,6 +363,9 @@ class NoteTable:
         the notes either side of it. Ids and titles only; no content."""
         async with get_async_db_context(db) as db:
             stmt = select(Note.id, Note.title)
+            folder = normalize_folder(filter.get('folder'))
+            if folder:
+                stmt = folder_filter(stmt, folder)
             stmt = self._has_permission(db, stmt, filter, permission='read')
             stmt = order_notes(stmt, filter.get('order_by'), filter.get('direction'))
             rows = (await db.execute(stmt)).all()

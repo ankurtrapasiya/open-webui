@@ -10,7 +10,7 @@
 	import { toast } from 'svelte-sonner';
 	import equal from 'fast-deep-equal';
 
-	import { goto } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 
 	import dayjs from '$lib/dayjs';
 	import calendar from 'dayjs/plugin/calendar';
@@ -44,6 +44,7 @@
 
 	import NotePanel from '$lib/components/notes/NotePanel.svelte';
 	import AccessControlModal from '$lib/components/workspace/common/AccessControlModal.svelte';
+	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
 	async function loadLocale(locales) {
 		for (const locale of locales) {
@@ -88,6 +89,7 @@
 	import EllipsisHorizontal from '../icons/EllipsisHorizontal.svelte';
 	import Sparkles from '../icons/Sparkles.svelte';
 	import Tooltip from '../common/Tooltip.svelte';
+	import FloppyDisk from '../icons/FloppyDisk.svelte';
 	import ChevronLeft from '../icons/ChevronLeft.svelte';
 	import ChevronRight from '../icons/ChevronRight.svelte';
 	import ArrowUturnLeft from '../icons/ArrowUturnLeft.svelte';
@@ -165,6 +167,57 @@
 	let ignoreBlur = false;
 	let titleInputFocused = false;
 
+	// Draft editing: nothing leaves the browser until Save (button or Ctrl+S).
+	// Leaving with unsaved changes asks first. Collaboration is off for notes
+	// because it is what persists every keystroke; the cost is live multi-user
+	// editing of one note, which this instance does not use.
+	let saved = { title: '', md: '' };
+	let loadedAt = 0;
+	let dirty = false;
+	let showSaveConfirm = false;
+	let pendingNav: string | null = null;
+	const markClean = () => {
+		saved = { title: note?.title ?? '', md: note?.data?.content?.md ?? '' };
+		dirty = false;
+	};
+	const saveNote = async () => {
+		if (!note?.write_access) return false;
+		const res = await updateNoteById(localStorage.token, id, {
+			title: note.title === '' ? $i18n.t('Untitled') : note.title,
+			data: { content: note.data.content, files: files },
+			access_grants: note?.access_grants ?? []
+		}).catch((e) => {
+			toast.error(`${e}`);
+			return null;
+		});
+		if (!res) return false;
+		note.updated_at = res.updated_at ?? note.updated_at;
+		markClean();
+		pinnedNotes.set(await getPinnedNoteList(localStorage.token).catch(() => []));
+		return true;
+	};
+	beforeNavigate(({ cancel, to, willUnload }) => {
+		if (!dirty) return;
+		cancel();
+		// A full unload gets the browser's own "leave page?" prompt from cancel().
+		if (willUnload) return;
+		pendingNav = to?.url?.href ?? null;
+		showSaveConfirm = true;
+	});
+	const leaveAfter = async (save: boolean) => {
+		if (save) {
+			if (!(await saveNote())) return;
+		} else {
+			markClean();
+		}
+		showSaveConfirm = false;
+		if (pendingNav) {
+			const url = pendingNav;
+			pendingNav = null;
+			goto(url);
+		}
+	};
+
 	// The notes either side of this one, in the order the Notes page lists them.
 	let neighbors: Awaited<ReturnType<typeof getNoteNeighbors>> | null = null;
 	const loadNeighbors = async () => {
@@ -172,7 +225,8 @@
 			localStorage.token,
 			id,
 			localStorage?.noteSortKey ?? 'updated_at',
-			localStorage?.noteSortDirection ?? 'desc'
+			localStorage?.noteSortDirection ?? 'desc',
+			localStorage?.noteFolder ?? null
 		).catch(() => null);
 	};
 	const goToNeighbor = (which: 'prev' | 'next') => {
@@ -180,6 +234,11 @@
 		if (target) goto(`/notes/${target.id}`);
 	};
 	const onWindowKeydown = (e: KeyboardEvent) => {
+		if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+			e.preventDefault();
+			if (dirty) saveNote();
+			return;
+		}
 		// Alt+Up / Alt+Down, and only outside text fields so typing is never
 		// hijacked. Alt+Left/Right is browser history on some platforms.
 		if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
@@ -213,6 +272,8 @@
 				note.access_grants = [];
 			}
 			files = res.data.files || [];
+			loadedAt = Date.now();
+			markClean();
 
 			$socket?.emit('join-note', {
 				note_id: id,
@@ -324,6 +385,8 @@
 			incomingContent.html || editorMarked.parse(incomingContent.md ?? '')
 		);
 		await tick();
+		// What just arrived is the stored note, so there is nothing unsaved.
+		markClean();
 
 		const docSize = editor.state.doc.content.size;
 		const from = Math.min(selection.from, docSize);
@@ -1001,6 +1064,16 @@ ${content}
 </svelte:head>
 
 {#if note}
+	<ConfirmDialog
+		bind:show={showSaveConfirm}
+		title={$i18n.t('Save changes?')}
+		message={$i18n.t('This note has unsaved changes.')}
+		confirmLabel={$i18n.t('Save')}
+		cancelLabel={$i18n.t('Discard')}
+		on:confirm={() => leaveAfter(true)}
+		on:cancel={() => leaveAfter(false)}
+	/>
+
 	<AccessControlModal
 		bind:show={showAccessControlModal}
 		bind:accessGrants={note.access_grants}
@@ -1075,6 +1148,9 @@ ${content}
 									: ''}"
 								type="text"
 								bind:value={note.title}
+								on:input={() => {
+									if (note.title !== saved.title) dirty = true;
+								}}
 								placeholder={titleGenerating ? $i18n.t('Generating...') : $i18n.t('Title')}
 								disabled={(note?.user_id !== $user?.id && $user?.role !== 'admin') ||
 									titleGenerating}
@@ -1151,6 +1227,27 @@ ${content}
 											</div>
 										</div>
 									{/if}
+								{/if}
+
+								{#if note?.write_access && versionIdx === null}
+									<Tooltip
+										content={dirty
+											? $i18n.t('Save changes (Ctrl+S)')
+											: $i18n.t('All changes saved')}
+										placement="top"
+									>
+										<button
+											type="button"
+											class="p-1 bg-transparent hover:enabled:bg-white/5 transition rounded-lg disabled:text-gray-500 {dirty
+												? 'text-amber-500'
+												: ''}"
+											aria-label={$i18n.t('Save')}
+											disabled={!dirty}
+											on:click={saveNote}
+										>
+											<FloppyDisk className="size-4" />
+										</button>
+									</Tooltip>
 								{/if}
 
 								{#if neighbors && neighbors.total > 1}
@@ -1414,7 +1511,7 @@ ${content}
 							bind:value={note.data.content.json}
 							html={editorHtml}
 							documentId={`note:${note.id}`}
-							collaboration={true}
+							collaboration={false}
 							socket={$socket}
 							user={$user}
 							dragHandle={true}
@@ -1441,6 +1538,12 @@ ${content}
 								lastLocalContentChangeAt = Date.now();
 								note.data.content.html = content.html;
 								note.data.content.md = content.md;
+								if (!dirty && !editor?.isFocused && Date.now() - loadedAt < 1500) {
+									// The editor normalises the stored markdown on load; not an edit.
+									saved.md = content.md;
+								} else if (content.md !== saved.md) {
+									dirty = true;
+								}
 
 								if (editor) {
 									wordCount = editor.storage.characterCount.words();
