@@ -19,6 +19,7 @@ from open_webui.models.notes import (
     NoteForm,
     NoteListResponse,
     NoteModel,
+    NoteNeighborsResponse,
     Notes,
     NoteUserResponse,
 )
@@ -249,6 +250,38 @@ async def create_new_note(
 
 class NoteResponse(NoteModel):
     write_access: bool = False
+
+
+@router.get('/{id}/neighbors', response_model=NoteNeighborsResponse)
+async def get_note_neighbors(
+    request: Request,
+    id: str,
+    order_by: Optional[str] = None,
+    direction: Optional[str] = None,
+    user=Depends(get_verified_user),
+    db: AsyncSession = Depends(get_async_session),
+):
+    """The previous and next note around `id`, in the same order the Notes
+    page lists them (`order_by`, `direction` as for /search)."""
+    if user.role != 'admin' and not await has_permission(
+        user.id, 'features.notes', await Config.get('user.permissions'), db=db
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ERROR_MESSAGES.UNAUTHORIZED,
+        )
+
+    filter = {'order_by': order_by, 'direction': direction}
+    if not user.role == 'admin' or not BYPASS_ADMIN_ACCESS_CONTROL:
+        groups = await Groups.get_groups_by_member_id(user.id, db=db)
+        if groups:
+            filter['group_ids'] = [group.id for group in groups]
+        filter['user_id'] = user.id
+
+    result = await Notes.get_note_neighbors(id, filter, db=db)
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_MESSAGES.NOT_FOUND)
+    return result
 
 
 @router.get('/{id}', response_model=Optional[NoteResponse])

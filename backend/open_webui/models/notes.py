@@ -136,6 +136,27 @@ class NoteListResponse(BaseModel):
     total: int
 
 
+class NoteNeighbor(BaseModel):
+    id: str
+    title: str
+
+
+class NoteNeighborsResponse(BaseModel):
+    prev: Optional[NoteNeighbor] = None
+    next: Optional[NoteNeighbor] = None
+    index: int
+    total: int
+
+
+def order_notes(stmt, order_by: Optional[str], direction: Optional[str]):
+    """The Notes page's sort, in one place: the list and the previous/next
+    stepper must agree on it, or "next" is not the note below this one."""
+    column = {'name': Note.title, 'created_at': Note.created_at, 'updated_at': Note.updated_at}.get(order_by)
+    if column is None:
+        return stmt.order_by(Note.updated_at.desc())
+    return stmt.order_by(column.asc() if direction == 'asc' else column.desc())
+
+
 class NoteTable:
     async def _get_access_grants(self, note_id: str, db: Optional[AsyncSession] = None) -> list[AccessGrantModel]:
         return await AccessGrants.get_grants_by_resource('note', note_id, db=db)
@@ -248,26 +269,7 @@ class NoteTable:
                     permission=permission,
                 )
 
-                order_by = filter.get('order_by')
-                direction = filter.get('direction')
-
-                if order_by == 'name':
-                    if direction == 'asc':
-                        stmt = stmt.order_by(Note.title.asc())
-                    else:
-                        stmt = stmt.order_by(Note.title.desc())
-                elif order_by == 'created_at':
-                    if direction == 'asc':
-                        stmt = stmt.order_by(Note.created_at.asc())
-                    else:
-                        stmt = stmt.order_by(Note.created_at.desc())
-                elif order_by == 'updated_at':
-                    if direction == 'asc':
-                        stmt = stmt.order_by(Note.updated_at.asc())
-                    else:
-                        stmt = stmt.order_by(Note.updated_at.desc())
-                else:
-                    stmt = stmt.order_by(Note.updated_at.desc())
+                stmt = order_notes(stmt, filter.get('order_by'), filter.get('direction'))
 
             else:
                 stmt = stmt.order_by(Note.updated_at.desc())
@@ -303,6 +305,27 @@ class NoteTable:
                 )
 
             return NoteListResponse(items=notes, total=total)
+
+    async def get_note_neighbors(
+        self, id: str, filter: dict, db: Optional[AsyncSession] = None
+    ) -> Optional[NoteNeighborsResponse]:
+        """Where `id` sits in the caller's note list under the given sort, and
+        the notes either side of it. Ids and titles only; no content."""
+        async with get_async_db_context(db) as db:
+            stmt = select(Note.id, Note.title)
+            stmt = self._has_permission(db, stmt, filter, permission='read')
+            stmt = order_notes(stmt, filter.get('order_by'), filter.get('direction'))
+            rows = (await db.execute(stmt)).all()
+            ids = [row.id for row in rows]
+            if id not in ids:
+                return None
+            i = ids.index(id)
+            return NoteNeighborsResponse(
+                prev=NoteNeighbor(id=rows[i - 1].id, title=rows[i - 1].title) if i > 0 else None,
+                next=NoteNeighbor(id=rows[i + 1].id, title=rows[i + 1].title) if i + 1 < len(rows) else None,
+                index=i,
+                total=len(rows),
+            )
 
     async def get_notes_by_user_id(
         self,

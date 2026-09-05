@@ -191,6 +191,33 @@ export const getNoteList = async (token: string = '', page: number | null = null
 	return res;
 };
 
+// The notes either side of `id` in the Notes page's order, for stepping.
+export const getNoteNeighbors = async (
+	token: string,
+	id: string,
+	orderBy: string | null = null,
+	direction: string | null = null
+): Promise<{
+	prev: { id: string; title: string } | null;
+	next: { id: string; title: string } | null;
+	index: number;
+	total: number;
+}> => {
+	const searchParams = new URLSearchParams();
+	if (orderBy) searchParams.append('order_by', orderBy);
+	if (direction) searchParams.append('direction', direction);
+	const res = await fetch(`${WEBUI_API_BASE_URL}/notes/${id}/neighbors?${searchParams}`, {
+		method: 'GET',
+		headers: {
+			Accept: 'application/json',
+			'Content-Type': 'application/json',
+			authorization: `Bearer ${token}`
+		}
+	});
+	if (!res.ok) throw (await res.json()).detail;
+	return res.json();
+};
+
 export const getNoteById = async (token: string, id: string) => {
 	let error = null;
 
