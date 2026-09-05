@@ -44,7 +44,6 @@
 
 	import NotePanel from '$lib/components/notes/NotePanel.svelte';
 	import AccessControlModal from '$lib/components/workspace/common/AccessControlModal.svelte';
-	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
 	async function loadLocale(locales) {
 		for (const locale of locales) {
@@ -88,8 +87,6 @@
 	import NoteMenu from './Notes/NoteMenu.svelte';
 	import EllipsisHorizontal from '../icons/EllipsisHorizontal.svelte';
 	import Sparkles from '../icons/Sparkles.svelte';
-	import Lock from '../icons/Lock.svelte';
-	import LockClosed from '../icons/LockClosed.svelte';
 	import Tooltip from '../common/Tooltip.svelte';
 	import ChevronLeft from '../icons/ChevronLeft.svelte';
 	import ChevronRight from '../icons/ChevronRight.svelte';
@@ -168,13 +165,6 @@
 	let ignoreBlur = false;
 	let titleInputFocused = false;
 
-	// A note opens locked: reading is the common case, and a stray keystroke in
-	// a study note is an edit nobody asked for. Unlocking lasts for this visit
-	// only; every load locks again. Nothing is stored.
-	let locked = true;
-	let showUnlockConfirm = false;
-	$: canEdit = versionIdx === null && (note?.write_access ?? false) && !locked;
-
 	// The notes either side of this one, in the order the Notes page lists them.
 	let neighbors: Awaited<ReturnType<typeof getNoteNeighbors>> | null = null;
 	const loadNeighbors = async () => {
@@ -219,7 +209,6 @@
 
 		if (res) {
 			note = res;
-			locked = true;
 			if (!Array.isArray(note?.access_grants)) {
 				note.access_grants = [];
 			}
@@ -1012,19 +1001,6 @@ ${content}
 </svelte:head>
 
 {#if note}
-	<ConfirmDialog
-		bind:show={showUnlockConfirm}
-		title={$i18n.t('Unlock note?')}
-		message={$i18n.t(
-			'This note is locked to prevent accidental edits. It locks again the next time it is opened.'
-		)}
-		confirmLabel={$i18n.t('Unlock')}
-		on:confirm={() => {
-			locked = false;
-			showUnlockConfirm = false;
-		}}
-	/>
-
 	<AccessControlModal
 		bind:show={showAccessControlModal}
 		bind:accessGrants={note.access_grants}
@@ -1101,8 +1077,7 @@ ${content}
 								bind:value={note.title}
 								placeholder={titleGenerating ? $i18n.t('Generating...') : $i18n.t('Title')}
 								disabled={(note?.user_id !== $user?.id && $user?.role !== 'admin') ||
-									titleGenerating ||
-									locked}
+									titleGenerating}
 								required
 								on:focus={() => {
 									titleInputFocused = true;
@@ -1148,7 +1123,7 @@ ${content}
 							{/if}
 
 							<div class="flex items-center gap-0.5 shrink-0">
-								{#if canEdit}
+								{#if note?.write_access}
 									{#if editor}
 										<div>
 											<div class="flex items-center gap-0.5 self-center min-w-fit" dir="ltr">
@@ -1225,7 +1200,7 @@ ${content}
 									</button>
 								</Tooltip>
 
-								{#if canEdit}
+								{#if note?.write_access}
 									<RecordMenu
 										onRecord={async () => {
 											displayMediaRecord = false;
@@ -1282,7 +1257,7 @@ ${content}
 								{/if}
 
 								<NoteMenu
-									onUploadFiles={canEdit ? uploadNoteFilesHandler : null}
+									onUploadFiles={note?.write_access ? uploadNoteFilesHandler : null}
 									onDownload={(type) => {
 										downloadHandler(type);
 									}}
@@ -1326,30 +1301,6 @@ ${content}
 								</NoteMenu>
 
 								{#if note?.write_access}
-									{#if versionIdx === null}
-										<Tooltip
-											content={locked ? $i18n.t('Unlock to edit') : $i18n.t('Lock')}
-											placement="top"
-										>
-											<button
-												type="button"
-												class="p-1 bg-transparent hover:bg-white/5 transition rounded-lg {locked
-													? 'text-gray-500'
-													: ''}"
-												aria-label={locked ? $i18n.t('Unlock to edit') : $i18n.t('Lock')}
-												aria-pressed={locked}
-												on:click={() => {
-													locked = !locked;
-												}}
-											>
-												{#if locked}
-													<LockClosed className="size-4" />
-												{:else}
-													<Lock className="size-4" />
-												{/if}
-											</button>
-										</Tooltip>
-									{/if}
 									<div class="ml-1.5">
 										<AccessButton
 											on:click={() => {
@@ -1422,21 +1373,9 @@ ${content}
 						</div>
 					</div>
 
-					<!-- svelte-ignore a11y-no-static-element-interactions a11y-click-events-have-key-events -->
 					<div
 						class=" flex-1 w-full h-full overflow-auto px-3 relative flex flex-col"
 						id="note-content-container"
-						on:click|capture={(e) => {
-							// A click into locked text is the moment to ask, not a silent no-op.
-							if (
-								locked &&
-								versionIdx === null &&
-								note?.write_access &&
-								e.target?.closest?.('.ProseMirror')
-							) {
-								showUnlockConfirm = true;
-							}
-						}}
 					>
 						{#if noteAttachmentFiles.length > 0}
 							<div class="shrink-0 flex flex-wrap gap-1.5 px-0.5 pt-1.5 pb-2">
@@ -1447,7 +1386,7 @@ ${content}
 										type={file.type}
 										size={file?.size}
 										loading={file.status === 'uploading'}
-										dismissible={canEdit}
+										dismissible={versionIdx === null && note?.write_access}
 										edit={true}
 										small={true}
 										modal={['file', 'collection'].includes(file?.type)}
@@ -1483,7 +1422,7 @@ ${content}
 							image={true}
 							{files}
 							placeholder={$i18n.t('Write something...')}
-							editable={canEdit}
+							editable={versionIdx === null && note?.write_access}
 							onSelectionUpdate={({ editor }) => {
 								const { from, to } = editor.state.selection;
 								const selectedText = editor.state.doc.textBetween(from, to, ' ');
