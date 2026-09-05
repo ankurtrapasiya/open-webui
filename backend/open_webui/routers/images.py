@@ -522,9 +522,13 @@ async def upload_image(request, image_data, content_type, metadata, user, db=Non
     if image_data is None or content_type is None:
         raise ValueError('Failed to retrieve image data from the generation backend')
     image_format = mimetypes.guess_extension(content_type)
+    # A caller that knows what the image is (a tool that read "figure1.png")
+    # can name it; the name is what the file picker shows.
+    metadata = dict(metadata or {})
+    filename = metadata.pop('filename', None) or f'generated-image{image_format}'
     file = UploadFile(
         file=io.BytesIO(image_data),
-        filename=f'generated-image{image_format}',  # will be converted to a unique ID on upload_file
+        filename=filename,  # will be converted to a unique ID on upload_file
         headers={
             'content-type': content_type,
         },

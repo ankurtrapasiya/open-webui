@@ -5796,6 +5796,8 @@ async def streaming_chat_response_handler(response, ctx):
                             {
                                 'tool_call_id': tool_call_id,
                                 'content': tool_result_content(tool_result),
+                                'tool_name': tool_function_name,
+                                'tool_params': tool_function_params,
                                 **({'files': tool_result_files} if tool_result_files else {}),
                                 **({'embeds': tool_result_embeds} if tool_result_embeds else {}),
                             }
@@ -5820,6 +5822,18 @@ async def streaming_chat_response_handler(response, ctx):
                         for file_item in result.get('files', []):
                             if file_item.get('type') == 'image' and file_item.get('url', '').startswith('data:'):
                                 output_parts.append({'type': 'input_image', 'image_url': file_item['url']})
+                                # Name the stored file after what the tool was asked
+                                # for ("figure1.png"), else after the tool, so the
+                                # file picker shows something better than
+                                # generated-image.png.
+                                params = result.get('tool_params') or {}
+                                hint = next(
+                                    (str(params[k]) for k in ('name', 'filename', 'path', 'file') if params.get(k)),
+                                    result.get('tool_name') or 'tool-image',
+                                )
+                                mime = file_item['url'][5:].split(';', 1)[0]
+                                ext = mimetypes.guess_extension(mime) or ''
+                                stem = os.path.splitext(os.path.basename(hint))[0] or 'tool-image'
                                 try:
                                     file_url = await get_file_url_from_base64(
                                         request,
@@ -5828,6 +5842,7 @@ async def streaming_chat_response_handler(response, ctx):
                                             'chat_id': metadata.get('chat_id', None),
                                             'message_id': metadata.get('message_id', None),
                                             'session_id': metadata.get('session_id', None),
+                                            'filename': f'{stem}{ext}',
                                         },
                                         user,
                                     )
