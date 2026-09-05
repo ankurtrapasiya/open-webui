@@ -337,6 +337,23 @@ class NoteTable:
             folders.discard(None)
             return sorted(folders)
 
+    async def delete_folder(self, filter: dict, folder: str, db: Optional[AsyncSession] = None) -> int:
+        """Delete every note in `folder` and beneath it that the caller may
+        write. A folder is nothing but its notes, so this is what deleting one
+        means. Returns the number of notes deleted."""
+        folder = normalize_folder(folder)
+        if not folder:
+            return 0
+        async with get_async_db_context(db) as db:
+            stmt = folder_filter(select(Note.id), folder)
+            stmt = self._has_permission(db, stmt, filter, permission='write')
+            ids = (await db.execute(stmt)).scalars().all()
+            deleted = 0
+            for id in ids:
+                if await self.delete_note_by_id(id, db=db):
+                    deleted += 1
+            return deleted
+
     async def get_notes_by_user_id(
         self,
         user_id: str,
