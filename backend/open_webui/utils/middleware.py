@@ -5809,13 +5809,33 @@ async def streaming_chat_response_handler(response, ctx):
                         )
                         result_status_by_call_id[result.get('tool_call_id', '')] = local_output_status
 
-                        # Separate image data URIs (for LLM via input_image) from
-                        # other files (for frontend display via files attribute).
+                        # An image data URI goes to the LLM as an input_image part.
+                        # It is also shown to the reader -- as a file URL, the way
+                        # the MCP branch of process_tool_result does it, so the
+                        # base64 is stored once as a file rather than inside the
+                        # message. Before this, a tool that returned a PNG (a
+                        # matplotlib figure from a run) was seen by the model and
+                        # by nobody else.
                         display_files = []
                         for file_item in result.get('files', []):
                             if file_item.get('type') == 'image' and file_item.get('url', '').startswith('data:'):
-                                # LLM-only: add as input_image part, not frontend display output.
                                 output_parts.append({'type': 'input_image', 'image_url': file_item['url']})
+                                try:
+                                    file_url = await get_file_url_from_base64(
+                                        request,
+                                        file_item['url'],
+                                        {
+                                            'chat_id': metadata.get('chat_id', None),
+                                            'message_id': metadata.get('message_id', None),
+                                            'session_id': metadata.get('session_id', None),
+                                        },
+                                        user,
+                                    )
+                                except Exception as e:
+                                    log.exception(f'Error storing tool result image: {e}')
+                                    file_url = None
+                                if file_url:
+                                    display_files.append({'type': 'image', 'url': file_url})
                             else:
                                 # Frontend display (MCP images, audio, etc.)
                                 display_files.append(file_item)
