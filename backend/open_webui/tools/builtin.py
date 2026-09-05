@@ -1304,7 +1304,9 @@ async def write_note(
 
         form = NoteForm(
             title=title,
-            data={'content': {'md': content}},
+            # The same shape replace_note_content writes; the editor renders
+            # from `md` only when `json` is present and null.
+            data={'content': {'json': None, 'html': '', 'md': content}},
             access_grants=[],  # Private by default - only owner can access
         )
 
@@ -1448,6 +1450,10 @@ async def replace_note_content(
                 applied_operation_count = len(range_operations)
         elif content is None:
             return JSONCodec.dumps({'error': 'content or operations is required', 'code': 'content_required'})
+        else:
+            # A whole-note replace is one applied operation; reporting 0 read as
+            # a silent failure and made the model retry.
+            applied_operation_count = 1
 
         try:
             await stop_item_tasks(__request__.app.state.redis, f'note:{note_id}')
