@@ -64,6 +64,7 @@
 		deleteNoteById,
 		createNoteChatById,
 		getNoteById,
+		getNoteNeighbors,
 		getNoteChatById,
 		getNoteChatsById,
 		updateNoteById,
@@ -90,6 +91,8 @@
 	import Lock from '../icons/Lock.svelte';
 	import LockClosed from '../icons/LockClosed.svelte';
 	import Tooltip from '../common/Tooltip.svelte';
+	import ChevronLeft from '../icons/ChevronLeft.svelte';
+	import ChevronRight from '../icons/ChevronRight.svelte';
 	import ArrowUturnLeft from '../icons/ArrowUturnLeft.svelte';
 	import ArrowUturnRight from '../icons/ArrowUturnRight.svelte';
 	import Sidebar from '../icons/Sidebar.svelte';
@@ -171,6 +174,30 @@
 	let locked = true;
 	let showUnlockConfirm = false;
 	$: canEdit = versionIdx === null && (note?.write_access ?? false) && !locked;
+
+	// The notes either side of this one, in the order the Notes page lists them.
+	let neighbors: Awaited<ReturnType<typeof getNoteNeighbors>> | null = null;
+	const loadNeighbors = async () => {
+		neighbors = await getNoteNeighbors(
+			localStorage.token,
+			id,
+			localStorage?.noteSortKey ?? 'updated_at',
+			localStorage?.noteSortDirection ?? 'desc'
+		).catch(() => null);
+	};
+	const goToNeighbor = (which: 'prev' | 'next') => {
+		const target = neighbors?.[which];
+		if (target) goto(`/notes/${target.id}`);
+	};
+	const onWindowKeydown = (e: KeyboardEvent) => {
+		// Alt+Up / Alt+Down, and only outside text fields so typing is never
+		// hijacked. Alt+Left/Right is browser history on some platforms.
+		if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+		if ((e.target as HTMLElement | null)?.closest?.('input, textarea, [contenteditable="true"]'))
+			return;
+		e.preventDefault();
+		goToNeighbor(e.key === 'ArrowUp' ? 'prev' : 'next');
+	};
 	let titleGenerating = false;
 
 	let dragged = false;
@@ -206,6 +233,7 @@
 			});
 			$socket?.off('events:note', noteEventHandler);
 			$socket?.on('events:note', noteEventHandler);
+			loadNeighbors();
 		} else {
 			goto('/');
 			return;
@@ -303,7 +331,9 @@
 		}
 
 		const selection = editor.state.selection;
-		editor.commands.setContent(incomingContent.html || editorMarked.parse(incomingContent.md ?? ''));
+		editor.commands.setContent(
+			incomingContent.html || editorMarked.parse(incomingContent.md ?? '')
+		);
 		await tick();
 
 		const docSize = editor.state.doc.content.size;
@@ -968,6 +998,8 @@ ${content}
 	});
 </script>
 
+<svelte:window on:keydown={onWindowKeydown} />
+
 <svelte:head>
 	<!-- LICENSE covers this Open WebUI browser-title identifier.
 	Do not alter, remove, obscure, or replace it except as LICENSE permits:
@@ -1144,6 +1176,42 @@ ${content}
 											</div>
 										</div>
 									{/if}
+								{/if}
+
+								{#if neighbors && neighbors.total > 1}
+									<div class="flex items-center shrink-0 mr-1" dir="ltr">
+										<Tooltip
+											content={neighbors.prev?.title ?? $i18n.t('Previous note')}
+											placement="top"
+										>
+											<button
+												type="button"
+												class="p-1 bg-transparent hover:enabled:bg-white/5 transition rounded-lg disabled:cursor-not-allowed disabled:text-gray-500"
+												aria-label={$i18n.t('Previous note')}
+												disabled={!neighbors.prev}
+												on:click={() => goToNeighbor('prev')}
+											>
+												<ChevronLeft className="size-4" strokeWidth="2" />
+											</button>
+										</Tooltip>
+										<div class="text-xs text-gray-500 tabular-nums px-0.5 select-none">
+											{neighbors.index + 1} / {neighbors.total}
+										</div>
+										<Tooltip
+											content={neighbors.next?.title ?? $i18n.t('Next note')}
+											placement="top"
+										>
+											<button
+												type="button"
+												class="p-1 bg-transparent hover:enabled:bg-white/5 transition rounded-lg disabled:cursor-not-allowed disabled:text-gray-500"
+												aria-label={$i18n.t('Next note')}
+												disabled={!neighbors.next}
+												on:click={() => goToNeighbor('next')}
+											>
+												<ChevronRight className="size-4" strokeWidth="2" />
+											</button>
+										</Tooltip>
+									</div>
 								{/if}
 
 								<Tooltip content={$i18n.t('Chat')} placement="top">

@@ -384,6 +384,10 @@
 			sortKey = key;
 			sortDirection = key === 'updated_at' ? 'desc' : 'asc';
 		}
+		// Remembered like the view and display options, and read by the note
+		// editor so previous/next step through the list in this same order.
+		localStorage.noteSortKey = sortKey;
+		localStorage.noteSortDirection = sortDirection;
 	};
 
 	let dragged = false;
@@ -422,6 +426,9 @@
 		viewOption = localStorage?.noteViewOption ?? null;
 		displayOption = localStorage?.noteDisplayOption ?? null;
 		folder = localStorage?.noteFolder ?? null;
+
+		sortKey = localStorage?.noteSortKey ?? 'updated_at';
+		sortDirection = localStorage?.noteSortDirection ?? (sortKey === 'updated_at' ? 'desc' : 'asc');
 
 		loaded = true;
 
