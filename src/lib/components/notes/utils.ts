@@ -1,7 +1,37 @@
 import DOMPurify from 'dompurify';
 import { toast } from 'svelte-sonner';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 
 import { createNewNote } from '$lib/apis/notes';
+
+// TipTap's static serialisation (`editor.getHTML()`, which is what
+// `note.data.content.html` holds) renders a math node from its schema, not
+// from its live NodeView -- so every formula comes out as an empty
+// `<span data-type="inline-math" data-latex="...">` / `<div data-type=
+// "block-math" ...>` with no visible content. That is invisible on screen
+// too, but nobody notices because the open editor's NodeView has already
+// painted real KaTeX markup into the same element; a PDF built from the
+// stored HTML has no such NodeView and prints a blank gap where every
+// formula was. Rendering each placeholder here, the same way the NodeView
+// does (see @tiptap/extension-mathematics), is what makes the export match
+// what the editor shows.
+const renderMathPlaceholders = (root: HTMLElement) => {
+	root
+		.querySelectorAll<HTMLElement>('[data-type="inline-math"], [data-type="block-math"]')
+		.forEach((el) => {
+			const latex = el.getAttribute('data-latex');
+			if (!latex) return;
+			try {
+				katex.render(latex, el, {
+					throwOnError: false,
+					displayMode: el.dataset.type === 'block-math'
+				});
+			} catch {
+				el.textContent = latex;
+			}
+		});
+};
 
 export const downloadPdf = async (note) => {
 	const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
@@ -38,6 +68,7 @@ export const downloadPdf = async (note) => {
 		const contentNode = document.createElement('div');
 
 		contentNode.innerHTML = html;
+		renderMathPlaceholders(contentNode);
 
 		node.appendChild(contentNode);
 
@@ -49,9 +80,13 @@ export const downloadPdf = async (note) => {
 		node.style.height = 'auto';
 		node.style.padding = '40px 40px';
 
-		console.log(node);
 		document.body.appendChild(node);
 	}
+
+	// KaTeX's glyphs are drawn with @font-face fonts; rasterising before they
+	// finish loading is what produces the wrong metrics and stray boxes that
+	// "formula formatting is off" usually turns out to be.
+	await document.fonts.ready;
 
 	// Render to canvas with predefined width
 	const canvas = await html2canvas(node, {
