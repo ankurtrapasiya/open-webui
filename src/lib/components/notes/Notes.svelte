@@ -40,6 +40,7 @@
 		toggleNotePinnedStatusById,
 		getPinnedNoteList,
 		getNoteFolders,
+		deleteNoteFolder,
 		updateNoteById
 	} from '$lib/apis/notes';
 	import { capitalizeFirstLetter, copyToClipboard, formatNumber, getTimeRange } from '$lib/utils';
@@ -61,6 +62,7 @@
 	import ChevronUp from '../icons/ChevronUp.svelte';
 	import FolderIcon from '../icons/Folder.svelte';
 	import FolderOpen from '../icons/FolderOpen.svelte';
+	import GarbageBin from '../icons/GarbageBin.svelte';
 
 	let loaded = false;
 
@@ -93,6 +95,7 @@
 	let folders: string[] = [];
 	let showMoveDialog = false;
 	let showNewFolderDialog = false;
+	let showDeleteFolderConfirm = false;
 
 	// A folder exists only through the notes in it. A freshly created, still
 	// empty folder is remembered per browser so it survives a reload until its
@@ -120,6 +123,24 @@
 		if (!path) return;
 		localStorage.noteEmptyFolders = JSON.stringify([...new Set([...emptyFolders(), path])]);
 		openFolder(path);
+	};
+
+	const deleteFolderHandler = async () => {
+		const path = folder;
+		if (!path) return;
+		const count = await deleteNoteFolder(localStorage.token, path).catch((error) => {
+			toast.error(`${error}`);
+			return null;
+		});
+		if (count === null) return;
+		// Forget it and anything under it among the remembered empty folders.
+		localStorage.noteEmptyFolders = JSON.stringify(
+			emptyFolders().filter((f) => f !== path && !f.startsWith(path + '/'))
+		);
+		pinnedNotes.set(await getPinnedNoteList(localStorage.token).catch(() => []));
+		openFolder(path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : null);
+		toast.success($i18n.t('Deleted {{count}} notes', { count }));
+		init();
 	};
 
 	$: breadcrumb = folder ? folder.split('/') : [];
@@ -485,6 +506,19 @@
 		/>
 
 		<DeleteConfirmDialog
+			bind:show={showDeleteFolderConfirm}
+			title={$i18n.t('Delete folder?')}
+			on:confirm={() => {
+				deleteFolderHandler();
+				showDeleteFolderConfirm = false;
+			}}
+		>
+			<div class=" text-sm text-gray-500">
+				{$i18n.t('This will delete the folder {{folder}} and every note in it.', { folder })}
+			</div>
+		</DeleteConfirmDialog>
+
+		<DeleteConfirmDialog
 			bind:show={showDeleteConfirm}
 			title={$i18n.t('Delete note?')}
 			on:confirm={() => {
@@ -675,6 +709,20 @@
 							{seg}
 						</button>
 					{/each}
+					{#if folder}
+						<Tooltip content={$i18n.t('Delete folder')}>
+							<button
+								type="button"
+								class="ml-1 rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-850 dark:hover:text-red-400"
+								aria-label={$i18n.t('Delete folder')}
+								on:click={() => {
+									showDeleteFolderConfirm = true;
+								}}
+							>
+								<GarbageBin className="size-3.5" strokeWidth="2" />
+							</button>
+						</Tooltip>
+					{/if}
 				</div>
 
 				{#if childFolders.length > 0}

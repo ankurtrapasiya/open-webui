@@ -174,6 +174,23 @@ export const getNoteFolders = async (token: string = ''): Promise<string[]> => {
 	return res.json();
 };
 
+// Delete a folder: every note in it and beneath it. Returns the count.
+export const deleteNoteFolder = async (token: string, path: string): Promise<number> => {
+	const res = await fetch(
+		`${WEBUI_API_BASE_URL}/notes/folders/delete?${new URLSearchParams({ path })}`,
+		{
+			method: 'DELETE',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				authorization: `Bearer ${token}`
+			}
+		}
+	);
+	if (!res.ok) throw (await res.json()).detail;
+	return res.json();
+};
+
 export const getNoteList = async (token: string = '', page: number | null = null) => {
 	let error = null;
 	const searchParams = new URLSearchParams();
