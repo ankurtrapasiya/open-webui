@@ -365,7 +365,10 @@
 		});
 	}
 
-	$: if (value === null && html !== null && editor) {
+	// `== null` on purpose: a note written by a tool carries no `json` key at
+	// all, and `undefined` must mean "seed from html" exactly as `null` does.
+	// Treated as a value it reached setContent(undefined) and blanked the editor.
+	$: if (value == null && html !== null && editor) {
 		editor.commands.setContent(html);
 	}
 
@@ -1361,7 +1364,7 @@
 		}
 	});
 
-	$: if (value !== null && editor && !collaboration) {
+	$: if (value != null && editor && !collaboration) {
 		onValueChange();
 	}
 
