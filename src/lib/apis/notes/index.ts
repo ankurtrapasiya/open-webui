@@ -98,10 +98,15 @@ export const searchNotes = async (
 	permission: string | null = null,
 	sortKey: string | null = null,
 	page: number | null = null,
-	direction: string | null = null
+	direction: string | null = null,
+	folder: string | null = null
 ) => {
 	let error = null;
 	const searchParams = new URLSearchParams();
+
+	if (folder) {
+		searchParams.append('folder', folder);
+	}
 
 	if (query !== null) {
 		searchParams.append('query', query);
@@ -153,6 +158,37 @@ export const searchNotes = async (
 	}
 
 	return res;
+};
+
+// Folder paths ("A/B/C") implied by note.meta.folder across readable notes.
+export const getNoteFolders = async (token: string = ''): Promise<string[]> => {
+	const res = await fetch(`${WEBUI_API_BASE_URL}/notes/folders`, {
+		method: 'GET',
+		headers: {
+			Accept: 'application/json',
+			'Content-Type': 'application/json',
+			authorization: `Bearer ${token}`
+		}
+	});
+	if (!res.ok) throw (await res.json()).detail;
+	return res.json();
+};
+
+// Delete a folder: every note in it and beneath it. Returns the count.
+export const deleteNoteFolder = async (token: string, path: string): Promise<number> => {
+	const res = await fetch(
+		`${WEBUI_API_BASE_URL}/notes/folders/delete?${new URLSearchParams({ path })}`,
+		{
+			method: 'DELETE',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				authorization: `Bearer ${token}`
+			}
+		}
+	);
+	if (!res.ok) throw (await res.json()).detail;
+	return res.json();
 };
 
 export const getNoteList = async (token: string = '', page: number | null = null) => {

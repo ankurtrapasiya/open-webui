@@ -12,6 +12,7 @@
 	import Pin from '$lib/components/icons/Pin.svelte';
 	import PinSlash from '$lib/components/icons/PinSlash.svelte';
 	import CloudArrowUp from '$lib/components/icons/CloudArrowUp.svelte';
+	import Folder from '$lib/components/icons/Folder.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -24,6 +25,7 @@
 	export let isPinned = false;
 	export let onUploadFiles = null;
 
+	export let onMove = null;
 	export let onCopyLink = null;
 	export let onCopyToClipboard = null;
 
@@ -126,6 +128,19 @@
 						</button>
 					{/if}
 				</DropdownSub>
+			{/if}
+
+			{#if onMove}
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => {
+						onMove();
+						show = false;
+					}}
+				>
+					<Folder className="size-3.5" />
+					<div class="flex items-center">{$i18n.t('Move to folder')}</div>
+				</button>
 			{/if}
 
 			{#if onPin}
