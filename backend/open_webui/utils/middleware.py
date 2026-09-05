@@ -1026,7 +1026,7 @@ def extract_base64_images(value: Any, files: list) -> Any:
     return value
 
 
-async def store_tool_result_image(request, image_url, metadata, user):
+async def store_tool_result_image(request, image_url, metadata, user, filename=None):
     """Keep saved tool images out of chat JSON, falling back to inline data if storage fails."""
     metadata = metadata or {}
     if (
@@ -1040,7 +1040,10 @@ async def store_tool_result_image(request, image_url, metadata, user):
         stored_url = await get_file_url_from_base64(
             request,
             image_url,
-            {key: metadata.get(key) for key in ('chat_id', 'message_id', 'session_id')},
+            {
+                **{key: metadata.get(key) for key in ('chat_id', 'message_id', 'session_id')},
+                **({'filename': filename} if filename else {}),
+            },
             user,
         )
         return stored_url or image_url
@@ -6114,6 +6117,8 @@ async def streaming_chat_response_handler(response, ctx):
                             {
                                 'tool_call_id': tool_call_id,
                                 'content': tool_result_content(tool_result),
+                                'tool_name': tool_function_name,
+                                'tool_params': tool_function_params,
                                 **({'files': tool_result_files} if tool_result_files else {}),
                                 **({'embeds': tool_result_embeds} if tool_result_embeds else {}),
                             }
@@ -6137,7 +6142,21 @@ async def streaming_chat_response_handler(response, ctx):
                         display_files = []
                         for file_item in result.get('files', []):
                             if file_item.get('type') == 'image' and file_item.get('url', '').startswith('data:'):
-                                image_url = await store_tool_result_image(request, file_item['url'], metadata, user)
+                                # Name the stored file after what the tool was asked
+                                # for ("figure1.png"), else after the tool, so the
+                                # file picker shows something better than
+                                # generated-image.png.
+                                params = result.get('tool_params') or {}
+                                hint = next(
+                                    (str(params[k]) for k in ('name', 'filename', 'path', 'file') if params.get(k)),
+                                    result.get('tool_name') or 'tool-image',
+                                )
+                                mime = file_item['url'][5:].split(';', 1)[0]
+                                ext = mimetypes.guess_extension(mime) or ''
+                                stem = os.path.splitext(os.path.basename(hint))[0] or 'tool-image'
+                                image_url = await store_tool_result_image(
+                                    request, file_item['url'], metadata, user, filename=f'{stem}{ext}'
+                                )
                                 output_parts.append({'type': 'input_image', 'image_url': image_url})
                                 if not image_url.startswith('data:'):
                                     display_files.append({'type': 'image', 'url': image_url})
