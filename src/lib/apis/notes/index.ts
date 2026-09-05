@@ -232,7 +232,8 @@ export const getNoteNeighbors = async (
 	token: string,
 	id: string,
 	orderBy: string | null = null,
-	direction: string | null = null
+	direction: string | null = null,
+	folder: string | null = null
 ): Promise<{
 	prev: { id: string; title: string } | null;
 	next: { id: string; title: string } | null;
@@ -242,6 +243,7 @@ export const getNoteNeighbors = async (
 	const searchParams = new URLSearchParams();
 	if (orderBy) searchParams.append('order_by', orderBy);
 	if (direction) searchParams.append('direction', direction);
+	if (folder) searchParams.append('folder', folder);
 	const res = await fetch(`${WEBUI_API_BASE_URL}/notes/${id}/neighbors?${searchParams}`, {
 		method: 'GET',
 		headers: {

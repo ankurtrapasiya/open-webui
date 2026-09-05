@@ -319,11 +319,12 @@ async def get_note_neighbors(
     id: str,
     order_by: Optional[str] = None,
     direction: Optional[str] = None,
+    folder: Optional[str] = None,
     user=Depends(get_verified_user),
     db: AsyncSession = Depends(get_async_session),
 ):
     """The previous and next note around `id`, in the same order the Notes
-    page lists them (`order_by`, `direction` as for /search)."""
+    page lists them (`order_by`, `direction`, `folder` as for /search)."""
     if user.role != 'admin' and not await has_permission(
         user.id, 'features.notes', await Config.get('user.permissions'), db=db
     ):
@@ -332,7 +333,7 @@ async def get_note_neighbors(
             detail=ERROR_MESSAGES.UNAUTHORIZED,
         )
 
-    filter = {'order_by': order_by, 'direction': direction}
+    filter = {'order_by': order_by, 'direction': direction, 'folder': folder}
     if not user.role == 'admin' or not BYPASS_ADMIN_ACCESS_CONTROL:
         groups = await Groups.get_groups_by_member_id(user.id, db=db)
         if groups:
