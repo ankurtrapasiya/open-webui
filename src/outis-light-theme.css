@@ -452,4 +452,12 @@ html.outis-light .outis-diagram {
 	--outis-diagram-b7-border: #275865; /* branch 7 border */
 	--outis-diagram-b8-fill: #eed6bf; /* branch 8 */
 	--outis-diagram-b8-border: #6d4020; /* branch 8 border */
+	--outis-diagram-b1-tint: #dcede9; /* branch 1 subtree fill */
+	--outis-diagram-b2-tint: #dfeaf0; /* branch 2 subtree fill */
+	--outis-diagram-b3-tint: #e6e5ef; /* branch 3 subtree fill */
+	--outis-diagram-b4-tint: #eeebd9; /* branch 4 subtree fill */
+	--outis-diagram-b5-tint: #eee5e6; /* branch 5 subtree fill */
+	--outis-diagram-b6-tint: #dfede3; /* branch 6 subtree fill */
+	--outis-diagram-b7-tint: #ddecee; /* branch 7 subtree fill */
+	--outis-diagram-b8-tint: #efe9de; /* branch 8 subtree fill */
 }
