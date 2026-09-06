@@ -38,8 +38,6 @@
 		pinnedNotes
 	} from '$lib/stores';
 
-	import { downloadPdf } from './utils';
-
 	import Chat from '$lib/components/chat/Chat.svelte';
 
 	import NotePanel from '$lib/components/notes/NotePanel.svelte';
@@ -864,6 +862,105 @@ ${content}
 		noteChats = chats;
 	};
 
+	// A note being open means its content is live on the page -- real KaTeX,
+	// real syntax-highlighted code, real tables -- so printing it (Save as
+	// PDF is one of the destinations the browser's own print dialog offers)
+	// is what makes the output match what the editor shows and gives real,
+	// selectable PDF text. downloadPdf() screenshots the *stored* HTML
+	// instead: schema-serialised, so math nodes come out empty, code has no
+	// highlighting, headings and tables have no styling, and the whole page
+	// is one raster image with no text layer at all. That path stays as a
+	// fallback for downloading a note that is not open (see Notes.svelte).
+	//
+	// Printed into a blank popup window, not the app itself: this page's own
+	// html/body sit inside the app shell's `h-screen` scroll container (and
+	// so does #note-content-container, one level further in), and a browser
+	// paginating a print job does not reach across a scroll container's
+	// clipped edge to keep going onto a second page -- content past the
+	// first page's worth is simply cut off. Measured: a `position: fixed`
+	// escape hatch onto the page box does not fix this either, Chromium's
+	// print engine still clips it to one page. A popup's own document has no
+	// such ancestor, so a normal paginated printout is what it naturally
+	// gets, the same as printing any other webpage.
+	//
+	// Every stylesheet the app itself uses is cloned into the popup's head
+	// rather than re-derived (Tailwind's compiled utilities, katex.min.css,
+	// the outis theme, code-highlighting colours) -- one copy of the styling
+	// stays authoritative, and printing continues to inherit the theme's
+	// next change instead of drifting from it. The theme classes are forced
+	// to the light palette regardless of which one is active on screen:
+	// paper is white, and the dark palette's light-on-dark colours would
+	// print as mostly invisible or as wasted ink.
+	const printNote = () => {
+		const contentEl = document.getElementById(`note-${note.id}`);
+		if (!contentEl) return;
+
+		// Opened synchronously, before anything is awaited, so this stays
+		// inside the click's user-gesture chain and popup blockers leave it
+		// alone.
+		const printWindow = window.open('', '_blank');
+		if (!printWindow) {
+			toast.error($i18n.t('Could not open the print window. Check your popup blocker.'));
+			return;
+		}
+
+		const styleTags = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+			.map((el) => el.outerHTML)
+			.join('\n');
+
+		printWindow.document.write(`<!doctype html>
+<html class="light outis-light">
+<head>
+<meta charset="utf-8">
+<title>${note.title.replace(/</g, '&lt;')}</title>
+${styleTags}
+<style>
+	@page { margin: 1.5cm; }
+	body {
+		max-width: 47rem;
+		margin: 0 auto;
+		padding: 1rem;
+	}
+	pre, table, .tiptap-mathematics-render {
+		break-inside: avoid;
+	}
+</style>
+</head>
+<body class="tiptap ProseMirror">
+<h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">${note.title.replace(/</g, '&lt;')}</h1>
+${contentEl.innerHTML}
+</body>
+</html>`);
+		printWindow.document.close();
+
+		printWindow.onafterprint = () => printWindow.close();
+
+		// Every cloned <link rel="stylesheet"> re-fetches in the popup's own
+		// document even when the URL is already cached, and KaTeX's glyphs
+		// are drawn with @font-face fonts that load asynchronously too --
+		// printing a beat early is what produces wrong metrics and stray
+		// boxes. `load` doesn't fire on <style> elements, so this waits on
+		// the links specifically, then on the fonts.
+		const links = Array.from(printWindow.document.querySelectorAll('link[rel="stylesheet"]'));
+		Promise.all(
+			links.map(
+				(link) =>
+					new Promise((resolve) => {
+						if ((link as HTMLLinkElement).sheet) resolve(null);
+						else {
+							link.addEventListener('load', () => resolve(null), { once: true });
+							link.addEventListener('error', () => resolve(null), { once: true });
+						}
+					})
+			)
+		)
+			.then(() => printWindow.document.fonts?.ready)
+			.then(() => {
+				printWindow.focus();
+				printWindow.print();
+			});
+	};
+
 	const downloadHandler = async (type) => {
 		console.log('downloadHandler', type);
 		if (type === 'txt') {
@@ -874,7 +971,7 @@ ${content}
 			saveAs(blob, `${note.title}.md`);
 		} else if (type === 'pdf') {
 			try {
-				await downloadPdf(note);
+				printNote();
 			} catch (error) {
 				toast.error(`${error}`);
 			}
