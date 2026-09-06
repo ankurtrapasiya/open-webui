@@ -946,11 +946,18 @@ def get_source_context(sources: list, source_ids: dict = None, include_content: 
     context_string = ''
     if source_ids is None:
         source_ids = {}
+    # The same document can arrive twice (e.g. once via a knowledge entry and
+    # once as a standalone file attachment). Emit each body only once —
+    # duplicates cost prompt tokens without adding anything.
+    seen = set()
     for source in sources:
         for doc, meta in zip(source.get('document', []), source.get('metadata', [])):
             source_id = meta.get('source') or source.get('source', {}).get('id') or 'N/A'
             if source_id not in source_ids:
                 source_ids[source_id] = len(source_ids) + 1
+            if (source_id, doc) in seen:
+                continue
+            seen.add((source_id, doc))
             src_name = source.get('source', {}).get('name')
             src_type = source.get('source', {}).get('type')
             src_rid = source.get('source', {}).get('id')
