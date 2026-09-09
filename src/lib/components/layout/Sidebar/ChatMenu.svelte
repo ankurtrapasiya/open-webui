@@ -124,6 +124,17 @@
 						el.style.contentVisibility = 'visible';
 					});
 
+					// A rendered diagram is kept at native size on screen (the theme
+					// sets `max-width: none` so its labels stay legible, and the
+					// `overflow-x-auto` wrapper scrolls it). A screenshot cannot
+					// scroll: html2canvas paints the clone's 800px box and anything
+					// wider is simply gone off the right edge. Fit it to the column
+					// for the print; small is better than missing.
+					clonedElement.querySelectorAll('.outis-diagram > svg, img').forEach((el) => {
+						el.style.maxWidth = '100%';
+						el.style.height = 'auto';
+					});
+
 					// Let the browser compute layout for the cloned element
 					await new Promise((r) => requestAnimationFrame(r));
 
@@ -133,6 +144,18 @@
 						useCORS: true,
 						scale: 2, // increase resolution
 						width: virtualWidth
+					});
+
+					// Page breaks fall wherever a page's worth of pixels ends, which
+					// cuts a diagram or image in two across pages. Note where each
+					// one sits (clone px, measured while the clone is still in the
+					// document) so a page can end just above it instead of through it.
+					const cloneTop = clonedElement.getBoundingClientRect().top;
+					const keepWhole = Array.from(
+						clonedElement.querySelectorAll('.outis-diagram > svg, img')
+					).map((el) => {
+						const r = el.getBoundingClientRect();
+						return { top: r.top - cloneTop, bottom: r.bottom - cloneTop };
 					});
 
 					document.body.removeChild(clonedElement);
@@ -158,7 +181,23 @@
 
 					while (offsetY < canvas.height) {
 						// Height of slice
-						const sliceHeight = Math.min(pagePixelHeight, canvas.height - offsetY);
+						let sliceHeight = Math.min(pagePixelHeight, canvas.height - offsetY);
+						const sliceEnd = offsetY + sliceHeight;
+						// Break above the first element the page edge would cut, if it
+						// fits on a page of its own; one too tall to fit is cut anyway.
+						const canvasScale = canvas.width / virtualWidth;
+						for (const r of keepWhole) {
+							const top = Math.floor(r.top * canvasScale);
+							const bottom = Math.ceil(r.bottom * canvasScale);
+							if (
+								top > offsetY &&
+								top < sliceEnd &&
+								bottom > sliceEnd &&
+								bottom - top <= pagePixelHeight
+							) {
+								sliceHeight = Math.min(sliceHeight, top - offsetY);
+							}
+						}
 
 						// Create temp canvas for slice
 						const pageCanvas = document.createElement('canvas');
