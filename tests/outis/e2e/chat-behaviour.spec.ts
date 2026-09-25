@@ -237,7 +237,7 @@ test('CB-14 selecting typed text still shows the formatting menu', async ({ page
 	await expect(page.locator('#bubble-menu')).toBeVisible();
 });
 
-test('CB-15 a long suggestion pool shows 12 at random and typing searches all of it', async ({ page, api }) => {
+test('CB-15 a long suggestion pool shows 20 at random and typing searches all of it', async ({ page, api }) => {
 	await api.updateUiSettings({ showFormattingToolbar: true, insertSuggestionPrompt: true });
 	const n = (i: number) => String(i).padStart(2, '0');
 	await api.setSuggestions(
@@ -248,12 +248,12 @@ test('CB-15 a long suggestion pool shows 12 at random and typing searches all of
 	);
 	await page.goto('/?model=fake-model');
 	const chips = page.locator('button[role="listitem"]');
-	await expect(chips).toHaveCount(12);
+	await expect(chips).toHaveCount(20);
 	const first = await chips.allTextContents();
 	let reshuffled = false;
 	for (let tries = 0; tries < 5 && !reshuffled; tries++) {
 		await page.reload();
-		await expect(chips).toHaveCount(12);
+		await expect(chips).toHaveCount(20);
 		reshuffled = (await chips.allTextContents()).join() !== first.join();
 	}
 	expect(reshuffled).toBe(true);

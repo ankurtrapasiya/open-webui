@@ -13,9 +13,9 @@
 	export let onSelect = () => {};
 
 	let sortedPrompts = [];
-	// A long pool (a book model carries one prompt per chapter) shows a random 12 per visit;
+	// A long pool (a book model carries one prompt per chapter) shows a random 20 per visit;
 	// typing still searches the whole pool.
-	const SHOWN = 12;
+	const SHOWN = 20;
 
 	const fuseOptions = {
 		keys: ['content', 'title'],
