@@ -13,6 +13,8 @@ export default defineConfig({
 	workers: 1,
 	retries: 0,
 	timeout: 60_000,
+	// A fresh container loads each page's code on first use, which can take several seconds.
+	expect: { timeout: 15_000 },
 	reporter: [['list']],
 	globalSetup: './support/global-setup.ts',
 	use: {

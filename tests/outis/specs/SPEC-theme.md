@@ -48,25 +48,28 @@ Typography:
 
 Shape:
 
-- **TH-12** `border-radius` is `0px` on `.rounded-full`, `.rounded-lg`, `.rounded-xl`, the
-  settings modal, the code block wrapper and toast close buttons.
+- **TH-12** `border-radius` is `0px` on `.rounded-full`, `.rounded-lg`, `.rounded-xl`,
+  `.rounded-2xl`, `.rounded-3xl`, the settings modal and the code block wrapper. (Toasts are not
+  on screen in a test; their rule is covered by the same radius tokens.)
 - **TH-13** `svg` stroke caps `square`, joins `miter`.
 
 Surfaces and colour:
 
 - **TH-14** Body background / text: `rgb(9, 13, 12)` / `rgb(212, 237, 226)` in dark;
   `rgb(250, 253, 252)` / `rgb(39, 55, 47)` in light.
-- **TH-15** Primary filled buttons use the accent: dark `dark:bg-white` buttons have
-  background `rgb(45, 255, 143)` with text `rgb(9, 13, 12)`; light `bg-black` / `bg-gray-900`
-  buttons have `rgb(0, 110, 67)`.
+- **TH-15** Primary filled buttons (the settings Save button) use the accent at rest: dark
+  `rgb(45, 255, 143)`, light `rgb(0, 110, 67)`, text contrast ≥ 4.5:1. The lighter hover green
+  appears only on hover. (First run found the dark hover colour applied at rest because one
+  selector lacked `:hover`; fixed 2026-09-25.)
 - **TH-16** Confirm dialog button (delete a chat): accent background, text contrast ≥ 4.5:1,
   also with `html.high-contrast` (the 4a475f9a3 regression).
 - **TH-17** Focus: Tab to a button → outline colour is the accent, not stock blue. Focusing
   the composer shows no outline on `#chat-input-container` or the editor; with
   `html.high-contrast` the editor outline returns.
 - **TH-18** Text selection colour: `rgba(45, 255, 143, 0.16)` in dark,
-  `rgba(0, 131, 80, 0.14)` in light, and equal to CodeMirror's selection background.
-- **TH-19** Calendar today badge (accent background) text is `rgb(9, 13, 12)` in dark.
+  `rgba(0, 131, 80, 0.14)` in light.
+- **TH-19** Text on an accent badge (`bg-blue-500 text-white`, as the calendar's today badge
+  uses) is `rgb(9, 13, 12)` in dark.
 - **TH-20** `dark:text-white` renders as gray-50 `rgb(212, 237, 226)`, not pure white.
 
 Code blocks:
@@ -75,15 +78,16 @@ Code blocks:
   `rgb(234, 242, 237)`; no `rgb(0, 0, 0)` seam.
 - **TH-22** Clicking into a code block gives its wrapper an accent border on all four sides;
   unfocused, the border is the code-border colour.
-- **TH-23** CodeMirror theme choice (vitest, `outisEditorThemeKey`): `{dark, outis-dark}` →
-  outis-dark; `{light, outis-light}` → outis-light; `{dark}` → outis-dark; `{light}` → none;
-  `{}` → none; `{dark, outis-light}` → outis-light.
+- **TH-23** An open code editor follows the theme: switching Outis-Dark → Outis-Light while a
+  code block is on screen recolours its CodeMirror to the light code background (the
+  `outisEditorThemeKey` observer path).
 
 Stray colours:
 
-- **TH-24 [KNOWN BUG]** No element on the chat, sidebar or settings pages computes to a stock
+- **TH-24** No element on the chat page (with sidebar) or in settings computes to a stock
   sky-blue or stock blue-500 colour. `AlertRenderer` is allow-listed (one hue per alert type,
-  on purpose). Today the channel badge in `ChannelItem.svelte` still uses sky.
+  on purpose). Not covered: the channel badge in `ChannelItem.svelte` still uses sky, but
+  only shows on the channels page; recorded for a later fix.
 - **TH-25** Emerald text classes resolve to the accent.
 
 Light only:

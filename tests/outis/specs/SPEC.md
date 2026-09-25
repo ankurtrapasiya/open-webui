@@ -36,7 +36,10 @@ the id it checks, so a failure report names the criterion directly.
 
 - **Playwright** (`@playwright/test`, Chromium only) for browser and HTTP API tests. New dev
   dependency; approved.
-- **vitest** (already in the repo, `npm run test:frontend`) for pure TypeScript helpers.
+- Everything runs in one Playwright suite with its own `package.json` (`tests/outis/`), so CI
+  installs only the suite, not the whole app, and the root `package.json` stays identical to
+  upstream. Pure helpers are checked through their visible effect in the browser (e.g. the
+  markdown lexer through a rendered diagram). vitest is not used.
 - **A fake OpenAI-compatible server** (small Node HTTP server started by Playwright's global
   setup) for the few features that need a model turn: tool calls, skills, document context.
   It returns scripted responses and records every request it receives.
@@ -50,9 +53,6 @@ the id it checks, so a failure report names the criterion directly.
 # Full suite against an image (what the upgrade procedure runs)
 scripts/outis-regression.sh ghcr.io/ankurtrapasiya/open-webui:outis-mneme-<sha>
 
-# Unit tests only (no container)
-npx vitest run tests/outis/unit
-
 # Browser/API tests against an already-running test container
 OUTIS_BASE_URL=http://localhost:3099 npx playwright test -c tests/outis/playwright.config.ts
 OUTIS_BASE_URL=... npx playwright test -c tests/outis/playwright.config.ts -g "NF-"   # one module
@@ -63,7 +63,7 @@ OUTIS_BASE_URL=... npx playwright test -c tests/outis/playwright.config.ts -g "N
    volume, `WEBUI_AUTH=true`, `OPENAI_API_BASE_URL` pointing at the fake server, and no
    `WEBUI_NAME` override.
 2. Waits for `/health`.
-3. Runs vitest, then Playwright.
+3. Runs the Playwright suite.
 4. Always removes the container and its volume, pass or fail.
 5. Exits non-zero on any failure and prints the failing criterion ids.
 
@@ -72,7 +72,6 @@ OUTIS_BASE_URL=... npx playwright test -c tests/outis/playwright.config.ts -g "N
 ```
 tests/outis/
   specs/                 ← these specs (source of truth for what is tested)
-  unit/                  ← vitest: pure TS helpers
   e2e/                   ← Playwright: one file per module, e.g. notes-folders.spec.ts
   support/
     api.ts               ← typed helpers: signup admin, create user, create note/chat/skill
@@ -119,7 +118,7 @@ test('NF-4 deleting a folder removes its subfolders but not a prefix sibling', a
 
 | Concern | Level |
 |---|---|
-| Pure TS (markdown parsing, theme picker, i18n values) | vitest |
+| Pure TS (markdown parsing, theme picker, i18n values) | Playwright, through its visible effect, or a file check |
 | Backend endpoints, stored data shape | Playwright `request` (HTTP API) |
 | Pure backend functions with no endpoint | `docker exec python -c` from a Playwright test |
 | Anything a user sees or clicks | Playwright browser |
@@ -163,13 +162,10 @@ summarised in Open Questions.
 1. **Known bugs, fix or pin?** The survey found these in fork features:
    - `notes-drafts`: a title edit saves itself without Save (ND-8). (ND-9, Escape or a click
      outside the "Save changes?" dialog discarding the draft, was fixed first.)
-   - `notes-folders`: `_` and `%` in a folder name act as SQL wildcards, so deleting
-     `a_b` also deletes `aXb` (NF-10).
    - `chat-behaviour`: tool images on the tool-approval path are still hidden and named
      `generated-image.png` (CB-5).
    - `branding`: installed-app manifest leftover says "Open WebUI"; "Outis community" where
      the real Open WebUI community is meant (BR-7, BR-8).
-   - `theme`: one sky-blue badge left in `ChannelItem.svelte` (TH-24).
 
    Default: pin them as `test.fail()` now and fix them as separate, small tasks after the
    suite is green.

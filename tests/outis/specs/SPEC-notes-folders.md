@@ -53,10 +53,9 @@ Browser:
   button (confirm dialog "Delete folder?") lands in the parent `NF9` and shows
   "Deleted 1 notes".
 
-Known bugs:
-
-- **NF-10 [KNOWN BUG]** `folders/delete?path=a_b` must not delete a note in `aXb`. Today it
-  does (`_` is a SQL wildcard in `folder_filter`).
+- **NF-10** `folders/delete?path=a_b` does not delete a note in `aXb`. (The code survey
+  suspected `_` would act as a SQL wildcard; a real run on SQLite showed it does not. Kept as
+  a guard in case the query or database changes.)
 
 ## Test hooks
 

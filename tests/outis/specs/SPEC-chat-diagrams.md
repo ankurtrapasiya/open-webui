@@ -17,11 +17,11 @@ Tests inject the post-filter HTML directly into a chat created through the API.
 
 ## Acceptance criteria
 
-Unit (vitest, `marked.lexer`):
+Markdown parsing (checked through what renders):
 
-- **CD-1** `'Intro\n\n<div class="outis-diagram"><svg …>…</svg></div>\n\nAfter'` lexes to
-  paragraph, html, paragraph, and the html token contains `outis-diagram`.
-- **CD-2** The same without a blank line before the div still yields an html token.
+- **CD-1** `'Intro\n\n<div class="outis-diagram"><svg …>…</svg></div>\n\nAfter'` renders the
+  intro paragraph, one live diagram, and the after paragraph.
+- **CD-2** The same without a blank line before the div still renders the diagram.
 
 Browser (chat created with a 1300×300 test SVG in the assistant message):
 
