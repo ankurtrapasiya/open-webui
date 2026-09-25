@@ -138,7 +138,7 @@ html.outis-dark [class~='dark:bg-gray-100'],
 html.outis-dark [class~='dark:bg-gray-200'] {
 	background-color: var(--color-blue-500);
 }
-html.outis-dark [class~='dark:hover:bg-gray-100'],
+html.outis-dark [class~='dark:hover:bg-gray-100']:hover,
 html.outis-dark [class~='dark:hover:bg-gray-100/90']:hover,
 html.outis-dark [class~='dark:hover:bg-white']:hover,
 html.outis-dark [class~='dark:hover:bg-gray-200']:hover {
