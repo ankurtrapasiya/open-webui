@@ -161,8 +161,8 @@ summarised in Open Questions.
 ## Open questions
 
 1. **Known bugs, fix or pin?** The survey found these in fork features:
-   - `notes-drafts`: Escape or a click outside the "Save changes?" dialog *discards* the
-     draft and leaves (ND-9); a title edit saves itself without Save (ND-8).
+   - `notes-drafts`: a title edit saves itself without Save (ND-8). (ND-9, Escape or a click
+     outside the "Save changes?" dialog discarding the draft, was fixed first.)
    - `notes-folders`: `_` and `%` in a folder name act as SQL wildcards, so deleting
      `a_b` also deletes `aXb` (NF-10).
    - `chat-behaviour`: tool images on the tool-approval path are still hidden and named
@@ -172,6 +172,6 @@ summarised in Open Questions.
    - `theme`: one sky-blue badge left in `ChannelItem.svelte` (TH-24).
 
    Default: pin them as `test.fail()` now and fix them as separate, small tasks after the
-   suite is green. The draft-discard bug (ND-9) is the one that can lose work.
+   suite is green.
 2. **Fonts need internet.** Theme fonts come from Google Fonts. Tests assert the computed
    `font-family` (works offline) and only check that the font actually loaded when online.

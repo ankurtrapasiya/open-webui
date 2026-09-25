@@ -29,9 +29,10 @@ note's own save echo, a chat editing the note) counts as saved.
 - **ND-7** Reloading with unsaved changes raises a `beforeunload` dialog.
 - **ND-8 [KNOWN BUG]** A title-only edit followed by Discard must not persist the new title.
   Today it does: the title input saves itself on blur.
-- **ND-9 [KNOWN BUG]** Pressing Escape, or clicking outside the "Save changes?" dialog, must
-  keep the user on the note with the draft intact. Today it discards the draft and
-  navigates away. This is the one that loses work.
+- **ND-9** Pressing Escape, or clicking outside the "Save changes?" dialog, keeps the user on
+  the note with the draft intact and the note still unsaved; leaving again asks again. (Fixed
+  2026-09-25: `ConfirmDialog` now tags those two as `dismissed`; before, they discarded the
+  draft and navigated away.)
 - **ND-10** Toggling Formatting in the note menu (which remounts the editor) keeps the
   unsaved body text on screen.
 - **ND-11** Previous/next note (`notes-navigation`) with unsaved changes also asks first.

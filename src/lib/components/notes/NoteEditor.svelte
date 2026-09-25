@@ -1188,7 +1188,14 @@ ${contentEl.innerHTML}
 		confirmLabel={$i18n.t('Save')}
 		cancelLabel={$i18n.t('Discard')}
 		on:confirm={() => leaveAfter(true)}
-		on:cancel={() => leaveAfter(false)}
+		on:cancel={(e) => {
+			// Escape or a click outside means "not now": stay on the note, draft intact.
+			if (e.detail?.dismissed) {
+				pendingNav = null;
+			} else {
+				leaveAfter(false);
+			}
+		}}
 	/>
 
 	<AccessControlModal
