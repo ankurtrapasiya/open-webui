@@ -236,3 +236,31 @@ test('CB-14 selecting typed text still shows the formatting menu', async ({ page
 	await page.keyboard.press('Control+a');
 	await expect(page.locator('#bubble-menu')).toBeVisible();
 });
+
+test('CB-15 a long suggestion pool shows 12 at random and typing searches all of it', async ({ page, api }) => {
+	await api.updateUiSettings({ showFormattingToolbar: true, insertSuggestionPrompt: true });
+	const n = (i: number) => String(i).padStart(2, '0');
+	await api.setSuggestions(
+		Array.from({ length: 30 }, (_, i) => ({
+			title: [`Pool item ${n(i + 1)}`, 'regression'] as [string, string],
+			content: `Pool prompt ${n(i + 1)}`
+		}))
+	);
+	await page.goto('/?model=fake-model');
+	const chips = page.locator('button[role="listitem"]');
+	await expect(chips).toHaveCount(12);
+	const first = await chips.allTextContents();
+	let reshuffled = false;
+	for (let tries = 0; tries < 5 && !reshuffled; tries++) {
+		await page.reload();
+		await expect(chips).toHaveCount(12);
+		reshuffled = (await chips.allTextContents()).join() !== first.join();
+	}
+	expect(reshuffled).toBe(true);
+	const hidden = Array.from({ length: 30 }, (_, i) => `Pool item ${n(i + 1)}`).find(
+		(t) => !first.some((c) => c.includes(t))
+	)!;
+	await page.locator('#chat-input').click();
+	await page.keyboard.type(hidden.replace('item', 'prompt'));
+	await expect(page.getByText(hidden, { exact: true })).toBeVisible();
+});

@@ -61,6 +61,9 @@ Settings for these tests: `ui.showFormattingToolbar = true`,
 - **CB-13** Clicking a plain-text suggestion leaves the selection collapsed with the cursor at
   the end of the prompt, and the formatting bubble menu stays hidden.
 - **CB-14** Selecting typed text does show the bubble menu (the menu still works).
+- **CB-15** A pool longer than 12 (a book model has one prompt per chapter) shows exactly 12
+  chips, a different random 12 after a reload, and typing searches the whole pool: a prompt
+  that was not among the 12 appears when its text is typed.
 
 ## Notes for the test author
 
