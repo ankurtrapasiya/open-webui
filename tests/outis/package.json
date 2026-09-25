@@ -1,0 +1,11 @@
+{
+	"name": "outis-regression",
+	"private": true,
+	"description": "Regression suite for the fork's own features. Kept out of the root package.json so upstream rebases never conflict on it.",
+	"scripts": {
+		"test": "playwright test -c playwright.config.ts"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.63.0"
+	}
+}

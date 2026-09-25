@@ -311,3 +311,8 @@ cypress/videos
 cypress/screenshots
 .vscode/settings.json
 .cptr
+
+# Outis regression suite
+tests/outis/node_modules/
+tests/outis/test-results/
+tests/outis/playwright-report/

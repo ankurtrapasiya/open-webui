@@ -181,3 +181,38 @@ jobs:
             echo
             echo "Platforms: linux/amd64, linux/arm64"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # Every published image runs the fork's regression suite (tests/outis). A red run here
+  # means a fork feature broke, usually in a rebase onto a new upstream release. The deploy
+  # script in outis-mneme runs the same suite again locally and refuses to deploy on red.
+  regression:
+    runs-on: ubuntu-latest
+    needs: [merge]
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install the suite and its browser
+        working-directory: tests/outis
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Run the regression suite against this image
+        run: |
+          image="${REGISTRY}/${GITHUB_REPOSITORY,,}:outis-mneme-${GITHUB_SHA::7}"
+          scripts/outis-regression.sh "$image"
