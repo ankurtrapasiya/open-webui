@@ -9,11 +9,28 @@
 
 	import TurndownService from 'turndown';
 	import { gfm } from '@joplin/turndown-plugin-gfm';
+	// Math nodes reach Turndown as empty placeholders (`<span data-latex="x^2" ...></span>`).
+	// Turndown drops an element with no text before any rule runs, so saving lost every
+	// formula from the markdown. Filling each placeholder with a stand-in character keeps it,
+	// and the `math` rule below writes the real `$...$` from data-latex.
+	const fillMathPlaceholders = (html: string) =>
+		html.replace(/<(span|div)([^>]*\sdata-type="(?:inline|block)-math"[^>]*)><\/\1>/g, '<$1$2>m</$1>');
+
+	const mathMarkdown = (node: HTMLElement): string | null => {
+		const type = node.getAttribute?.('data-type');
+		const latex = node.getAttribute?.('data-latex') ?? '';
+		if (type === 'inline-math') return `$${latex}$`;
+		if (type === 'block-math') return `\n\n$$\n${latex}\n$$\n\n`;
+		return null;
+	};
+
 	const turndownService = new TurndownService({
 		codeBlockStyle: 'fenced',
 		headingStyle: 'atx'
 	});
 	turndownService.escape = (string) => string;
+	const turndownHtml = turndownService.turndown.bind(turndownService);
+	turndownService.turndown = (input) => turndownHtml(typeof input === 'string' ? fillMathPlaceholders(input) : input);
 
 	// Produce single newlines between paragraphs instead of double.
 	// TipTap wraps every line in <p> tags; the default Turndown rule emits
@@ -92,14 +109,9 @@
 	});
 
 	// Convert TipTap mention spans -> serialized mention tags.
-	turndownService.addRule('inlineMath', {
-		filter: (node) => node.nodeName === 'SPAN' && node.getAttribute('data-type') === 'inline-math',
-		replacement: (_content, node: HTMLElement) => `$${node.getAttribute('data-latex') ?? ''}$`
-	});
-
-	turndownService.addRule('blockMath', {
-		filter: (node) => node.nodeName === 'DIV' && node.getAttribute('data-type') === 'block-math',
-		replacement: (_content, node: HTMLElement) => `\n\n$$\n${node.getAttribute('data-latex') ?? ''}\n$$\n\n`
+	turndownService.addRule('math', {
+		filter: (node) => mathMarkdown(node as HTMLElement) !== null,
+		replacement: (_content, node) => mathMarkdown(node as HTMLElement)!
 	});
 
 	turndownService.addRule('mentions', {
