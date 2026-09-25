@@ -66,16 +66,22 @@ Tailscale host) and never calls a real AI model.
 When a fork feature is added or changed: add or update its criterion in the spec and its test
 in the same change.
 
-| Module | What it protects | Status |
-|---|---|---|
-| `notes-drafts` | Save on demand, Ctrl+S, ask before leaving, Escape keeps the draft | tested |
-| `notes-folders` | Notes in folders: create, move, delete a folder | tested |
-| `notes-navigation` | Previous/next note, Alt+Up/Down, remembered sort | tested |
-| `chat-diagrams` | Diagrams inline at native size, themed, chat PDF fit | tested |
-| `theme` | Outis-Dark/Light, fonts, one-ratio type scale, flat shape, focus, code blocks | tested |
-| `notes-render` | LaTeX in notes, chat-written notes, note print/PDF | specced |
-| `chat-behaviour` | Tool images, documents sent once, skills persist, composer | specced |
-| `branding` | "Outis" wherever the instance names itself | specced |
+| Module | What it protects |
+|---|---|
+| `notes-drafts` | Save on demand, Ctrl+S, ask before leaving, Escape keeps the draft |
+| `notes-folders` | Notes in folders: create, move, delete a folder |
+| `notes-navigation` | Previous/next note, Alt+Up/Down, remembered sort |
+| `notes-render` | LaTeX in notes, markdown-only notes, math kept on save, print to PDF |
+| `chat-diagrams` | Diagrams inline at native size, themed, chat PDF fit |
+| `chat-behaviour` | Tool images shown and named, documents sent once, skills kept, composer |
+| `theme` | Outis-Dark/Light, fonts, one-ratio type scale, flat shape, focus, code blocks |
+| `branding` | "Outis" wherever the instance names itself |
+
+All eight are tested (about 100 checks, 3–4 minutes). One check is not automated yet: CB-5,
+tool images after a tool-approval, which needs a browser-driven test.
+
+The suite starts a small fake model server (`tests/outis/support/fake-openai.ts`) that the test
+container is pointed at, so chat features run with scripted replies and no real model.
 
 Checks marked `[KNOWN BUG]` in the specs describe a bug that still exists. Their tests are
 written as expected failures and turn red the day the bug is fixed, as a reminder to update

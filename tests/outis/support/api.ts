@@ -31,6 +31,11 @@ export class Api {
 		return new Api(ctx, token);
 	}
 
+	// Unwrapped request, for tests that assert on status codes or unusual endpoints.
+	raw(method: 'GET' | 'POST' | 'DELETE', path: string, data?: unknown) {
+		return this.ctx.fetch(path, { method, ...(data !== undefined ? { data } : {}) });
+	}
+
 	async dispose() {
 		await this.ctx.dispose();
 	}
@@ -62,6 +67,11 @@ export class Api {
 				data: { ...current, ui: { ...(current.ui ?? {}), ...ui } }
 			})
 		);
+	}
+
+	// A note created with exactly the given body, for shapes `note()` would normalise.
+	async rawNote(body: Record<string, unknown>) {
+		return this.json(await this.ctx.post('/api/v1/notes/create', { data: { access_grants: [], ...body } }));
 	}
 
 	async getNote(id: string) {
@@ -129,6 +139,82 @@ export class Api {
 				}
 			})
 		);
+	}
+
+	// Creates or replaces a workspace tool (Python source).
+	async tool(id: string, content: string) {
+		await this.ctx.delete(`/api/v1/tools/id/${id}/delete`).catch(() => null);
+		return this.json(
+			await this.ctx.post('/api/v1/tools/create', { data: { id, name: id, content, meta: { description: id } } })
+		);
+	}
+
+	async skill(id: string, name: string, content: string) {
+		await this.ctx.delete(`/api/v1/skills/id/${id}/delete`).catch(() => null);
+		return this.json(
+			await this.ctx.post('/api/v1/skills/create', { data: { id, name, description: name, content, is_active: true } })
+		);
+	}
+
+	async setSuggestions(suggestions: { title: [string, string]; content: string }[]) {
+		return this.json(await this.ctx.post('/api/v1/configs/suggestions', { data: { suggestions } }));
+	}
+
+	// Starts a new saved chat the way the UI does (background task, streamed over the socket)
+	// and returns its ids. Use waitForReply to read the result.
+	async startChat(opts: { model: string; content: string; tool_ids?: string[]; params?: Record<string, unknown> }) {
+		const mid = crypto.randomUUID();
+		const uid = crypto.randomUUID();
+		const res = await this.json(
+			await this.ctx.post('/api/chat/completions', {
+				data: {
+					stream: true,
+					model: opts.model,
+					messages: [{ role: 'user', content: opts.content }],
+					params: opts.params ?? {},
+					...(opts.tool_ids ? { tool_ids: opts.tool_ids } : {}),
+					features: {},
+					id: mid,
+					message_ids: [{ model_id: opts.model, message_id: mid, modelIdx: 0 }],
+					parent_id: null,
+					user_message: {
+						id: uid, parentId: null, childrenIds: [mid], role: 'user', content: opts.content,
+						timestamp: Math.floor(Date.now() / 1000), models: [opts.model]
+					},
+					background_tasks: {},
+					session_id: `regression-${mid.slice(0, 8)}`
+				}
+			})
+		);
+		return { chatId: res.chat_id as string, messageId: mid };
+	}
+
+	async getChat(id: string) {
+		return this.json(await this.ctx.get(`/api/v1/chats/${id}`));
+	}
+
+	// Polls the saved chat until the assistant message satisfies `done` (default: finished).
+	async waitForReply(chatId: string, messageId: string, done = (m: any) => m?.done === true) {
+		const deadline = Date.now() + 60_000;
+		for (;;) {
+			const chat = await this.getChat(chatId);
+			const m = chat.chat?.history?.messages?.[messageId];
+			if (done(m)) return { chat, message: m };
+			if (Date.now() > deadline) throw new Error(`reply never finished: ${JSON.stringify(m)?.slice(0, 500)}`);
+			await new Promise((r) => setTimeout(r, 500));
+		}
+	}
+
+	async resolveToolCall(chatId: string, messageId: string, callId: string) {
+		return this.json(
+			await this.ctx.post(`/api/v1/chats/${chatId}/messages/${messageId}/resolve`, {
+				data: { call_id: callId, action: 'approve' }
+			})
+		);
+	}
+
+	async file(id: string) {
+		return this.json(await this.ctx.get(`/api/v1/files/${id}`));
 	}
 
 	// Creates (or signs in) a plain user and returns an Api acting as that user.

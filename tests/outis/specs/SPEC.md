@@ -163,7 +163,7 @@ summarised in Open Questions.
    - `notes-drafts`: a title edit saves itself without Save (ND-8). (ND-9, Escape or a click
      outside the "Save changes?" dialog discarding the draft, was fixed first.)
    - `chat-behaviour`: tool images on the tool-approval path are still hidden and named
-     `generated-image.png` (CB-5).
+     `generated-image.png` (CB-5; its test is `fixme`, see the module spec).
    - `branding`: installed-app manifest leftover says "Open WebUI"; "Outis community" where
      the real Open WebUI community is meant (BR-7, BR-8).
 

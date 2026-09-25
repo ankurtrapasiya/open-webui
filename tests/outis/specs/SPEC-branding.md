@@ -18,7 +18,7 @@ API (no `WEBUI_NAME` set in the test container):
 - **BR-3** `GET /opensearch.xml` contains `<ShortName>Outis`.
 - **BR-4** With `WEBUI_NAME=Foo` in the container environment, `/api/config` `name` is exactly
   `Foo` (no " (Open WebUI)" suffix). Runs in a second, short-lived container.
-- **BR-5** A chat to a failing model connection (fake server returns 500) returns an error
+- **BR-5** A chat to a model whose server hangs up (the fake `fake-drop`) returns an error
   detail containing `Outis: Server Connection Error`.
 
 Browser:
@@ -26,17 +26,19 @@ Browser:
 - **BR-6** Page title is `Outis`; the sign-in page says "Outis" (e.g. "Get started with
   Outis" on first run).
 
-Unit (vitest):
+Inside the image and the source:
 
 - **BR-7 [KNOWN BUG]** `static/static/site.webmanifest` names the app `Outis`. Today it still
   says "Open WebUI" (a leftover; the live manifest is `/manifest.json`, covered by BR-2).
 - **BR-8 [KNOWN BUG]** The community-sharing setting description refers to the Open WebUI
   community, which is what it means. Today it says "Outis community".
-- **BR-9** `APP_NAME` in `src/lib/constants.ts` is `Outis`.
-- **BR-10** In en-US `translation.json`, these `settings.*` values say `Outis` and not
-  `Open WebUI`: STT model description, TTS model description, LDAP group mapping, OAuth
-  group mapping, OAuth role mapping, both Jupyter auth descriptions, help description.
-- **BR-11** A guard for new upstream strings: every en-US value containing `Open WebUI` is on
-  an allow-list of intentional upstream references. A new upstream string that names the
+- **BR-9** The page shell served at `/` is titled `<title>Outis</title>` (seen before the app
+  loads).
+- **BR-10** The built app contains the rebranded `settings.*` descriptions: STT model, TTS
+  model, LDAP group mapping, OAuth group mapping, OAuth role mapping, Jupyter auth, help.
+  (Presence only: the bundle ships every language, and some still carry upstream's English.)
+- **BR-11** A guard for new upstream strings: every UI string in `src/` that renders
+  `Open WebUI` (every `$i18n.t('…Open WebUI…')`) is on an allow-list of intentional upstream
+  references. A new upstream string that names the
   instance fails this test, which tells the next rebase to decide: rebrand it or allow-list
   it.

@@ -23,10 +23,12 @@ OpenAI server scripted to call it on turn 1 and answer in text on turn 2.
 - **CB-2** That file's `meta.name` is `figure1.png` when called with
   `path: "plots/figure1.png"`.
 - **CB-3** Name fallbacks: no path-like argument → `read_figure.png`; a JPEG → `.jpg`.
-- **CB-4** The image is visible in the browser inside the expanded tool call
-  (`[id$="-tool-call-result-0"] img`).
-- **CB-5 [KNOWN BUG]** With tool approval on, the approved-call path must show and name the
-  image the same way. Today it hides it and names it `generated-image.png`.
+- **CB-4** Opening the chat shows the stored image file (`img[src="/api/v1/files/<id>/content"]`)
+  to the reader.
+- **CB-5 [KNOWN BUG] [NOT AUTOMATED]** With tool approval on, the approved-call path must show
+  and name the image the same way. Today it hides it and names it `generated-image.png`. The
+  test is `fixme`: approving a call through the API leaves it `queued` with no output, so the
+  resume needs a browser-driven test. Until then the gate does not cover this path.
 
 ## Documents sent once
 
@@ -44,7 +46,8 @@ Test by `docker exec` into the test container, calling the function directly.
 - **CB-9** Turn a skill on in the composer, send two messages: both
   `/api/chat/completions` request bodies contain its id in `skill_ids`, and the skills
   button still shows 1 after each send.
-- **CB-10** Navigate to another chat and back before sending: the skill is still selected.
+- **CB-10** Starting a new chat clears the selected skills (the commit keeps skills across
+  messages in one chat and resets them where a reset is the point).
 
 ## Composer suggestions
 

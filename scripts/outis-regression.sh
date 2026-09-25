@@ -22,8 +22,14 @@ trap cleanup EXIT
 echo "== image: $IMAGE"
 docker pull -q "$IMAGE" >/dev/null 2>&1 || docker image inspect "$IMAGE" >/dev/null
 
+# The container talks to the suite's fake model server on the host (tests/outis/support/fake-openai.ts).
+FAKE_PORT="${OUTIS_FAKE_PORT:-3098}"
 docker run -d --name "$NAME" -p "127.0.0.1:$PORT:8080" -v "$VOLUME:/app/backend/data" \
-	-e WEBUI_AUTH=true -e WEBUI_SECRET_KEY=regression-only "$IMAGE" >/dev/null
+	--add-host=host.docker.internal:host-gateway \
+	-e WEBUI_AUTH=true -e WEBUI_SECRET_KEY=regression-only \
+	-e ENABLE_OLLAMA_API=false \
+	-e OPENAI_API_BASE_URL="http://host.docker.internal:$FAKE_PORT/v1" -e OPENAI_API_KEY=fake \
+	"$IMAGE" >/dev/null
 
 echo "== waiting for the test instance on :$PORT"
 for _ in $(seq 1 100); do
@@ -41,5 +47,6 @@ cd "$SUITE"
 npx playwright install chromium >/dev/null
 
 echo "== running the suite"
-OUTIS_BASE_URL="http://127.0.0.1:$PORT" npx playwright test -c playwright.config.ts
+OUTIS_BASE_URL="http://127.0.0.1:$PORT" OUTIS_CONTAINER="$NAME" OUTIS_IMAGE="$IMAGE" OUTIS_FAKE_PORT="$FAKE_PORT" \
+	npx playwright test -c playwright.config.ts
 echo "== PASS: every checked fork feature works on $IMAGE"

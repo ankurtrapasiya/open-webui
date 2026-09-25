@@ -17,15 +17,16 @@ Fork commits: a8b8cf891 (LaTeX in the notes editor), 6b34d3662 (show a note the 
 
 ## Acceptance criteria
 
-Unit (vitest, `editorMarked.parse`):
+The editor's markdown parser (`editorMarked`), checked through what the editor renders:
 
 - **NR-1** `'$$\n\\frac1n\n$$'` → a `div[data-type="block-math"][data-latex="\frac1n"]`.
 - **NR-2** `'a $x^2$ b'` → a `span[data-type="inline-math"][data-latex="x^2"]`.
 - **NR-3** `'$5 and $10'` → no inline math (prices are not math).
 - **NR-4** `'$a<b$'` → `data-latex="a&lt;b"` (escaped).
-- **NR-5** `'- [ ] x'` → a task item with `data-checked="false"`.
-- **NR-6** Registering the chat's KaTeX extension on the global `marked` does not change
-  `editorMarked.parse('$x$')` (the original bug).
+- **NR-5** `'- [ ] x'` → an unchecked task item (`data-checked="false"`, checkbox unticked).
+- **NR-6** After rendering a chat (which registers the chat's KaTeX extension on the global
+  `marked`), a note opened in the same session still parses `$x^2$` as note math (the
+  original bug).
 
 Browser:
 
@@ -34,9 +35,13 @@ Browser:
 - **NR-8** A note created with `{json: null, html: '', md: 'NR8 body'}` opens showing
   "NR8 body".
 - **NR-9** A note created with only `{md: 'NR9 body'}` (no `json` key) opens showing
-  "NR9 body".
+  "NR9 body". (First run found it opened blank: the editor's `value` defaults to `''`, so a
+  missing `json` never looked null. Fixed 2026-09-25: `sanitize_note_data` adds `json: null`
+  to markdown-only notes.)
 - **NR-10** Editing and saving a note with math keeps `$x^2$` and `$$` in the stored
-  `data.content.md`.
+  `data.content.md`. (First run found saving dropped every formula from the markdown:
+  Turndown discards empty elements before rules run, and math nodes are empty placeholders.
+  Fixed 2026-09-25 in `RichTextInput.svelte`.)
 - **NR-11** Download → PDF document: with `window.open` wrapped so the popup's `print()` is
   captured, the captured HTML has `html.outis-light`, the note title as `<h1>`, `.katex`
   elements, and a `@page` rule.
