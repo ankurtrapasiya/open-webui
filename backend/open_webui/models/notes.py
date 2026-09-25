@@ -54,6 +54,12 @@ def sanitize_note_data(data: Optional[dict]) -> Optional[dict]:
         return {'content': {'md': str(data)}}
 
     content = data.get('content')
+    if isinstance(content, dict) and 'md' in content and 'json' not in content:
+        # A note given only markdown (as tools used to write it) has no editor JSON. Say so
+        # explicitly: the editor seeds itself from the markdown only when json is null, and a
+        # missing key reaches it as '' and opens a blank page.
+        content = {**content, 'json': None}
+        data = {**data, 'content': content}
     if not isinstance(content, dict) or 'md' not in content or isinstance(content.get('md'), str):
         return data
 
