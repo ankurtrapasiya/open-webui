@@ -91,7 +91,8 @@ test('NF-8 a new empty folder survives a reload and is kept once it holds a note
 	await api.note({ title: 'NF-8 note', folder: 'NF8' });
 	await page.reload();
 	await expect(page.getByRole('button', { name: 'NF8' }).first()).toBeVisible();
-	expect(await page.evaluate(() => JSON.parse(localStorage.noteEmptyFolders ?? '[]'))).not.toContain('NF8');
+	// Poll: the chip shows from the local copy before the server's folder list arrives and prunes it.
+	await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.noteEmptyFolders ?? '[]'))).not.toContain('NF8');
 });
 
 test('NF-9 move a note into a nested folder, then delete that folder from the folder bar', async ({ page, api }) => {

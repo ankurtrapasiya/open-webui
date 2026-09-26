@@ -208,7 +208,8 @@ test('CB-11 all eight suggestions show without scrolling the list', async ({ pag
 	await composerWithSuggestions(page, api);
 	const list = page.locator('[role="list"]:has(button[role="listitem"])');
 	for (let i = 1; i <= 8; i++) await expect(page.getByText(`Suggestion ${i}`, { exact: true })).toBeVisible();
-	expect(await list.evaluate((e) => e.scrollHeight <= e.clientHeight)).toBe(true);
+	// Poll: the chips slide up 6px as they fade in, which briefly adds to scrollHeight.
+	await expect.poll(() => list.evaluate((e) => e.scrollHeight <= e.clientHeight)).toBe(true);
 });
 
 test('CB-12 focusing the empty composer does not pop up the formatting menu', async ({ page, api }) => {
