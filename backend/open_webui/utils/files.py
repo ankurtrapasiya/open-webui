@@ -203,6 +203,12 @@ async def get_file_url_from_base64(request, base64_file_string, metadata, user):
         return await get_image_url_from_base64(request, base64_file_string, metadata, user)
     elif 'data:audio/wav;base64' in base64_file_string:
         return await get_audio_url_from_base64(request, base64_file_string, metadata, user)
+    elif base64_file_string.startswith('data:application/pdf;base64,'):
+        # upload_image stores any content type; get_image_data would mangle the mime.
+        _, file = await upload_image(
+            request, base64.b64decode(base64_file_string.split(',', 1)[1]), 'application/pdf', metadata, user
+        )
+        return file['url']
     return None
 
 

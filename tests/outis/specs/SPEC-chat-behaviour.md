@@ -1,6 +1,6 @@
 # Spec: chat-behaviour
 
-Fork commits: 286f7e072 (show tool-result images to the reader), 582afde74 (name a
+Fork commits: 286f7e072 (show tool-result images to the reader), the tool-result PDF viewer and download links, 582afde74 (name a
 tool-result image after what the tool read), f993e8fd4 (send each attached document once),
 67ae4033a (keep selected skills across messages), 5a2aa312d (suggestions grow; no floating
 menu on focus), 0ccac7c7d (suggestion click does not select the whole prompt), 388c5204c
@@ -29,6 +29,28 @@ OpenAI server scripted to call it on turn 1 and answer in text on turn 2.
   and name the image the same way. Today it hides it and names it `generated-image.png`. The
   test is `fixme`: approving a call through the API leaves it `queued` with no output, so the
   resume needs a browser-driven test. Until then the gate does not cover this path.
+
+## Tool-result PDFs and download links
+
+A tool that returns a `data:application/pdf;base64,…` value has the PDF stored once as a
+file, named the same way as an image, and attached to the tool output as
+`{type: 'file', url, content_type: 'application/pdf', name}`. The model gets a one-line
+summary instead of the base64. The reader can open it inline (existing `PDFViewer`), and
+every tool image or PDF shows its full URL (`origin + /api/v1/files/<id>/content`) as a
+download link with a Copy button. Test setup: `read_report(path)` on the same workspace Tool,
+returning a one-page PDF reading "Outis report".
+
+- **CB-16** `files[0]` is a stored `/api/v1/files/<id>/content` with
+  `content_type: application/pdf`, named `report.pdf` for `path: "out/report.pdf"`; no
+  `data:application/pdf` in the stored chat; the model's output says the PDF was shown.
+- **CB-17** Opening the chat and clicking `View report.pdf` renders the page: the text
+  "Outis report" is visible inside `.tool-result-pdf`.
+- **CB-18** For both an image and a PDF, `.tool-result-file-link a` has the absolute URL as
+  both `href` and text, and a `download` name ending `.png` / `.pdf`.
+
+Not covered: ml4t-env's `/file` returns a `.pdf` as text, not bytes, so PDFs from that
+container do not reach this path until its `IMAGE_TYPES` gains `.pdf` (container frozen
+until 25 Dec 2026).
 
 ## Documents sent once
 

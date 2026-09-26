@@ -1034,11 +1034,11 @@ def extract_base64_images(value: Any, files: list) -> Any:
 
 
 async def store_tool_result_image(request, image_url, metadata, user, filename=None):
-    """Keep saved tool images out of chat JSON, falling back to inline data if storage fails."""
+    """Keep saved tool images and PDFs out of chat JSON, falling back to inline data if storage fails."""
     metadata = metadata or {}
     if (
         not isinstance(image_url, str)
-        or not image_url.startswith('data:image/')
+        or not image_url.startswith(('data:image/', 'data:application/pdf;'))
         or not is_saved_chat_id(metadata.get('chat_id'))
     ):
         return image_url
@@ -1183,6 +1183,12 @@ async def process_tool_result(
     if isinstance(tool_result, str) and tool_result.startswith('data:image/'):
         tool_result_files.append({'type': 'image', 'url': tool_result})
         tool_result = f'{tool_function_name}: Image file read successfully.'
+
+    # A PDF (a report a run wrote) is for the reader: store it and show it,
+    # rather than hand the model its base64 as a wall of text.
+    if isinstance(tool_result, str) and tool_result.startswith('data:application/pdf;base64,'):
+        tool_result_files.append({'type': 'file', 'url': tool_result, 'content_type': 'application/pdf'})
+        tool_result = f'{tool_function_name}: PDF stored and shown to the user inline, with a download link.'
 
     if isinstance(tool_result, list):
         if tool_type == 'mcp':  # MCP
@@ -1495,7 +1501,7 @@ async def chat_completion_tools_handler(
 
                     if tool_result_files:
                         for file_item in tool_result_files:
-                            if file_item.get('type') == 'image':
+                            if file_item.get('type') == 'image' or file_item.get('content_type') == 'application/pdf':
                                 file_item['url'] = await store_tool_result_image(
                                     request, file_item.get('url'), metadata, user
                                 )
@@ -6148,11 +6154,14 @@ async def streaming_chat_response_handler(response, ctx):
                         # by nobody else.
                         display_files = []
                         for file_item in result.get('files', []):
-                            if file_item.get('type') == 'image' and file_item.get('url', '').startswith('data:'):
+                            is_pdf = file_item.get('content_type') == 'application/pdf'
+                            if (file_item.get('type') == 'image' or is_pdf) and file_item.get('url', '').startswith(
+                                'data:'
+                            ):
                                 # Name the stored file after what the tool was asked
-                                # for ("figure1.png"), else after the tool, so the
-                                # file picker shows something better than
-                                # generated-image.png.
+                                # for ("figure1.png", "report.pdf"), else after the
+                                # tool, so the file picker shows something better
+                                # than generated-image.png.
                                 params = result.get('tool_params') or {}
                                 hint = next(
                                     (str(params[k]) for k in ('name', 'filename', 'path', 'file') if params.get(k)),
@@ -6161,12 +6170,17 @@ async def streaming_chat_response_handler(response, ctx):
                                 mime = file_item['url'][5:].split(';', 1)[0]
                                 ext = mimetypes.guess_extension(mime) or ''
                                 stem = os.path.splitext(os.path.basename(hint))[0] or 'tool-image'
+                                name = f'{stem}{ext}'
                                 image_url = await store_tool_result_image(
-                                    request, file_item['url'], metadata, user, filename=f'{stem}{ext}'
+                                    request, file_item['url'], metadata, user, filename=name
                                 )
+                                if is_pdf:
+                                    # Reader only; the model already has the text summary.
+                                    display_files.append({**file_item, 'url': image_url, 'name': name})
+                                    continue
                                 output_parts.append({'type': 'input_image', 'image_url': image_url})
                                 if not image_url.startswith('data:'):
-                                    display_files.append({'type': 'image', 'url': image_url})
+                                    display_files.append({'type': 'image', 'url': image_url, 'name': name})
                             else:
                                 # Frontend display (MCP images, audio, etc.)
                                 display_files.append(file_item)

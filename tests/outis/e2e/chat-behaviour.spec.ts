@@ -7,12 +7,23 @@ import { python } from '../support/container';
 const PNG =
 	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 
+// One page reading "Outis report".
+const PDF =
+	'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAyMDAgMTAwXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA0MiA+PgpzdHJlYW0KQlQgL0YxIDEyIFRmIDIwIDUwIFRkIChPdXRpcyByZXBvcnQpIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PCAvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jhc2VGb250IC9IZWx2ZXRpY2EgPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDI0MSAwMDAwMCBuIAowMDAwMDAwMzMzIDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNDAzCiUlRU9GCg==';
+
 const TOOL = `"""
 title: Regression figures
 """
 
 
 class Tools:
+    def read_report(self, path: str = "") -> str:
+        """
+        Read a PDF report from disk.
+        :param path: Path of the report file.
+        """
+        return "data:application/pdf;base64,${PDF}"
+
     def read_figure(self, path: str = "") -> str:
         """
         Read a figure image from disk.
@@ -90,6 +101,35 @@ test('CB-5 [KNOWN BUG] with tool approval, the approved call shows and names the
 		await approvedTurn(api);
 	} finally {
 		await setPermissions(false);
+	}
+});
+
+// --- Tool-result PDFs and download links -----------------------------------------------------
+
+test('CB-16 a tool PDF is stored once as a file named after the path, and the model gets a summary', async ({ api }) => {
+	const { chat, out } = await toolTurn(api, 'read_report {"path": "out/report.pdf"}');
+	expect(out.files?.[0]?.url).toMatch(/^\/api\/v1\/files\/[^/]+\/content$/);
+	expect(out.files[0].content_type).toBe('application/pdf');
+	expect((await api.file(fileId(out.files[0].url))).meta.name).toBe('report.pdf');
+	expect(JSON.stringify(chat)).not.toContain('data:application/pdf');
+	expect(JSON.stringify(out.output)).toContain('PDF stored and shown to the user');
+});
+
+test('CB-17 the reader opens the PDF inline in the chat', async ({ page, api }) => {
+	const { chatId } = await toolTurn(api, 'read_report {"path": "out/report.pdf"}');
+	await page.goto(`/c/${chatId}`);
+	await page.locator('.tool-result-pdf-toggle', { hasText: 'report.pdf' }).first().click();
+	await expect(page.locator('.tool-result-pdf').getByText('Outis report')).toBeVisible();
+});
+
+test('CB-18 a tool image and a tool PDF each show their full download URL', async ({ page, api }) => {
+	for (const call of ['read_figure {"path": "plots/figure1.png"}', 'read_report {"path": "out/report.pdf"}']) {
+		const { chatId, out } = await toolTurn(api, call);
+		await page.goto(`/c/${chatId}`);
+		const href = new URL(out.files[0].url, page.url()).href;
+		const link = page.locator(`.tool-result-file-link a[href="${href}"]`).first();
+		await expect(link).toHaveText(href);
+		await expect(link).toHaveAttribute('download', /\.(png|pdf)$/);
 	}
 });
 
