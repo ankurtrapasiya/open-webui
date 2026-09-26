@@ -133,6 +133,17 @@ test('CB-18 a tool image and a tool PDF each show their full download URL', asyn
 	}
 });
 
+test('CB-19 images from several tool calls in one turn show without expanding the tool-call group', async ({ page, api }) => {
+	// ml4t-env's figures arrive this way: one file() call per figure, all in the same turn.
+	const { chatId, message } = await toolTurn(api, 'read_figure {"path": "plots/a.png"}\nCALL read_figure {"path": "plots/b.png"}');
+	const stored = (message.output ?? []).filter((o: any) => o.type === 'function_call_output' && o.files?.length);
+	expect(stored, 'both calls stored an image').toHaveLength(2);
+	await page.goto(`/c/${chatId}`);
+	const images = page.locator('img[src^="/api/v1/files/"]');
+	await expect(images).toHaveCount(2);
+	for (const img of await images.all()) await expect(img).toBeVisible();
+});
+
 async function approvedTurn(api: any) {
 	const { chatId, messageId } = await api.startChat({
 		model: 'fake-model',

@@ -13,6 +13,7 @@
 	import CheckCircle from '$lib/components/icons/CheckCircle.svelte';
 	import XMark from '$lib/components/icons/XMark.svelte';
 	import FullHeightIframe from '$lib/components/common/FullHeightIframe.svelte';
+	import ToolResultFiles from '$lib/components/common/ToolResultFiles.svelte';
 
 	import { settings } from '$lib/stores';
 
@@ -30,6 +31,7 @@
 			status?: string;
 			duration?: string;
 			embeds?: string;
+			files?: string;
 			arguments?: string;
 		};
 	}> = [];
@@ -142,6 +144,15 @@
 		}
 		return result;
 	})();
+
+	// Files (a run's figures, a report PDF) from finished tool calls. Drawn outside the
+	// collapsible, like embeds: a group of several file() calls otherwise hid every image.
+	$: allFiles = tokens
+		.filter((t) => t?.attributes?.type === 'tool_calls' && t.attributes?.done === 'true')
+		.flatMap((t) => {
+			const parsed = parseJSONString(decode(t.attributes?.files ?? ''));
+			return Array.isArray(parsed) ? parsed : [];
+		});
 
 	$: summaryText = (() => {
 		const parts = [];
@@ -304,6 +315,10 @@
 				<slot name="content" />
 			</div>
 		</div>
+	{/if}
+
+	{#if allFiles.length > 0}
+		<ToolResultFiles id={`${id}-files`} files={allFiles} />
 	{/if}
 
 	{#if allEmbeds.length > 0}

@@ -7,6 +7,7 @@ import http from 'node:http';
 // Models:
 //   fake-model  replies "Fake reply." — or, when tools are offered and the last user message is
 //               `CALL <tool> <json args>`, calls that tool, then replies once the result is back.
+//               Several `CALL` lines make several calls in the one turn.
 //   fake-drop   hangs up without answering (a dead upstream).
 //
 // Control endpoints for tests: GET /__requests, POST /__reset.
@@ -22,17 +23,22 @@ const text = (content: unknown): string =>
 			? content.map((p: any) => (typeof p === 'string' ? p : (p?.text ?? ''))).join('')
 			: '';
 
-function reply(body: any): { content?: string; toolCall?: { name: string; arguments: string } } {
+type Call = { name: string; arguments: string };
+
+function reply(body: any): { content?: string; toolCalls?: Call[] } {
 	const messages: Msg[] = body.messages ?? [];
 	const last = messages[messages.length - 1];
 	if (last?.role === 'tool') return { content: 'Tool result received.' };
 	const lastUser = [...messages].reverse().find((m) => m.role === 'user');
-	const m = text(lastUser?.content).match(/CALL (\w+)\s*(\{.*\})?/s);
-	if (m && (body.tools ?? []).some((t: any) => t.function?.name === m[1])) {
-		return { toolCall: { name: m[1], arguments: m[2] ?? '{}' } };
-	}
+	const offered = new Set((body.tools ?? []).map((t: any) => t.function?.name));
+	const toolCalls = [...text(lastUser?.content).matchAll(/CALL (\w+)[ \t]*(\{.*\})?/g)]
+		.filter((m) => offered.has(m[1]))
+		.map((m) => ({ name: m[1], arguments: m[2] ?? '{}' }));
+	if (toolCalls.length) return { toolCalls };
 	return { content: 'Fake reply.' };
 }
+
+const callsOf = (calls: Call[]) => calls.map((function_, i) => ({ id: `call_${i + 1}`, type: 'function', function: function_ }));
 
 function sse(res: http.ServerResponse, chunks: object[]) {
 	res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' });
@@ -82,18 +88,18 @@ export function startFakeOpenAI(port = FAKE_PORT): Promise<http.Server> {
 					choices: [
 						{
 							index: 0,
-							finish_reason: r.toolCall ? 'tool_calls' : 'stop',
-							message: r.toolCall
-								? { role: 'assistant', content: null, tool_calls: [{ id: 'call_1', type: 'function', function: r.toolCall }] }
+							finish_reason: r.toolCalls ? 'tool_calls' : 'stop',
+							message: r.toolCalls
+								? { role: 'assistant', content: null, tool_calls: callsOf(r.toolCalls) }
 								: { role: 'assistant', content: r.content }
 						}
 					],
 					usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }
 				});
 			}
-			const chunks = r.toolCall
+			const chunks = r.toolCalls
 				? [
-						{ ...base, choices: [{ index: 0, delta: { role: 'assistant', tool_calls: [{ index: 0, id: 'call_1', type: 'function', function: r.toolCall }] }, finish_reason: null }] },
+						{ ...base, choices: [{ index: 0, delta: { role: 'assistant', tool_calls: callsOf(r.toolCalls).map((c, index) => ({ index, ...c })) }, finish_reason: null }] },
 						{ ...base, choices: [{ index: 0, delta: {}, finish_reason: 'tool_calls' }] }
 					]
 				: [

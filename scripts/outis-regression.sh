@@ -2,7 +2,7 @@
 # Runs the Outis regression suite (tests/outis) against one image, in a throwaway container
 # with its own empty database. Never touches the live instance or its volume.
 #
-#   scripts/outis-regression.sh ghcr.io/ankurtrapasiya/open-webui:outis-mneme-<sha>
+#   scripts/outis-regression.sh ghcr.io/ankurtrapasiya/open-webui:outis-mneme-<sha> [playwright args, e.g. -g CB-19]
 #
 # Exit code 0 = every fork feature checked still works. Anything else = do not deploy.
 set -euo pipefail
@@ -48,5 +48,5 @@ npx playwright install chromium >/dev/null
 
 echo "== running the suite"
 OUTIS_BASE_URL="http://127.0.0.1:$PORT" OUTIS_CONTAINER="$NAME" OUTIS_IMAGE="$IMAGE" OUTIS_FAKE_PORT="$FAKE_PORT" \
-	npx playwright test -c playwright.config.ts
+	npx playwright test -c playwright.config.ts "${@:2}"
 echo "== PASS: every checked fork feature works on $IMAGE"

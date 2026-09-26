@@ -48,6 +48,13 @@ returning a one-page PDF reading "Outis report".
 - **CB-18** For both an image and a PDF, `.tool-result-file-link a` has the absolute URL as
   both `href` and text, and a `download` name ending `.png` / `.pdf`.
 
+- **CB-19** Two tool calls in one turn (`CALL read_figure …` twice; the fake model emits
+  one call per `CALL` line) both store an image, and both images are visible on opening the
+  chat without expanding the "2 tool calls" group. Several calls in one turn are how
+  ml4t-env's figures arrive (one `file()` per figure); the group used to render its calls'
+  files only while expanded, so every figure was hidden. The group now draws its calls' files
+  below itself (`ToolResultFiles.svelte`), as it already did for embeds.
+
 Not covered: ml4t-env's `/file` returns a `.pdf` as text, not bytes, so PDFs from that
 container do not reach this path until its `IMAGE_TYPES` gains `.pdf` (container frozen
 until 25 Dec 2026).

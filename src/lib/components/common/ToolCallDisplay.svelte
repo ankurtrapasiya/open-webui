@@ -16,10 +16,8 @@
 	import WrenchSolid from '../icons/WrenchSolid.svelte';
 	import CheckCircle from '../icons/CheckCircle.svelte';
 	import XMark from '../icons/XMark.svelte';
-	import Image from './Image.svelte';
 	import FullHeightIframe from './FullHeightIframe.svelte';
-	import PDFViewer from './PDFViewer.svelte';
-	import { copyToClipboard } from '$lib/utils';
+	import ToolResultFiles from './ToolResultFiles.svelte';
 	import { settings } from '$lib/stores';
 
 	export let id: string = '';
@@ -140,13 +138,6 @@
 
 	$: result = resultContent || decode(attributes?.result ?? '');
 	$: files = parseJSONString(decode(attributes?.files ?? ''));
-
-	// A tool's PDF opens on request: rendering every page up front is heavy.
-	let openPdfs: Record<number, boolean> = {};
-	const isPdf = (file: any) => file?.content_type === 'application/pdf';
-	// Full link, so a figure or report can be copied out or downloaded; none for an inline data: fallback.
-	const fileHref = (url: string) =>
-		url.startsWith('data:') ? '' : new URL(url, window.location.origin).href;
 	$: embeds = parseJSONString(decode(attributes?.embeds ?? ''));
 	$: isAskUser = attributes?.name === 'ask_user';
 	$: needsInput = isAskUser && attributes?.status === 'pending';
@@ -375,47 +366,8 @@
 		{/if}
 	{/if}
 
-	<!-- Files display (images etc.) when done -->
-	{#if isDone}
-		{#if typeof files === 'object'}
-			{#each files ?? [] as file, idx}
-				{#if typeof file === 'string'}
-					{#if file.startsWith('data:image/')}
-						<Image id={`${componentId}-tool-call-result-${idx}`} src={file} alt="Image" />
-					{/if}
-				{:else if typeof file === 'object'}
-					{#if (file.type === 'image' || (file?.content_type ?? '').startsWith('image/')) && file.url}
-						<Image id={`${componentId}-tool-call-result-${idx}`} src={file.url} alt="Image" />
-					{:else if isPdf(file) && file.url}
-						<button
-							class="tool-result-pdf-toggle text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition"
-							on:click={() => (openPdfs[idx] = !openPdfs[idx])}
-						>
-							{openPdfs[idx] ? $i18n.t('Hide') : $i18n.t('View')}
-							{file.name ?? 'PDF'}
-						</button>
-						{#if openPdfs[idx]}
-							<PDFViewer url={file.url} className="tool-result-pdf w-full h-[70vh] rounded-lg" />
-						{/if}
-					{/if}
-					{#if file.url && fileHref(file.url) && (file.type === 'image' || (file?.content_type ?? '').startsWith('image/') || isPdf(file))}
-						<div
-							class="tool-result-file-link flex items-center gap-2 text-xs text-gray-500 min-w-0"
-						>
-							<a
-								class="truncate underline"
-								href={fileHref(file.url)}
-								download={file.name ?? ''}
-								title={$i18n.t('Download')}>{fileHref(file.url)}</a
-							>
-							<button
-								class="shrink-0 hover:text-gray-700 dark:hover:text-gray-300 transition"
-								on:click={() => copyToClipboard(fileHref(file.url))}>{$i18n.t('Copy')}</button
-							>
-						</div>
-					{/if}
-				{/if}
-			{/each}
-		{/if}
+	<!-- Files display (images etc.) when done; a group draws its calls' files itself -->
+	{#if isDone && !grouped}
+		<ToolResultFiles id={componentId} {files} />
 	{/if}
 </div>
