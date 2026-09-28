@@ -316,3 +316,45 @@ test('CB-15 a long suggestion pool shows 20 at random and typing searches all of
 	await page.keyboard.type(hidden.replace('item', 'prompt'));
 	await expect(page.getByText(hidden, { exact: true })).toBeVisible();
 });
+
+// --- Wrap long lines in code blocks ---------------------------------------------------------
+
+async function wideCodeChat(page: Page, api: any) {
+	const line = 'x = "' + 'a'.repeat(400) + '"';
+	const chat = await api.chat({ title: 'Wrap', assistant: 'Code:\n\n```python\n' + line + '\n```\n' });
+	await page.goto(`/c/${chat.id}`);
+	const scroller = page.locator('div[class*="language-"] .cm-scroller');
+	await expect(scroller).toHaveCount(1);
+	return scroller;
+}
+
+const overflows = (el: any) => el.evaluate((e: HTMLElement) => e.scrollWidth > e.clientWidth);
+
+test('CB-20 a long line in a code block scrolls sideways by default', async ({ page, api }) => {
+	const scroller = await wideCodeChat(page, api);
+	expect(await overflows(scroller)).toBe(true);
+	await expect(page.locator('.wrap-code-button')).toHaveText('Wrap');
+});
+
+test('CB-21 Wrap fits the long line to the block', async ({ page, api }) => {
+	const scroller = await wideCodeChat(page, api);
+	const button = page.locator('.wrap-code-button');
+	await button.click();
+	await expect(button).toHaveText('No wrap');
+	await expect(button).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.locator('div[class*="language-"] .cm-content')).toHaveClass(/cm-lineWrapping/);
+	expect(await overflows(scroller)).toBe(false);
+});
+
+test('CB-22 the wrap choice is remembered and can be turned off', async ({ page, api }) => {
+	let scroller = await wideCodeChat(page, api);
+	await page.locator('.wrap-code-button').click();
+	await page.reload();
+	scroller = page.locator('div[class*="language-"] .cm-scroller');
+	await expect(page.locator('.wrap-code-button')).toHaveText('No wrap');
+	expect(await overflows(scroller)).toBe(false);
+	await page.locator('.wrap-code-button').click();
+	await expect(page.locator('.wrap-code-button')).toHaveText('Wrap');
+	expect(await overflows(scroller)).toBe(true);
+	expect(await page.evaluate(() => localStorage.getItem('outis-wrap-code'))).toBe('false');
+});

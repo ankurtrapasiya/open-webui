@@ -94,6 +94,22 @@ Settings for these tests: `ui.showFormattingToolbar = true`,
   chips, a different random 20 after a reload, and typing searches the whole pool: a prompt
   that was not among the 20 appears when its text is typed.
 
+## Wrap long lines in code blocks
+
+Every fenced code block (```` ``` ````) in a chat has a **Wrap** button in its header, next to
+Collapse. On, long lines wrap to the block's width instead of scrolling sideways; the button
+reads **No wrap** and `aria-pressed="true"`. It works for the editable view (CodeMirror,
+`EditorView.lineWrapping`), the read-only view (`<pre>`) and diff blocks. The last choice is
+kept in `localStorage['outis-wrap-code']` and is the starting state of every block after it.
+
+- **CB-20** A chat whose answer holds a code block with one 400-character line: the editor
+  scrolls sideways (`.cm-scroller` `scrollWidth > clientWidth`) and the button says `Wrap`.
+- **CB-21** Clicking `Wrap` makes the same block fit (`scrollWidth <= clientWidth`), the
+  `.cm-content` has class `cm-lineWrapping`, and the button says `No wrap` with
+  `aria-pressed="true"`.
+- **CB-22** After a reload the block opens already wrapped; clicking `No wrap` scrolls it
+  sideways again and stores `false`.
+
 ## Notes for the test author
 
 The fake server must record requests so CB-9 and the tool tests can assert what the backend

@@ -79,6 +79,20 @@
 		collapsed = !collapsed;
 	};
 
+	// Outis: wrap long lines instead of scrolling sideways; the last choice becomes the default.
+	const WRAP_KEY = 'outis-wrap-code';
+	let wrap = false;
+	try {
+		wrap = localStorage.getItem(WRAP_KEY) === 'true';
+	} catch {}
+
+	const toggleWrap = () => {
+		wrap = !wrap;
+		try {
+			localStorage.setItem(WRAP_KEY, String(wrap));
+		} catch {}
+	};
+
 	const saveCode = () => {
 		saved = true;
 
@@ -483,6 +497,11 @@
 						</button>
 					{/if}
 					<button
+						class="wrap-code-button bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
+						aria-pressed={wrap}
+						on:click={toggleWrap}>{wrap ? $i18n.t('No wrap') : $i18n.t('Wrap')}</button
+					>
+					<button
 						class="flex gap-1 items-center bg-none border-none transition rounded-md px-1.5 py-0.5 bg-white dark:bg-black"
 						on:click={collapseCodeBlock}
 					>
@@ -556,12 +575,13 @@
 
 				{#if !collapsed}
 					{#if isDiff && !(edit && editingDiff)}
-						<DiffBlock code={_code} />
+						<DiffBlock code={_code} {wrap} />
 					{:else if edit}
 						<CodeEditor
 							value={_code}
 							{id}
 							{lang}
+							{wrap}
 							onSave={() => {
 								saveCode();
 							}}
@@ -577,7 +597,9 @@
 								stderr ||
 								result) &&
 								'border-bottom-left-radius: 0px; border-bottom-right-radius: 0px;'}"><code
-								class="language-{lang} rounded-t-none whitespace-pre text-sm"
+								class="language-{lang} rounded-t-none {wrap
+									? 'whitespace-pre-wrap break-words'
+									: 'whitespace-pre'} text-sm"
 								>{#if lang && hljs.getLanguage(lang)}{@html hljs.highlight(code, {
 										language: lang,
 										ignoreIllegals: true

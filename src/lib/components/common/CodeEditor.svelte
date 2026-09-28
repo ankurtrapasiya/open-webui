@@ -89,6 +89,10 @@
 	let editorTheme = new Compartment();
 	let editorLanguage = new Compartment();
 
+	export let wrap = false;
+	let editorWrap = new Compartment();
+	$: codeEditor?.dispatch({ effects: editorWrap.reconfigure(wrap ? EditorView.lineWrapping : []) });
+
 	const getLang = async () => {
 		const language = languages.find((l) => l.alias.includes(lang));
 		return await language?.load();
@@ -218,7 +222,8 @@ print("${endTag}")
 			}
 		}),
 		editorTheme.of([]),
-		editorLanguage.of([])
+		editorLanguage.of([]),
+		editorWrap.of(wrap ? EditorView.lineWrapping : [])
 	];
 
 	$: if (lang) {

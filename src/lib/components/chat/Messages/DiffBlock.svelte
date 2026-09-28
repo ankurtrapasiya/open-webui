@@ -2,12 +2,13 @@
 	import { parseDiffRows } from './diff';
 
 	export let code = '';
+	export let wrap = false;
 	$: rows = parseDiffRows(code);
 	$: showNumbers = rows.some((row) => row.oldNumber !== null || row.newNumber !== null);
 	$: gutterWidth = `${rows.reduce((width, row) => Math.max(width, String(Math.max(row.oldNumber ?? 0, row.newNumber ?? 0)).length + 1), 3)}ch`;
 </script>
 
-<div class="diff-block text-sm" dir="ltr" style:--diff-gutter-width={gutterWidth}>
+<div class="diff-block text-sm" class:wrap dir="ltr" style:--diff-gutter-width={gutterWidth}>
 	<pre><code
 			>{#each rows as row, index}<span class="diff-line {row.type}" class:numbered={showNumbers}
 					>{#if showNumbers}<span
@@ -55,6 +56,15 @@
 		font-family: var(--font-mono, ui-monospace, monospace);
 		font-weight: 400;
 		white-space: pre;
+	}
+
+	.wrap pre {
+		width: auto;
+	}
+
+	.wrap code {
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
 	}
 
 	.diff-line {
