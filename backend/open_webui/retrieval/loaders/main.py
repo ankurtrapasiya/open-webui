@@ -92,6 +92,7 @@ known_source_ext = [
     'yml',
     'toml',
     'svg',
+    'bib',  # Outis: BibTeX is plain text; Docling rejects it
 ]
 
 known_archive_ext = {'docx', 'epub', 'odt', 'pptx', 'xlsx'}

@@ -70,6 +70,18 @@ Test by `docker exec` into the test container, calling the function directly.
 - **CB-7** Two different chunks of one source → both appear.
 - **CB-8** The same text under two different source ids → appears twice, ids 1 and 2.
 
+## BibTeX files load as text
+
+The live instance extracts documents with Docling, which rejects `.bib` ("File format not
+allowed"). Browsers send `.bib` as `application/octet-stream` or no type, so only the
+extension marks it as text: `bib` is in `known_source_ext`
+(`backend/open_webui/retrieval/loaders/main.py`), which reads it locally with `TextLoader`
+whatever the engine.
+
+- **CB-23** `Loader(engine='docling', DOCLING_SERVER_URL=<unreachable>)` loads
+  `references.bib` sent as `application/octet-stream` and returns its text, without calling
+  Docling.
+
 ## Skills persist across messages
 
 - **CB-9** Turn a skill on in the composer, send two messages: both

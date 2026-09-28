@@ -358,3 +358,17 @@ test('CB-22 the wrap choice is remembered and can be turned off', async ({ page,
 	expect(await overflows(scroller)).toBe(true);
 	expect(await page.evaluate(() => localStorage.getItem('outis-wrap-code'))).toBe('false');
 });
+
+// --- BibTeX files load as text ---------------------------------------------------------------
+
+test('CB-23 a .bib file is read as text even when Docling is the extraction engine', () => {
+	const out = python<{ text: string }>(`
+import json, tempfile
+from open_webui.retrieval.loaders.main import Loader
+f = tempfile.NamedTemporaryFile('w', suffix='.bib', delete=False)
+f.write('@article{k, title={Outis bib}}\\n'); f.close()
+docs = Loader(engine='docling', DOCLING_SERVER_URL='http://127.0.0.1:9').load('references.bib', 'application/octet-stream', f.name)
+print(json.dumps({'text': docs[0].page_content}))
+`);
+	expect(out.text).toContain('Outis bib');
+});
