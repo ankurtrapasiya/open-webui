@@ -1,4 +1,5 @@
 import { test, expect } from '../support/fixtures';
+import { python } from '../support/container';
 
 test.beforeEach(async ({ api }) => {
 	await api.deleteAllNotes();
@@ -125,4 +126,22 @@ test('NF-10 deleting folder "a_b" does not delete notes in "aXb"', async ({ api 
 	const bystander = await api.note({ title: 'NF-10 bystander', folder: 'aXb' });
 	await api.deleteFolder('a_b');
 	expect((await api.search()).items.map((n) => n.id)).toContain(bystander.id);
+});
+
+test('NF-11 the chat write_note tool files a note in a folder, and search_notes reports the folder', async () => {
+	const out = python<{ created: { id: string }; unfiled: { id: string }; found: { id: string; folder: string | null }[] }>(`
+import asyncio, json
+from open_webui.models.users import Users
+from open_webui.tools.builtin import write_note, search_notes
+async def main():
+    u = {'id': (await Users.get_first_user()).id}
+    created = json.loads(await write_note('NF-11 filed', 'x', folder=' Book Notes / NF11/ ', __request__=object(), __user__=u))
+    unfiled = json.loads(await write_note('NF-11 loose', 'x', __request__=object(), __user__=u))
+    found = json.loads(await search_notes('NF-11', count=10, __request__=object(), __user__=u))
+    print(json.dumps({'created': created, 'unfiled': unfiled, 'found': found}))
+asyncio.run(main())
+`);
+	const folderOf = (id: string) => out.found.find((n) => n.id === id)?.folder;
+	expect(folderOf(out.created.id)).toBe('Book Notes/NF11');
+	expect(folderOf(out.unfiled.id)).toBeNull();
 });

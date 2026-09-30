@@ -128,3 +128,11 @@ test('NR-12 a blocked print window says so', async ({ page, api }) => {
 	await choosePdf(page);
 	await expect(page.getByText('Could not open the print window. Check your popup blocker.')).toBeVisible();
 });
+
+test('NR-13 a $$ block renders in display mode, so an equation number (\\tag) works', async ({ page, api }) => {
+	const { editor } = await openNote(page, api, 'Before\n\n$$p(n) ::= n^2 + n + 41. \\tag{1.1}$$\n\nAfter', 'NR-13');
+	const block = editor.locator('[data-type="block-math"]');
+	await expect(block.locator('.katex-display')).toHaveCount(1);
+	await expect(block.locator('.katex-error')).toHaveCount(0);
+	await expect(block).toContainText('(1.1)');
+});

@@ -57,6 +57,11 @@ Browser:
   suspected `_` would act as a SQL wildcard; a real run on SQLite showed it does not. Kept as
   a guard in case the query or database changes.)
 
+- **NF-11** The chat tool `write_note(title, content, folder=" Book Notes / NF11/ ")` stores
+  the note in `Book Notes/NF11` (normalised as in NF-1); without `folder` the note is unfiled.
+  `search_notes` returns each note's `folder` (null when unfiled), so a model can reuse an
+  existing folder name instead of inventing one.
+
 ## Test hooks
 
 - Create menu: `aria-label="Open create menu"`, item text "New folder".

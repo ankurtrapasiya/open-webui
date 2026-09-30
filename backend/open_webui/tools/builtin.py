@@ -1204,6 +1204,7 @@ async def search_notes(
                 {
                     'id': note.id,
                     'title': note.title,
+                    'folder': (note.meta or {}).get('folder'),
                     'snippet': content_snippet,
                     'updated_at': note.updated_at,
                 }
@@ -1283,6 +1284,7 @@ async def view_note(
 async def write_note(
     title: str,
     content: str,
+    folder: Optional[str] = None,
     __request__: Request = None,
     __user__: dict = None,
 ) -> str:
@@ -1291,6 +1293,7 @@ async def write_note(
 
     :param title: The title of the new note
     :param content: The markdown content for the note
+    :param folder: Optional folder path, '/'-separated (e.g. "Book Notes/Mathematics"). Reuse an existing folder name as search_notes reports it; omit to leave the note unfiled
     :return: JSON with success status and new note id
     """
     if __request__ is None:
@@ -1309,6 +1312,7 @@ async def write_note(
             # The same shape replace_note_content writes; the editor renders
             # from `md` only when `json` is present and null.
             data={'content': {'json': None, 'html': '', 'md': content}},
+            meta={'folder': folder} if folder else None,  # insert_new_note normalises the path
             access_grants=[],  # Private by default - only owner can access
         )
 

@@ -160,7 +160,7 @@
 	import FileHandler from '@tiptap/extension-file-handler';
 	import Typography from '@tiptap/extension-typography';
 	import Highlight from '@tiptap/extension-highlight';
-	import { Mathematics } from '@tiptap/extension-mathematics';
+	import { BlockMath, InlineMath } from '@tiptap/extension-mathematics';
 	import 'katex/dist/katex.min.css';
 	import Code from '@tiptap/extension-code';
 	import Italic from '@tiptap/extension-italic';
@@ -860,7 +860,13 @@
 								lowlight
 							}),
 							Typography,
-							Mathematics.configure({
+							// Configured separately, not via Mathematics: that wrapper hands both nodes the
+							// same katexOptions, so $$ blocks rendered in inline mode (not centred, and
+							// every \tag equation number failed with a KaTeX error).
+							BlockMath.configure({
+								katexOptions: { throwOnError: false, displayMode: true }
+							}),
+							InlineMath.configure({
 								katexOptions: { throwOnError: false }
 							}),
 							TableKit.configure({

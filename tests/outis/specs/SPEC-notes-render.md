@@ -28,6 +28,11 @@ The editor's markdown parser (`editorMarked`), checked through what the editor r
   `marked`), a note opened in the same session still parses `$x^2$` as note math (the
   original bug).
 
+- **NR-13** `'$$p(n) ::= n^2 + n + 41. \\tag{1.1}$$'` renders as display math (`.katex-display`)
+  with the equation number and no `.katex-error`. (First run found every `$$` block rendered in
+  inline mode, because the `Mathematics` wrapper gives block and inline math the same KaTeX
+  options; `\tag` then failed. Fixed 2026-09-30: BlockMath is configured with `displayMode`.)
+
 Browser:
 
 - **NR-7** A note created through the API with `md` containing `$E(y)$` and a `$$` block
