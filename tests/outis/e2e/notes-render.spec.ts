@@ -161,3 +161,50 @@ test('NR-15 an ordinary code block gets no diagram', async ({ page, api }) => {
 	await expect(editor.locator('pre code')).toContainText('print("NR15")');
 	await expect(editor.locator('.mermaid-diagram svg')).toHaveCount(0);
 });
+
+// A 1600x1200 PNG made in the browser and stored as an Open WebUI file; returns its URL.
+async function bigImage(page: Page): Promise<string> {
+	await page.goto('/');
+	return page.evaluate(async () => {
+		const c = document.createElement('canvas');
+		c.width = 1600;
+		c.height = 1200;
+		const g = c.getContext('2d')!;
+		g.fillStyle = '#2563eb';
+		g.fillRect(0, 0, 1600, 1200);
+		const blob: Blob = await new Promise((ok) => c.toBlob((b) => ok(b!), 'image/png'));
+		const form = new FormData();
+		form.append('file', new File([blob], 'big.png', { type: 'image/png' }));
+		const r = await fetch('/api/v1/files/?process=false', {
+			method: 'POST',
+			headers: { Authorization: `Bearer ${localStorage.token}` },
+			body: form
+		});
+		return `/api/v1/files/${(await r.json()).id}/content`;
+	});
+}
+
+test('NR-16 a large image fills the note width instead of a 288px thumbnail', async ({ page, api }) => {
+	const url = await bigImage(page);
+	await page.context().addCookies([{ name: 'token', value: process.env.OUTIS_ADMIN_TOKEN!, url: page.url() }]);
+	const { editor } = await openNote(page, api, `Map\n\n![NR16 map](${url})\n\nEnd`, 'NR-16');
+	const img = editor.locator('img[alt="NR16 map"]');
+	await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(1600);
+	const box = (await img.boundingBox())!;
+	const width = (await editor.boundingBox())!.width;
+	expect(box.width).toBeGreaterThan(width * 0.9);
+	expect(box.height).toBeGreaterThan(400);
+});
+
+test('NR-17 clicking a note image opens it full-screen with zoom', async ({ page, api }) => {
+	const url = await bigImage(page);
+	await page.context().addCookies([{ name: 'token', value: process.env.OUTIS_ADMIN_TOKEN!, url: page.url() }]);
+	const { editor } = await openNote(page, api, `![NR17 map](${url})`, 'NR-17');
+	await editor.locator('img[alt="NR17 map"]').click();
+	const full = page.locator('body > div img[alt="NR17 map"]').last();
+	await expect(full).toBeVisible();
+	const vp = page.viewportSize()!;
+	expect((await full.boundingBox())!.height).toBeGreaterThan(vp.height * 0.6);
+	await page.keyboard.press('Escape');
+	await expect(page.locator('img[alt="NR17 map"]')).toHaveCount(1);
+});

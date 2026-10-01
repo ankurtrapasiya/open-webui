@@ -1,5 +1,15 @@
 import { mergeAttributes, Node, nodeInputRule } from '@tiptap/core';
 import { safeImageUrl } from '$lib/utils/safeImageUrl';
+import { mount, unmount } from 'svelte';
+import ImagePreview from '../../ImagePreview.svelte';
+
+// Fork: a note image fills the note's width (it was capped at max-h-72, which shrank a large
+// diagram to a thumbnail), and a click opens it full-screen with zoom and pan.
+let preview: Record<string, any> | null = null;
+const openPreview = (src: string, alt: string) => {
+	if (preview) unmount(preview);
+	preview = mount(ImagePreview, { target: document.body, props: { show: true, src, alt } });
+};
 
 export interface ImageOptions {
 	/**
@@ -131,7 +141,8 @@ export const Image = Node.create<ImageOptions>({
 			const fileId = node.attrs.src.replace('data://', '');
 			img.setAttribute('id', `image:${fileId}`);
 
-			img.classList.add('rounded-md', 'max-h-72', 'w-fit', 'object-contain');
+			img.classList.add('rounded-md', 'max-w-full', 'h-auto', 'object-contain', 'cursor-zoom-in');
+			img.addEventListener('click', () => openPreview(img.src, img.alt));
 
 			const editorFiles = editor.storage?.files || [];
 

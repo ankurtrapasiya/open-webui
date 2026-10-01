@@ -40,6 +40,11 @@ Browser:
   (debounced 300 ms; a half-typed diagram keeps the last good drawing). Saving keeps the
   ` ```mermaid ` fence in `md`. Implemented in `RichTextInput/MermaidCodeBlock.ts`.
 - **NR-15** A non-mermaid code block gets no `.mermaid-diagram` drawing.
+- **NR-16** A 1600x1200 image in a note fills at least 90% of the editor width and is taller
+  than 400px. (Found 2026-10-01: note images were capped at `max-h-72`, 288px, so a rendered
+  mind map showed as an unreadable thumbnail. `RichTextInput/Image/image.ts`.)
+- **NR-17** Clicking a note image opens the full-screen preview (`ImagePreview`, with
+  pan/zoom) showing it at least 60% of the viewport tall; Escape closes it.
 
 - **NR-7** A note created through the API with `md` containing `$E(y)$` and a `$$` block
   opens with at least two `.katex` elements and no literal `$E(y)$` text.
