@@ -319,16 +319,19 @@ html.outis-dark .input-prose-sm :not(pre) > code {
  * codemirror-outis-dark-theme.ts, which explains the reasoning in full.
  * ------------------------------------------------------------------ */
 
+/* 2026-10-01: token colours below are now GitHub Dark (Primer), at the user's request; the
+   palette notes above describe the earlier Outis ring and no longer match. Keep in sync with
+   codemirror-outis-dark-theme.ts. */
 html.outis-dark .hljs {
-	background: var(--outis-code-bg);
-	color: #b9d9cb;
+	background: #161b22;
+	color: #e6edf3;
 }
 
 /* Keywords */
 html.outis-dark .hljs-keyword,
 html.outis-dark .hljs-selector-tag,
 html.outis-dark .hljs-subst {
-	color: #8cc099;
+	color: #ff7b72;
 }
 
 /* Names: functions, types, classes, tags, selectors */
@@ -346,7 +349,7 @@ html.outis-dark .hljs-selector-id,
 html.outis-dark .hljs-selector-class,
 html.outis-dark .hljs-selector-attr,
 html.outis-dark .hljs-selector-pseudo {
-	color: #74bed0;
+	color: #d2a8ff;
 }
 
 /* Literal values */
@@ -355,7 +358,7 @@ html.outis-dark .hljs-literal,
 html.outis-dark .hljs-symbol,
 html.outis-dark .hljs-bullet,
 html.outis-dark .hljs-formula {
-	color: #b8a6dc;
+	color: #79c0ff;
 }
 
 /* Text data — the only warm hue */
@@ -364,33 +367,33 @@ html.outis-dark .hljs-regexp,
 html.outis-dark .hljs-template-tag,
 html.outis-dark .hljs-template-variable,
 html.outis-dark .hljs-code {
-	color: #cdab78;
+	color: #a5d6ff;
 }
 
 /* Plain identifiers */
 html.outis-dark .hljs-variable,
 html.outis-dark .hljs-params {
-	color: #b9d9cb;
+	color: #e6edf3;
 }
 
 /* Structure */
 html.outis-dark .hljs-operator,
 html.outis-dark .hljs-punctuation {
-	color: #819388;
+	color: #c9d1d9;
 }
 
 html.outis-dark .hljs-comment,
 html.outis-dark .hljs-quote,
 html.outis-dark .hljs-doctag {
-	color: #71867b;
+	color: #8b949e;
 	font-style: italic;
 }
 
 html.outis-dark .hljs-addition {
-	color: #8cc099;
+	color: #7ee787;
 }
 html.outis-dark .hljs-deletion {
-	color: #dd6969;
+	color: #ffa198;
 }
 html.outis-dark .hljs-emphasis {
 	font-style: italic;

@@ -347,7 +347,8 @@ test('TH-17 focus: the keyboard ring is the accent, the composer has none unless
 
 	// Keyboard focus on a button shows the accent ring.
 	let outline = '';
-	for (let i = 0; i < 15 && !outline; i++) {
+	// Up to 80 Tabs: every chat the earlier specs create adds a sidebar link before the first button.
+	for (let i = 0; i < 80 && !outline; i++) {
 		await page.keyboard.press('Tab');
 		outline = await page.evaluate(() => {
 			const a = document.activeElement as HTMLElement | null;

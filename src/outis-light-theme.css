@@ -274,16 +274,19 @@ html.outis-light .input-prose-sm :not(pre) > code {
  * in sync with codemirror-outis-light-theme.ts.
  * ------------------------------------------------------------------ */
 
+/* 2026-10-01: token colours below are now GitHub Light (Primer), at the user's request; the
+   palette notes above describe the earlier Outis ring and no longer match. Keep in sync with
+   codemirror-outis-light-theme.ts. */
 html.outis-light .hljs {
-	background: var(--outis-code-bg);
-	color: #3a4d43;
+	background: #f6f8fa;
+	color: #1f2328;
 }
 
 /* Keywords */
 html.outis-light .hljs-keyword,
 html.outis-light .hljs-selector-tag,
 html.outis-light .hljs-subst {
-	color: #105f31;
+	color: #cf222e;
 }
 
 /* Names: functions, types, classes, tags, selectors */
@@ -301,7 +304,7 @@ html.outis-light .hljs-selector-id,
 html.outis-light .hljs-selector-class,
 html.outis-light .hljs-selector-attr,
 html.outis-light .hljs-selector-pseudo {
-	color: #005b6c;
+	color: #8250df;
 }
 
 /* Literal values */
@@ -310,7 +313,7 @@ html.outis-light .hljs-literal,
 html.outis-light .hljs-symbol,
 html.outis-light .hljs-bullet,
 html.outis-light .hljs-formula {
-	color: #5f4687;
+	color: #0550ae;
 }
 
 /* Text data — the only warm hue */
@@ -319,33 +322,33 @@ html.outis-light .hljs-regexp,
 html.outis-light .hljs-template-tag,
 html.outis-light .hljs-template-variable,
 html.outis-light .hljs-code {
-	color: #6f4c00;
+	color: #0a3069;
 }
 
 /* Plain identifiers */
 html.outis-light .hljs-variable,
 html.outis-light .hljs-params {
-	color: #3a4d43;
+	color: #1f2328;
 }
 
 /* Structure */
 html.outis-light .hljs-operator,
 html.outis-light .hljs-punctuation {
-	color: #5f7368;
+	color: #1f2328;
 }
 
 html.outis-light .hljs-comment,
 html.outis-light .hljs-quote,
 html.outis-light .hljs-doctag {
-	color: #677c71;
+	color: #6e7781;
 	font-style: italic;
 }
 
 html.outis-light .hljs-addition {
-	color: #105f31;
+	color: #116329;
 }
 html.outis-light .hljs-deletion {
-	color: #b63032;
+	color: #82071e;
 }
 html.outis-light .hljs-emphasis {
 	font-style: italic;

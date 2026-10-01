@@ -31,21 +31,26 @@ import { EditorView } from '@codemirror/view';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 
-const bg = 'var(--outis-code-bg, #eff5f2)'; // --color-gray-50
-const gutterBg = '#e4ede8'; // --color-gray-100
-const text = '#3a4d43'; // identifiers, same weight as prose body
-const muted = '#5f7368'; // operators, punctuation -- 4.6:1
-const gutterFg = '#7c8f84'; // line numbers -- 3.1:1
+// 2026-10-01: syntax colours switched to GitHub Light (Primer) at the user's request; the role
+// names below (green = keywords, cyan = functions, violet = literals, amber = strings) are kept
+// so the tag groups read the same. Editor chrome (accent, selection) is still Outis.
+
+const bg = '#f6f8fa';
+const gutterBg = '#f6f8fa';
+const text = '#1f2328';
+const muted = '#1f2328';
+const gutterFg = '#8c959f';
 const mutedLight = '#d7e3dd'; // --color-gray-200 -- borders only
-const comment = '#677c71'; // 4.1:1 -- readable, still recedes
+const comment = '#6e7781';
 const accent = '#008350'; // --color-blue-500 -- editor chrome only, never syntax
-const green = '#105f31';
-const cyan = '#005b6c';
-const violet = '#5f4687';
-const amber = '#6f4c00';
+const green = '#cf222e';
+const cyan = '#8250df';
+const violet = '#0550ae';
+const amber = '#0a3069';
+const typeColor = '#953800';
 const accentSoft = 'rgba(0, 131, 80, 0.14)'; // selection
 const accentFaint = 'rgba(0, 131, 80, 0.05)'; // active line
-const danger = '#b63032';
+const danger = '#82071e';
 
 export const outisLightEditorTheme = /*@__PURE__*/ EditorView.theme(
 	{
@@ -121,7 +126,7 @@ const outisLightHighlightStyle = /*@__PURE__*/ HighlightStyle.define([
 			tags.namespace,
 			tags.annotation
 		],
-		color: cyan
+		color: typeColor
 	},
 
 	// Literal values.
