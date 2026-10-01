@@ -116,3 +116,30 @@ test('CR-11 an embed is told the Outis theme (data-outis-theme) and follows a th
 	await page.evaluate((o) => document.documentElement.classList.toggle('dark', o === 'dark'), other);
 	await expect(t).toHaveText(other);
 });
+
+test('CR-12 a multi-line display equation with a lone "=" line renders as math, not a heading', async ({ page, api }) => {
+	const content = [
+		'Bellman equation, \\(v = r + \\gamma P v\\):',
+		'\\[',
+		'\\begin{bmatrix} 1 - 0.8\\gamma & -0.2\\gamma \\\\ -0.3\\gamma & 1 - 0.7\\gamma \\end{bmatrix}',
+		'\\begin{bmatrix} v_1 \\\\ v_2 \\end{bmatrix}',
+		'=',
+		'\\begin{bmatrix} 1 \\\\ 2 \\end{bmatrix}',
+		'\\]',
+		'',
+		'Rewards:',
+		'$$',
+		'r = \\begin{bmatrix} 1 \\\\ 2 \\end{bmatrix}',
+		'$$',
+		'',
+		'```python',
+		'x = 1',
+		'```'
+	].join('\n');
+	const message = await openChat(page, api, content, 'CR-12');
+	await expect(message.locator('.katex-display')).toHaveCount(2);
+	await expect(message.locator('.katex-error')).toHaveCount(0);
+	await expect(message.locator('h1, h2')).toHaveCount(0);
+	expect(await message.innerText()).not.toMatch(/\\begin\{bmatrix\}/);
+	await expect(message.locator('pre code, .cm-content').first()).toContainText('x = 1');
+});

@@ -30,7 +30,7 @@
 
 <script>
 	import { onDestroy } from 'svelte';
-	import { replaceTokens, processResponseContent, blockMediaTags } from '$lib/utils';
+	import { replaceTokens, processResponseContent, blockMediaTags, joinDisplayMath } from '$lib/utils';
 	import { user } from '$lib/stores';
 
 	import MarkdownTokens from './Markdown/MarkdownTokens.svelte';
@@ -70,7 +70,11 @@
 		if (content === lastContent) return;
 		lastContent = content;
 
-		const processed = replaceTokens(blockMediaTags(processResponseContent(content)), model?.name, $user?.name);
+		const processed = replaceTokens(
+			joinDisplayMath(blockMediaTags(processResponseContent(content))),
+			model?.name,
+			$user?.name
+		);
 		if (processed === lastParsedContent) return;
 		lastParsedContent = processed;
 

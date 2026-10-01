@@ -41,6 +41,12 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   Safari plays every video full-screen instead of inside the message. (Found 2026-10-01.)
 - **CR-10** A tool returning a 700px-tall `HTMLResponse` shows an "Embedded Content" iframe
   taller than 650px.
+- **CR-12** A display equation spread over several lines, with a line holding only `=` between
+  two matrices, renders as one KaTeX display block: no heading, no raw `\begin{bmatrix}`. A `$$`
+  block likewise; a python fence is untouched. (Found 2026-10-01: the lone `=` was read as a
+  setext heading underline, so the Wolfram Tutor's Bellman system showed as raw LaTeX under a big
+  heading. `joinDisplayMath` in `src/lib/utils/index.ts` joins each display block onto one line
+  before lexing, skipping fenced code.)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).

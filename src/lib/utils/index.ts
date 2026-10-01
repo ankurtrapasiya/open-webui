@@ -101,6 +101,25 @@ export const sanitizeResponseContent = (content: string) => {
 export const blockMediaTags = (content: string) =>
 	content.replace(/^[ \t]*<(video|audio)>([^<\n]+)<\/\1>[ \t]*$/gm, '\n<$1>\n$2\n</$1>\n');
 
+// A display equation written over several lines can contain a line that markdown reads as syntax
+// before KaTeX sees it -- a lone "=" between two matrices is a setext heading underline, "- x" a
+// list item -- which splits the equation into raw LaTeX plus a heading. KaTeX ignores newlines,
+// so the inside of each multi-line \[ ... \] / $$ ... $$ block is joined onto one line, keeping the
+// delimiters on their own lines (that is how the block form is recognised). Fenced code is left alone.
+export const joinDisplayMath = (content: string) =>
+	content
+		.split(/(```[\s\S]*?```)/g)
+		.map((part, i) =>
+			i % 2 === 1
+				? part
+				: part.replace(/(\\\[|\$\$)([\s\S]+?)(\\\]|\$\$)/g, (m, open, body, close) =>
+						(open === '$$') !== (close === '$$') || !body.includes('\n')
+							? m
+							: open + '\n' + body.replace(/\s*\n\s*/g, ' ').trim() + '\n' + close
+					)
+		)
+		.join('');
+
 export const processResponseContent = (content: string) => {
 	content = processChineseContent(content);
 	return content.trim();
