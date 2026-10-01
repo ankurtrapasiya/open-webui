@@ -8,6 +8,7 @@ import http from 'node:http';
 //   fake-model  replies "Fake reply." — or, when tools are offered and the last user message is
 //               `CALL <tool> <json args>`, calls that tool, then replies once the result is back.
 //               Several `CALL` lines make several calls in the one turn.
+//               A message starting with an `ECHO` line is answered with the rest of it, verbatim.
 //   fake-drop   hangs up without answering (a dead upstream).
 //
 // Control endpoints for tests: GET /__requests, POST /__reset.
@@ -30,6 +31,9 @@ function reply(body: any): { content?: string; toolCalls?: Call[] } {
 	const last = messages[messages.length - 1];
 	if (last?.role === 'tool') return { content: 'Tool result received.' };
 	const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+	// `ECHO` on the first line: reply with the rest of the message verbatim (for outlet filters).
+	const echo = text(lastUser?.content).match(/^ECHO\n([\s\S]*)$/);
+	if (echo) return { content: echo[1] };
 	const offered = new Set((body.tools ?? []).map((t: any) => t.function?.name));
 	const toolCalls = [...text(lastUser?.content).matchAll(/CALL (\w+)[ \t]*(\{.*\})?/g)]
 		.filter((m) => offered.has(m[1]))

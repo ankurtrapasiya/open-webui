@@ -47,6 +47,10 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **ML-1** (`math-latex.spec.ts`, skips without outis-mneme) With outis-mneme's global
   "Math as LaTeX" filter active, a chat with any model sends a system message containing the
   `[math-as-latex]` rule exactly once.
+- **FM-1** (`code-format.spec.ts`, skips without outis-mneme) With the global "Format code"
+  outlet filter active, a finished reply's ` ```python ` block is saved Black-formatted
+  (`lik*prior` → `lik * prior`), an invalid snippet is left as written, and the chat shows the
+  formatted text. The fake model's `ECHO` line makes it reply with fixed text.
 - **QZ-1** (`quiz-theme.spec.ts`, skips without outis-mneme) The themed QuizUI tool's body is
   `#090d0c` in dark and `#fafdfc` in light, following a live switch both ways.
 
