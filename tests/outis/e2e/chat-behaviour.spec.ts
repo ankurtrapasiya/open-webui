@@ -237,6 +237,34 @@ test('CB-10 a new chat starts with no skills selected', async ({ page, api }) =>
 	await expect(page.locator('button[aria-label="Available Skills"]')).toHaveCount(0);
 });
 
+// --- Tools persist across messages ----------------------------------------------------------
+
+async function newChatWithTool(page: Page) {
+	await page.goto('/?model=fake-model');
+	await page.locator('button[aria-label="Integrations"]').click();
+	await page.getByRole('button', { name: /^Tools/ }).click();
+	await page.getByRole('button', { name: /regression_figures/ }).click();
+	await page.keyboard.press('Escape');
+	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveText('1');
+}
+
+test('CB-24 a ticked tool is sent with every message in the chat, not just the first', async ({ page }) => {
+	await newChatWithTool(page);
+	expect((await send(page, 'first message')).tool_ids).toContain('regression_figures');
+	await expect(page.getByText('Fake reply.').first()).toBeVisible();
+	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveText('1');
+	expect((await send(page, 'second message')).tool_ids).toContain('regression_figures');
+});
+
+test('CB-25 a new chat starts from the model defaults, without the last chat\'s tools', async ({ page }) => {
+	await newChatWithTool(page);
+	await send(page, 'hello');
+	await expect(page).toHaveURL(/\/c\//);
+	await page.locator('a#sidebar-new-chat-button:visible, a[aria-label="New Chat"]:visible').first().click();
+	await expect(page).not.toHaveURL(/\/c\//);
+	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveCount(0);
+});
+
 // --- Composer suggestions -------------------------------------------------------------------
 
 async function composerWithSuggestions(page: Page, api: any) {

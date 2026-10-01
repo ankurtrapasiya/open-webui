@@ -96,6 +96,11 @@ Settings for these tests: `ui.showFormattingToolbar = true`,
 `ui.insertSuggestionPrompt = true`, and 8 suggestions set through
 `POST /api/v1/configs/suggestions`.
 
+- **CB-24** Tick a tool in the composer (Integrations → Tools), send two messages: both
+  requests carry it in `tool_ids`. (Found 2026-10-01: `submitPrompt` cleared
+  `selectedToolIds` on every send, the same bug CB-9 fixed for skills, so the second message
+  went out with no tools and tool use looked flaky.)
+- **CB-25** Starting a new chat drops the last chat's tools (model defaults still apply).
 - **CB-11** All 8 suggestion chips are visible without scrolling the suggestion list
   (`scrollHeight <= clientHeight`).
 - **CB-12** Focusing the empty chat input does not create `#floating-menu`.

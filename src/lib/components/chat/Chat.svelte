@@ -829,7 +829,9 @@
 		messageInput?.setText('');
 
 		files = [];
-		selectedToolIds = [];
+		// selectedToolIds is not cleared here either, for the same reason as skills below:
+		// tools ticked for a chat (Wolfram, a quiz, a video tool) are how the chat works, and
+		// clearing them meant the second message went out with no tools at all.
 		// selectedSkillIds is deliberately NOT cleared here. A skill is the
 		// working mode for a conversation -- "grill me", "draw this as graphviz"
 		// -- not an attachment to one message, and clearing it meant a chat

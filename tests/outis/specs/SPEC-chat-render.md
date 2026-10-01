@@ -44,6 +44,9 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).
+- **ML-1** (`math-latex.spec.ts`, skips without outis-mneme) With outis-mneme's global
+  "Math as LaTeX" filter active, a chat with any model sends a system message containing the
+  `[math-as-latex]` rule exactly once.
 - **QZ-1** (`quiz-theme.spec.ts`, skips without outis-mneme) The themed QuizUI tool's body is
   `#090d0c` in dark and `#fafdfc` in light, following a live switch both ways.
 
