@@ -164,7 +164,7 @@
 	import 'katex/dist/katex.min.css';
 	import Code from '@tiptap/extension-code';
 	import Italic from '@tiptap/extension-italic';
-	import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+	import { MermaidCodeBlock } from './RichTextInput/MermaidCodeBlock';
 
 	// WORKAROUND: TipTap's default Code mark input rule regex captures the
 	// character before the opening backtick, causing it to be deleted.
@@ -856,7 +856,7 @@
 
 				...(richText
 					? [
-							CodeBlockLowlight.configure({
+							MermaidCodeBlock.configure({
 								lowlight
 							}),
 							Typography,

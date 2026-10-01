@@ -35,6 +35,12 @@ The editor's markdown parser (`editorMarked`), checked through what the editor r
 
 Browser:
 
+- **NR-14** A note with a ` ```mermaid ` mind map shows the code (still editable, highlighted)
+  and the drawn diagram under it (`.mermaid-diagram svg`). Typing in the code redraws it
+  (debounced 300 ms; a half-typed diagram keeps the last good drawing). Saving keeps the
+  ` ```mermaid ` fence in `md`. Implemented in `RichTextInput/MermaidCodeBlock.ts`.
+- **NR-15** A non-mermaid code block gets no `.mermaid-diagram` drawing.
+
 - **NR-7** A note created through the API with `md` containing `$E(y)$` and a `$$` block
   opens with at least two `.katex` elements and no literal `$E(y)$` text.
 - **NR-8** A note created with `{json: null, html: '', md: 'NR8 body'}` opens showing

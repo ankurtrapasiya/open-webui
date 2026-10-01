@@ -136,3 +136,28 @@ test('NR-13 a $$ block renders in display mode, so an equation number (\\tag) wo
 	await expect(block.locator('.katex-error')).toHaveCount(0);
 	await expect(block).toContainText('(1.1)');
 });
+
+test('NR-14 a ```mermaid block draws its diagram under the code, and saving keeps the source', async ({ page, api }) => {
+	const src = 'mindmap\n  root((NR14 root))\n    Alpha\n    Beta';
+	const { note, editor } = await openNote(page, api, `Before\n\n\`\`\`mermaid\n${src}\n\`\`\`\n\nEnd`, 'NR-14');
+	await expect(editor.locator('.mermaid-diagram svg')).toBeVisible();
+	await expect(editor.locator('.mermaid-diagram svg')).toContainText('NR14 root');
+	await expect(editor.locator('pre code.language-mermaid')).toContainText('root((NR14 root))');
+
+	// Editing the code redraws the diagram.
+	await editor.locator('pre code.language-mermaid').getByText('Beta').click();
+	await page.keyboard.press('End');
+	await page.keyboard.press('Enter');
+	await page.keyboard.type('    Gamma');
+	await expect(editor.locator('.mermaid-diagram svg')).toContainText('Gamma');
+
+	await page.keyboard.press('Control+s');
+	await expect.poll(async () => (await api.getNote(note.id)).data.content.md).toContain('Gamma');
+	expect((await api.getNote(note.id)).data.content.md).toMatch(/```mermaid\s*\nmindmap/);
+});
+
+test('NR-15 an ordinary code block gets no diagram', async ({ page, api }) => {
+	const { editor } = await openNote(page, api, '```python\nprint("NR15")\n```', 'NR-15');
+	await expect(editor.locator('pre code')).toContainText('print("NR15")');
+	await expect(editor.locator('.mermaid-diagram svg')).toHaveCount(0);
+});
