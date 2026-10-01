@@ -77,3 +77,30 @@ test('CR-9 a chat video plays inside the message, not full-screen (playsinline, 
 	await expect(message.locator('video')).toHaveAttribute('playsinline', '');
 	await expect(message.locator('video')).toHaveAttribute('controls', '');
 });
+
+const EMBED_TOOL = `"""
+title: Regression embed
+"""
+from fastapi.responses import HTMLResponse
+
+
+class Tools:
+    def tall_embed(self) -> HTMLResponse:
+        """
+        Show a tall embedded page.
+        """
+        return HTMLResponse(
+            content='<!doctype html><html><body style="margin:0"><div id="cr10" style="height:700px">CR10 tall</div></body></html>',
+            headers={"Content-Disposition": "inline"},
+        )
+`;
+
+test('CR-10 a tool embed (HTMLResponse) grows to its content, not the 150px iframe default', async ({ page, api }) => {
+	await api.tool('regression_embed', EMBED_TOOL);
+	const { chatId, messageId } = await api.startChat({ model: 'fake-model', content: 'CALL tall_embed', tool_ids: ['regression_embed'] });
+	await api.waitForReply(chatId, messageId);
+	await page.goto(`/c/${chatId}`);
+	const frame = page.locator('iframe[title="Embedded Content"]');
+	await expect(page.frameLocator('iframe[title="Embedded Content"]').locator('#cr10')).toHaveText('CR10 tall');
+	await expect.poll(async () => (await frame.boundingBox())?.height ?? 0).toBeGreaterThan(650);
+});

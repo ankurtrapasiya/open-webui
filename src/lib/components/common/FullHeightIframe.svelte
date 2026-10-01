@@ -37,6 +37,12 @@
 	let iframeDoc: string | null = null;
 	let registeredWindow: Window | null = null;
 
+	const HEIGHT_REPORTER = `<script>(() => {
+		const post = () => parent.postMessage({ type: 'iframe:height', height: Math.min(document.documentElement.scrollHeight, 3000) }, '*');
+		new ResizeObserver(post).observe(document.documentElement);
+		addEventListener('load', post);
+	})();<\/script>`;
+
 	// Derived: build sandbox attribute from flags
 	$: sandbox =
 		[
@@ -62,6 +68,9 @@
 			iframeDoc = null;
 		} else {
 			iframeDoc = await processHtmlForDeps(src as string);
+			// Fork: without allow-same-origin the parent cannot measure the embed, which then
+			// stays at the browser's 150px default (tool charts cut off). Let it report its height.
+			if (!allowSameOrigin) iframeDoc += HEIGHT_REPORTER;
 			iframeSrc = null;
 		}
 	};

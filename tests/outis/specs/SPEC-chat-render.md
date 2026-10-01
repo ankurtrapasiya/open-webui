@@ -9,8 +9,11 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   iframe (`allow-scripts`, no `allow-same-origin`) titled "Interactive content", above its
   code. The Artifacts side panel no longer opens by itself; a block's Preview button still
   opens it. (`CodeBlock.svelte`, `ContentRenderer.svelte`)
-- The embed cannot be measured from outside, so a small script appended to it posts
-  `{type: 'iframe:height'}` to `FullHeightIframe`, capped at 1400px. It starts at 480px.
+- An embed without `allow-same-origin` cannot be measured from outside, so
+  `FullHeightIframe` appends a small script to every such embed (inline html/svg blocks and
+  tool `HTMLResponse` embeds alike) that posts `{type: 'iframe:height'}`, capped at 3000px.
+  Inline blocks start at 480px. (Found 2026-10-01: Visuals Toolkit charts sat in the 150px
+  iframe default, cut off.)
 - Code blocks always open expanded. The user setting "Collapse code blocks"
   (`collapseCodeBlocks`) is ignored. (`MarkdownTokens.svelte`)
 - `<video>url</video>` or `<audio>url</audio>` alone on a line is given its own lines
@@ -33,6 +36,8 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **CR-8** The same tag split over three lines renders a `<video>` too.
 - **CR-9** The chat's `<video>` has `playsinline` and `controls`. Without `playsinline`, iOS
   Safari plays every video full-screen instead of inside the message. (Found 2026-10-01.)
+- **CR-10** A tool returning a 700px-tall `HTMLResponse` shows an "Embedded Content" iframe
+  taller than 650px.
 
 ## Known limits
 

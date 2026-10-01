@@ -373,16 +373,8 @@
 
 	// A finished ```html or ```svg block runs inline in the message (sandboxed, no same-origin),
 	// above its code, instead of opening the side Artifacts panel.
-	// The embed cannot be measured from outside, so it reports its own height.
-	const HEIGHT_REPORTER = `<script>(() => {
-		const post = () => parent.postMessage({ type: 'iframe:height', height: Math.min(document.documentElement.scrollHeight, 1400) }, '*');
-		new ResizeObserver(post).observe(document.documentElement);
-		addEventListener('load', post);
-	})();<\/script>`;
 	$: inlineHtml =
-		['html', 'svg'].includes(lang) && (token?.raw ?? '').slice(-4).includes('```')
-			? code + HEIGHT_REPORTER
-			: null;
+		['html', 'svg'].includes(lang) && (token?.raw ?? '').slice(-4).includes('```') ? code : null;
 
 	let mermaid = null;
 	const renderMermaid = async (code) => {
