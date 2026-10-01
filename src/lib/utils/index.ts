@@ -96,6 +96,11 @@ export const sanitizeResponseContent = (content: string) => {
 		.trim();
 };
 
+// `<video>url</video>` (or audio) on one line lexes as a paragraph of inline pieces, which
+// HTMLToken never sees as a player. Give the tag its own lines so it lexes as one html block.
+export const blockMediaTags = (content: string) =>
+	content.replace(/^[ \t]*<(video|audio)>([^<\n]+)<\/\1>[ \t]*$/gm, '\n<$1>\n$2\n</$1>\n');
+
 export const processResponseContent = (content: string) => {
 	content = processChineseContent(content);
 	return content.trim();

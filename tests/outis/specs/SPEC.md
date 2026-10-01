@@ -21,8 +21,9 @@ passes, or names the broken feature and the acceptance criterion it broke.
 | `notes-folders` | Notes in folders: create, move, delete a folder | [SPEC-notes-folders.md](SPEC-notes-folders.md) |
 | `notes-navigation` | Previous/next note, Alt+Up/Down, remembered sort | [SPEC-notes-navigation.md](SPEC-notes-navigation.md) |
 | `notes-drafts` | Save on demand, Ctrl+S, ask before leaving | [SPEC-notes-drafts.md](SPEC-notes-drafts.md) |
-| `notes-render` | LaTeX in notes, chat-written notes, note PDF/print | [SPEC-notes-render.md](SPEC-notes-render.md) |
+| `notes-render` | LaTeX and Mermaid in notes, chat-written notes, note PDF/print | [SPEC-notes-render.md](SPEC-notes-render.md) |
 | `chat-diagrams` | Inline diagrams at native size, chat PDF fit | [SPEC-chat-diagrams.md](SPEC-chat-diagrams.md) |
+| `chat-render` | Inline HTML/SVG embeds, always-expanded code, one-line video tags | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `chat-behaviour` | Tool images, document dedupe, skills persist, composer UX, code wrap | [SPEC-chat-behaviour.md](SPEC-chat-behaviour.md) |
 | `theme` | Outis-Dark/Light, fonts, type scale, surfaces, focus, CodeMirror | [SPEC-theme.md](SPEC-theme.md) |
 | `branding` | "Outis" everywhere the instance names itself | [SPEC-branding.md](SPEC-branding.md) |

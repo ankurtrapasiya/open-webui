@@ -149,7 +149,10 @@
 				(normalizedLang === 'xml' && code.toLowerCase().includes('<svg'));
 			const artifactId = codeBlockId || `${normalizedLang}:${raw}`;
 
+			// html/svg now render inline in the message (CodeBlock.svelte), so the side panel
+			// opens only from a block's Preview button.
 			if (
+				false &&
 				($settings?.detectArtifacts ?? true) &&
 				!compactPreview &&
 				isArtifact &&

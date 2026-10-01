@@ -22,6 +22,7 @@
 	import CodeEditor from '$lib/components/common/CodeEditor.svelte';
 	import DiffBlock from './DiffBlock.svelte';
 	import SvgPanZoom from '$lib/components/common/SVGPanZoom.svelte';
+	import FullHeightIframe from '$lib/components/common/FullHeightIframe.svelte';
 
 	import ChevronUp from '$lib/components/icons/ChevronUp.svelte';
 	import ChevronUpDown from '$lib/components/icons/ChevronUpDown.svelte';
@@ -370,6 +371,19 @@
 		};
 	};
 
+	// A finished ```html or ```svg block runs inline in the message (sandboxed, no same-origin),
+	// above its code, instead of opening the side Artifacts panel.
+	// The embed cannot be measured from outside, so it reports its own height.
+	const HEIGHT_REPORTER = `<script>(() => {
+		const post = () => parent.postMessage({ type: 'iframe:height', height: Math.min(document.documentElement.scrollHeight, 1400) }, '*');
+		new ResizeObserver(post).observe(document.documentElement);
+		addEventListener('load', post);
+	})();<\/script>`;
+	$: inlineHtml =
+		['html', 'svg'].includes(lang) && (token?.raw ?? '').slice(-4).includes('```')
+			? code + HEIGHT_REPORTER
+			: null;
+
 	let mermaid = null;
 	const renderMermaid = async (code) => {
 		if (!mermaid) {
@@ -452,6 +466,14 @@
 		class="relative {className} flex flex-col rounded-2xl border border-gray-100/30 dark:border-gray-850/30 my-0.5 overflow-clip"
 		dir="ltr"
 	>
+		{#if inlineHtml}
+			<FullHeightIframe
+				src={inlineHtml}
+				title="Interactive content"
+				initialHeight={480}
+				iframeClassName="w-full bg-white"
+			/>
+		{/if}
 		{#if ['mermaid', 'vega', 'vega-lite'].includes(lang)}
 			{#if renderHTML}
 				<SvgPanZoom
