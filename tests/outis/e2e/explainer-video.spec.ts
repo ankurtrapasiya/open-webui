@@ -41,9 +41,9 @@ async function turn(api: any, args: object) {
 	return { message, text: JSON.stringify(out?.output ?? out) };
 }
 
-test('EV-1 a good scene comes back as an mp4 attached to the message that a browser plays', async ({ api, page }) => {
-	const code = 'class Dot1(Scene):\n    def construct(self):\n        self.play(Create(Circle()), run_time=0.5)\n';
-	const { message, text } = await turn(api, { code, title: 'ev1 test' });
+test('EV-1 slides come back as an mp4 attached to the message that a browser plays', async ({ api, page }) => {
+	const slides = [{ title: 'EV1', bullets: ['one point'] }];
+	const { message, text } = await turn(api, { slides, title: 'ev1 test' });
 	const id = text.match(/<video>\/api\/v1\/files\/([0-9a-f-]+)\/content<\/video>/)?.[1];
 	expect(id, text).toBeTruthy();
 	expect((message.files ?? []).map((f: any) => f.name)).toContain('ev1-test.mp4');
@@ -64,8 +64,8 @@ test('EV-1 a good scene comes back as an mp4 attached to the message that a brow
 	expect(meta.duration, JSON.stringify(meta)).toBeGreaterThan(0);
 });
 
-test('EV-2 a broken scene returns its traceback so the model can fix it', async ({ api }) => {
-	const { text } = await turn(api, { code: 'class Bad(Scene):\n    def construct(self):\n        self.play(NoSuchThing())\n' });
+test('EV-2 a formula that is not valid LaTeX comes back as an error the model can fix', async ({ api }) => {
+	const { text } = await turn(api, { slides: [{ title: 'EV2', formula: '\\frac{1' }] });
 	expect(text).toContain('RENDER FAILED');
-	expect(text).toContain('NoSuchThing');
+	expect(text).toContain('LaTeX');
 });

@@ -11,7 +11,12 @@ and the `$OUTIS_MANIM_NETWORK` network (default `llama-server_manim`) has manim-
 
 ## Acceptance criteria
 
-- **EV-1** Calling the tool with a valid scene returns `<video>/api/v1/files/<id>/content</video>`,
+The tool takes slides (title, optional LaTeX formula, bullets, a line chart), not code; the
+service draws them with one fixed layout so text cannot overlap (changed 2026-10-01 after
+model-written Manim scenes piled labels on top of each other).
+
+- **EV-1** Calling the tool with valid slides returns `<video>/api/v1/files/<id>/content</video>`,
   attaches `<title>.mp4` to the message, and a browser with the login cookie loads the file
   as video (duration > 0).
-- **EV-2** A scene that raises returns text containing `RENDER FAILED` and the error name.
+- **EV-2** A slide whose formula is not valid LaTeX returns text containing `RENDER FAILED`
+  and `LaTeX`.
