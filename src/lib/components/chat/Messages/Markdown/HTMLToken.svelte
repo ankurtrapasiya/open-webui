@@ -23,9 +23,11 @@
 		{@const videoSrc = video && video[1]}
 		{#if videoSrc}
 			<!-- svelte-ignore a11y-media-has-caption -->
+			<!-- playsinline: iOS Safari otherwise takes every video full-screen on play. -->
 			<video
 				class="w-full my-2"
-				src={videoSrc.replaceAll('&amp;', '&')}
+				playsinline
+				src={videoSrc.replaceAll('&amp;', '&').trim()}
 				title={$i18n.t('Video player')}
 				frameborder="0"
 				referrerpolicy="strict-origin-when-cross-origin"

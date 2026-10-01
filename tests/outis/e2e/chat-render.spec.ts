@@ -71,3 +71,9 @@ test('CR-8 the same tag on its own lines still works', async ({ page, api }) => 
 	const message = await openChat(page, api, '<video>\n/api/v1/files/cr8-not-real/content\n</video>', 'CR-8');
 	await expect.poll(() => message.locator('video').evaluate((v: HTMLVideoElement) => v.src)).toMatch(/\/api\/v1\/files\/cr8-not-real\/content$/);
 });
+
+test('CR-9 a chat video plays inside the message, not full-screen (playsinline, for iOS Safari)', async ({ page, api }) => {
+	const message = await openChat(page, api, '<video>/api/v1/files/cr9-not-real/content</video>', 'CR-9');
+	await expect(message.locator('video')).toHaveAttribute('playsinline', '');
+	await expect(message.locator('video')).toHaveAttribute('controls', '');
+});

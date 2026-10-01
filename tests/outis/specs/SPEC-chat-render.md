@@ -31,6 +31,8 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **CR-7** `<video>/api/v1/files/x/content</video>` on one line inside a paragraph renders a
   `<video>` with that src, and the surrounding text still shows.
 - **CR-8** The same tag split over three lines renders a `<video>` too.
+- **CR-9** The chat's `<video>` has `playsinline` and `controls`. Without `playsinline`, iOS
+  Safari plays every video full-screen instead of inside the message. (Found 2026-10-01.)
 
 ## Known limits
 
