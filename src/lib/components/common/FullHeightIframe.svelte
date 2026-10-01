@@ -43,6 +43,28 @@
 		addEventListener('load', post);
 	})();<\/script>`;
 
+	// Fork: tell the embed the app's theme and font, so tool UIs can match Outis light/dark
+	// (data-outis-theme on <html>, --outis-font) instead of guessing from the OS setting.
+	// Later theme switches arrive as {type: 'outis:theme'} messages.
+	const outisTheme = () => ({
+		theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+		font: getComputedStyle(document.documentElement).getPropertyValue('--outis-font').trim()
+	});
+
+	const withOutisTheme = (html: string) => {
+		const { theme, font } = outisTheme();
+		const tag = `<script>(() => {
+			const root = document.documentElement;
+			const apply = (t, f) => { root.dataset.outisTheme = t; if (f) root.style.setProperty('--outis-font', f); };
+			apply(${JSON.stringify(theme)}, ${JSON.stringify(font)});
+			addEventListener('message', (e) => { if (e.data && e.data.type === 'outis:theme') apply(e.data.theme, e.data.font); });
+		})();<\/script>`;
+		const idx = html.indexOf('<head>');
+		return idx !== -1 ? html.slice(0, idx + 6) + tag + html.slice(idx + 6) : html + tag;
+	};
+
+	let themeObserver: MutationObserver | null = null;
+
 	// Derived: build sandbox attribute from flags
 	$: sandbox =
 		[
@@ -71,6 +93,7 @@
 			// Fork: without allow-same-origin the parent cannot measure the embed, which then
 			// stays at the browser's 150px default (tool charts cut off). Let it report its height.
 			if (!allowSameOrigin) iframeDoc += HEIGHT_REPORTER;
+			iframeDoc = withOutisTheme(iframeDoc);
 			iframeSrc = null;
 		}
 	};
@@ -209,10 +232,15 @@ window.Chart = parent.Chart; // Chart previously assigned on parent
 	// Ensure event listener bound only while component lives
 	onMount(() => {
 		window.addEventListener('message', onMessage);
+		themeObserver = new MutationObserver(() =>
+			iframe?.contentWindow?.postMessage({ type: 'outis:theme', ...outisTheme() }, '*')
+		);
+		themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 	});
 
 	onDestroy(() => {
 		window.removeEventListener('message', onMessage);
+		themeObserver?.disconnect();
 		if (registeredWindow) {
 			embedWindows.delete(registeredWindow);
 		}

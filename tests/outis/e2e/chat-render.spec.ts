@@ -104,3 +104,15 @@ test('CR-10 a tool embed (HTMLResponse) grows to its content, not the 150px ifra
 	await expect(page.frameLocator('iframe[title="Embedded Content"]').locator('#cr10')).toHaveText('CR10 tall');
 	await expect.poll(async () => (await frame.boundingBox())?.height ?? 0).toBeGreaterThan(650);
 });
+
+test('CR-11 an embed is told the Outis theme (data-outis-theme) and follows a theme switch', async ({ page, api }) => {
+	const html =
+		'<!DOCTYPE html><html><head></head><body><p id="t"></p><script>setInterval(() => (document.getElementById("t").textContent = document.documentElement.dataset.outisTheme), 50)</script></body></html>';
+	await openChat(page, api, fence('html', html), 'CR-11');
+	const t = page.frameLocator('#response-content-container iframe[title="Interactive content"]').locator('#t');
+	const appTheme = await page.evaluate(() => (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
+	await expect(t).toHaveText(appTheme);
+	const other = appTheme === 'dark' ? 'light' : 'dark';
+	await page.evaluate((o) => document.documentElement.classList.toggle('dark', o === 'dark'), other);
+	await expect(t).toHaveText(other);
+});

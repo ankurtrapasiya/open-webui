@@ -25,6 +25,7 @@ passes, or names the broken feature and the acceptance criterion it broke.
 | `chat-diagrams` | Inline diagrams at native size, chat PDF fit | [SPEC-chat-diagrams.md](SPEC-chat-diagrams.md) |
 | `chat-render` | Inline HTML/SVG embeds, always-expanded code, one-line video tags | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `explainer-video` | Manim video tool round trip (needs outis-mneme manim-render) | [SPEC-explainer-video.md](SPEC-explainer-video.md) |
+| `quiz-theme` | QuizUI tool embed takes Outis light/dark colours (needs outis-mneme) | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `chat-behaviour` | Tool images, document dedupe, skills persist, composer UX, code wrap | [SPEC-chat-behaviour.md](SPEC-chat-behaviour.md) |
 | `theme` | Outis-Dark/Light, fonts, type scale, surfaces, focus, CodeMirror | [SPEC-theme.md](SPEC-theme.md) |
 | `branding` | "Outis" everywhere the instance names itself | [SPEC-branding.md](SPEC-branding.md) |

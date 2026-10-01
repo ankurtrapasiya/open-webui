@@ -14,6 +14,9 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   tool `HTMLResponse` embeds alike) that posts `{type: 'iframe:height'}`, capped at 3000px.
   Inline blocks start at 480px. (Found 2026-10-01: Visuals Toolkit charts sat in the 150px
   iframe default, cut off.)
+- `FullHeightIframe` also injects the app theme into every embed: `data-outis-theme` and
+  `--outis-font` on `<html>`, updated live on theme switches. Tool UIs style against it
+  (outis-mneme's QuizUI does: `services/quizui/quizui.py`, themes `outis_light`/`outis_dark`).
 - Code blocks always open expanded. The user setting "Collapse code blocks"
   (`collapseCodeBlocks`) is ignored. (`MarkdownTokens.svelte`)
 - `<video>url</video>` or `<audio>url</audio>` alone on a line is given its own lines
@@ -38,6 +41,11 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   Safari plays every video full-screen instead of inside the message. (Found 2026-10-01.)
 - **CR-10** A tool returning a 700px-tall `HTMLResponse` shows an "Embedded Content" iframe
   taller than 650px.
+- **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
+  and `--outis-font` on its `<html>`; switching the app theme updates it live via an
+  `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).
+- **QZ-1** (`quiz-theme.spec.ts`, skips without outis-mneme) The themed QuizUI tool's body is
+  `#090d0c` in dark and `#fafdfc` in light, following a live switch both ways.
 
 ## Known limits
 
