@@ -61,6 +61,19 @@ export const executeCode = async (token: string, code: string) => {
 	return res;
 };
 
+// Draws a plantuml / dot / mermaid-mindmap source with the server's Kroki filter; returns the
+// `<div class="outis-diagram">` HTML, or throws the renderer's message.
+export const renderDiagram = async (token: string, lang: string, code: string): Promise<string> => {
+	const res = await fetch(`${WEBUI_API_BASE_URL}/utils/diagram`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+		body: JSON.stringify({ lang, code })
+	});
+	const data = await res.json();
+	if (!res.ok) throw data?.detail ?? res.statusText;
+	return data.html;
+};
+
 export const formatPythonCode = async (token: string, code: string) => {
 	let error = null;
 

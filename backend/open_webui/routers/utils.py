@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import asyncio
 import logging
+import re
 
 import black
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from open_webui.config import DATA_DIR, ENABLE_ADMIN_EXPORT
 from open_webui.constants import ERROR_MESSAGES
 from open_webui.models.config import Config
+from open_webui.models.functions import Functions
 from open_webui.utils.auth import get_admin_user, get_verified_user
 from open_webui.utils.code_interpreter import execute_code_jupyter
 from open_webui.utils.misc import get_gravatar_url
+from open_webui.utils.plugin import get_function_module_from_cache
 from pydantic import BaseModel
 from starlette.responses import FileResponse
 
@@ -36,6 +40,30 @@ async def format_code(form_data: CodeForm, user=Depends(get_admin_user)):
         return {'code': form_data.code}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+class DiagramForm(BaseModel):
+    lang: str
+    code: str
+
+
+# Notes draw plantuml / dot (and a mermaid mindmap, converted to the PlantUML mindmap) with the
+# same installed Kroki filter the chat uses, so a note shows the same themed drawing. The filter
+# lives in the database (outis-mneme installs it), so a missing filter is a 404, not an error.
+@router.post('/diagram')
+async def render_diagram(request: Request, form_data: DiagramForm, user=Depends(get_verified_user)):
+    try:
+        renderer, _, _ = await get_function_module_from_cache(request, 'kroki_diagram_renderer')
+    except Exception:
+        raise HTTPException(status_code=404, detail='Diagram renderer is not installed')
+    renderer.valves = renderer.Valves(**(await Functions.get_function_valves_by_id('kroki_diagram_renderer') or {}))
+    fence = f'```{form_data.lang}\n{form_data.code.rstrip()}\n```'
+    body = {'messages': [{'role': 'assistant', 'content': fence}]}
+    out = (await asyncio.to_thread(renderer.outlet, body))['messages'][0]['content']
+    diagram = re.search(r'<div class="outis-diagram">[^\n]*', out)
+    if not diagram:
+        raise HTTPException(status_code=400, detail=out.split('\n', 1)[0][:300])
+    return {'html': diagram.group(0)}
 
 
 @router.post('/code/execute')

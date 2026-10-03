@@ -138,22 +138,66 @@ test('NR-13 a $$ block renders in display mode, so an equation number (\\tag) wo
 });
 
 test('NR-14 a ```mermaid block draws its diagram under the code, and saving keeps the source', async ({ page, api }) => {
-	const src = 'mindmap\n  root((NR14 root))\n    Alpha\n    Beta';
+	const src = 'graph TD\n  R[NR14 root] --> A[Alpha]\n  R --> B[Beta]';
 	const { note, editor } = await openNote(page, api, `Before\n\n\`\`\`mermaid\n${src}\n\`\`\`\n\nEnd`, 'NR-14');
 	await expect(editor.locator('.mermaid-diagram svg')).toBeVisible();
 	await expect(editor.locator('.mermaid-diagram svg')).toContainText('NR14 root');
-	await expect(editor.locator('pre code.language-mermaid')).toContainText('root((NR14 root))');
+	await expect(editor.locator('pre code.language-mermaid')).toContainText('R[NR14 root]');
 
 	// Editing the code redraws the diagram.
 	await editor.locator('pre code.language-mermaid').getByText('Beta').click();
 	await page.keyboard.press('End');
 	await page.keyboard.press('Enter');
-	await page.keyboard.type('    Gamma');
+	await page.keyboard.type('  R --> G[Gamma]');
 	await expect(editor.locator('.mermaid-diagram svg')).toContainText('Gamma');
 
 	await page.keyboard.press('Control+s');
 	await expect.poll(async () => (await api.getNote(note.id)).data.content.md).toContain('Gamma');
-	expect((await api.getNote(note.id)).data.content.md).toMatch(/```mermaid\s*\nmindmap/);
+	expect((await api.getNote(note.id)).data.content.md).toMatch(/```mermaid\s*\ngraph TD/);
+});
+
+// The server draws plantuml / dot / mermaid-mindmap with the installed `kroki_diagram_renderer`
+// filter. The suite has no Kroki, so a stub filter stands in: it draws "<lang>: <source>" as text.
+const KROKI_STUB = `
+import html, re
+from pydantic import BaseModel
+
+class Filter:
+    class Valves(BaseModel):
+        pass
+
+    def __init__(self):
+        self.valves = self.Valves()
+
+    def outlet(self, body, __user__=None):
+        m = body["messages"][-1]
+        lang, src = re.search(r"\`\`\`(\\w+)\\n(.*?)\`\`\`", m["content"], re.S).groups()
+        svg = f'<svg xmlns="http://www.w3.org/2000/svg"><text y="20">{html.escape(lang + ": " + src.replace("\\n", " "))}</text></svg>'
+        m["content"] = f'<div class="outis-diagram">{svg}</div>\\n\\n' + m["content"]
+        return body
+`;
+
+test('NR-18 a mermaid mindmap and a plantuml block in a note are drawn by the Kroki filter', async ({ page, api }) => {
+	const ctx = (api as any).ctx;
+	await ctx.delete('/api/v1/functions/id/kroki_diagram_renderer/delete').catch(() => null);
+	const made = await ctx.post('/api/v1/functions/create', {
+		data: { id: 'kroki_diagram_renderer', name: 'Kroki stub', content: KROKI_STUB, meta: { description: 'NR-18' } }
+	});
+	expect(made.ok()).toBe(true);
+	try {
+		const md = 'Map\n\n```mermaid\nmindmap\n  root((NR18 root))\n    Alpha\n```\n\nUML\n\n```plantuml\n@startuml\nNR18a -> NR18b\n@enduml\n```';
+		const { note, editor } = await openNote(page, api, md, 'NR-18');
+		const drawings = editor.locator('.mermaid-diagram .outis-diagram svg');
+		await expect(drawings).toHaveCount(2);
+		await expect(drawings.nth(0)).toContainText('mermaid: mindmap');
+		await expect(drawings.nth(0)).toContainText('NR18 root');
+		await expect(drawings.nth(1)).toContainText('plantuml: @startuml');
+		// No Mermaid drawing of the mindmap: Mermaid's own svg carries an aria-roledescription.
+		await expect(editor.locator('.mermaid-diagram svg[aria-roledescription]')).toHaveCount(0);
+		expect((await api.getNote(note.id)).data.content.md).toMatch(/```mermaid\s*\nmindmap/);
+	} finally {
+		await ctx.delete('/api/v1/functions/id/kroki_diagram_renderer/delete').catch(() => null);
+	}
 });
 
 test('NR-15 an ordinary code block gets no diagram', async ({ page, api }) => {

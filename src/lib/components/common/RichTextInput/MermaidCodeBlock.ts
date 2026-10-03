@@ -1,10 +1,20 @@
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 
+import DOMPurify from 'dompurify';
+
 import { initMermaid, renderMermaidDiagram } from '$lib/utils';
+import { renderDiagram } from '$lib/apis/utils';
 
 let mermaid: any = null;
 
-// A code block that also draws a ```mermaid block as a diagram underneath the (still editable) code.
+// Fences the server draws with the chat's Kroki filter. A mermaid mindmap goes there too: mind maps
+// are always the PlantUML mindmap skill's drawing, never Mermaid's (the filter converts it).
+const KROKI = new Set(['plantuml', 'puml', 'dot', 'graphviz']);
+const isMermaidMindmap = (lang: string, text: string) =>
+	lang === 'mermaid' && /^\s*mindmap\b/.test(text);
+
+// A code block that also draws a ```mermaid / ```plantuml / ```dot block as a diagram underneath the
+// (still editable) code.
 export const MermaidCodeBlock = CodeBlockLowlight.extend({
 	addNodeView() {
 		return ({ node }) => {
@@ -23,7 +33,9 @@ export const MermaidCodeBlock = CodeBlockLowlight.extend({
 
 			const render = async () => {
 				const text = current.textContent;
-				if (current.attrs.language !== 'mermaid' || !text.trim()) {
+				const lang = current.attrs.language;
+				const kroki = KROKI.has(lang) || isMermaidMindmap(lang, text);
+				if ((lang !== 'mermaid' && !kroki) || !text.trim()) {
 					rendered = '';
 					preview.innerHTML = '';
 					return;
@@ -31,8 +43,13 @@ export const MermaidCodeBlock = CodeBlockLowlight.extend({
 				if (text === rendered) return;
 				rendered = text;
 				try {
-					mermaid ??= await initMermaid();
-					const svg = await renderMermaidDiagram(mermaid, text);
+					let svg: string;
+					if (kroki) {
+						svg = DOMPurify.sanitize(await renderDiagram(localStorage.token, lang, text));
+					} else {
+						mermaid ??= await initMermaid();
+						svg = await renderMermaidDiagram(mermaid, text);
+					}
 					// Typing may have moved on while mermaid was busy; keep only the latest result.
 					if (rendered === text) preview.innerHTML = svg;
 				} catch {

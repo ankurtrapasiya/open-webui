@@ -35,10 +35,15 @@ The editor's markdown parser (`editorMarked`), checked through what the editor r
 
 Browser:
 
-- **NR-14** A note with a ` ```mermaid ` mind map shows the code (still editable, highlighted)
+- **NR-14** A note with a ` ```mermaid ` flowchart shows the code (still editable, highlighted)
   and the drawn diagram under it (`.mermaid-diagram svg`). Typing in the code redraws it
   (debounced 300 ms; a half-typed diagram keeps the last good drawing). Saving keeps the
   ` ```mermaid ` fence in `md`. Implemented in `RichTextInput/MermaidCodeBlock.ts`.
+- **NR-18** A ` ```mermaid ` mind map and a ` ```plantuml ` block in a note are each drawn by the
+  server's `kroki_diagram_renderer` filter (`POST /api/v1/utils/diagram`), not by Mermaid: two
+  `.mermaid-diagram .outis-diagram svg`, no Mermaid svg, and saving keeps the ` ```mermaid ` fence.
+  Mind maps are always the PlantUML mindmap skill's drawing; the filter converts a Mermaid
+  mindmap. (Asked 2026-10-03. The suite has no Kroki, so a stub filter draws "lang: source".)
 - **NR-15** A non-mermaid code block gets no `.mermaid-diagram` drawing.
 - **NR-16** A 1600x1200 image in a note fills at least 90% of the editor width and is taller
   than 400px. (Found 2026-10-01: note images were capped at `max-h-72`, 288px, so a rendered
