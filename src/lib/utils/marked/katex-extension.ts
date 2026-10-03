@@ -171,7 +171,9 @@ function katexTokenizer(src, tokens, displayMode: boolean) {
 			type,
 			raw: match[0],
 			text: text,
-			displayMode
+			// \[ and \begin{equation} are display math in LaTeX even on one line; inline mode
+			// rejects \tag, so `\[ x \tag{1} \]` rendered as a red parse error.
+			displayMode: displayMode || /^\\(\[|begin\{equation\})/.test(match[0])
 		};
 	}
 }
