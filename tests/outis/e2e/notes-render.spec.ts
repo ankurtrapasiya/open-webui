@@ -144,11 +144,26 @@ test('NR-14 a ```mermaid block draws its diagram under the code, and saving keep
 	await expect(editor.locator('.mermaid-diagram svg')).toContainText('NR14 root');
 	await expect(editor.locator('pre code.language-mermaid')).toContainText('R[NR14 root]');
 
-	// Editing the code redraws the diagram.
+	// Editing the code redraws the diagram. The caret goes after "Beta]" through the DOM selection:
+	// click + End sometimes left it inside "Beta", which typed a broken diagram (seen 2026-10-03).
 	await editor.locator('pre code.language-mermaid').getByText('Beta').click();
-	await page.keyboard.press('End');
+	await page.evaluate(() => {
+		const code = document.querySelector('pre code.language-mermaid')!;
+		const walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
+		let node: Node | null;
+		while ((node = walker.nextNode())) {
+			const at = node.textContent!.indexOf('Beta]');
+			if (at < 0) continue;
+			const range = document.createRange();
+			range.setStart(node, at + 'Beta]'.length);
+			getSelection()!.removeAllRanges();
+			getSelection()!.addRange(range);
+			return;
+		}
+	});
 	await page.keyboard.press('Enter');
 	await page.keyboard.type('  R --> G[Gamma]');
+	await expect(editor.locator('pre code.language-mermaid')).toContainText('B[Beta]\n  R --> G[Gamma]');
 	await expect(editor.locator('.mermaid-diagram svg')).toContainText('Gamma');
 
 	await page.keyboard.press('Control+s');
