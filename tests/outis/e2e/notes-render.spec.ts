@@ -172,7 +172,8 @@ class Filter:
     def outlet(self, body, __user__=None):
         m = body["messages"][-1]
         lang, src = re.search(r"\`\`\`(\\w+)\\n(.*?)\`\`\`", m["content"], re.S).groups()
-        svg = f'<svg xmlns="http://www.w3.org/2000/svg"><text y="20">{html.escape(lang + ": " + src.replace("\\n", " "))}</text></svg>'
+        text = html.escape(lang + ": " + src.replace("\\n", " "))
+        svg = f'<svg xmlns="http://www.w3.org/2000/svg"><text y="20">{text}</text></svg>'
         m["content"] = f'<div class="outis-diagram">{svg}</div>\\n\\n' + m["content"]
         return body
 `;
