@@ -23,3 +23,20 @@ describe('katex extension display mode', () => {
 		expect(mathTokens('see \\(x^2\\) and $y$ here').map((t) => t.displayMode)).toEqual([false, false]);
 	});
 });
+
+describe('katex extension: dropped thousands separator', () => {
+	const renders = (md: string) =>
+		mathTokens(md).every((t) => {
+			katex.renderToString(t.text, { displayMode: t.displayMode, throwOnError: true });
+			return true;
+		});
+	it('10{000{000 (unbalanced) is repaired to 10{,}000{,}000 and renders', () => {
+		const md = '$$\\text{CVA} = €100{000{000 - €97{000{000 = €3{000{000$$\n\n- **Risk-free value:** $€1{000,000 \\times 0.95 = €950,000$';
+		expect(mathTokens(md)[0].text).toContain('100{,}000{,}000');
+		expect(renders(md)).toBe(true);
+	});
+	it('balanced braces are left alone', () => {
+		const [t] = mathTokens('$x^{100} + 1{,}000$');
+		expect(t.text).toBe('x^{100} + 1{,}000');
+	});
+});

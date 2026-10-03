@@ -86,6 +86,14 @@ const findClosingDelimiter = (src: string, i: number): number => {
 	return -1;
 };
 
+// Some models (seen: inception/mercury-2.5) write the thousands separator {,} as a bare "{",
+// e.g. 10{000{000, which leaves the braces unbalanced and KaTeX shows a red parse error. Only when
+// the braces do not balance, put the missing ",}" back after each digit-brace-3-digits.
+export const repairThousands = (tex: string) => {
+	const depth = (tex.match(/(?<!\\)\{/g) ?? []).length - (tex.match(/(?<!\\)\}/g) ?? []).length;
+	return depth > 0 ? tex.replace(/(\d)\{(?=\d{3}(?!\d))/g, '$1{,}') : tex;
+};
+
 export const tokenizeDisplayMath = (
 	src: string,
 	type: 'inlineKatex' | 'blockKatex',
@@ -106,7 +114,9 @@ export const tokenizeDisplayMath = (
 		() => !requireBlockBoundary || isBlockBoundary(src, afterClose)
 	];
 
-	return validators.every((v) => v()) ? { type, raw, text, displayMode: true } : undefined;
+	return validators.every((v) => v())
+		? { type, raw, text: repairThousands(text), displayMode: true }
+		: undefined;
 };
 
 export default function (options = {}) {
@@ -170,7 +180,7 @@ function katexTokenizer(src, tokens, displayMode: boolean) {
 		return {
 			type,
 			raw: match[0],
-			text: text,
+			text: repairThousands(text),
 			// \[ and \begin{equation} are display math in LaTeX even on one line; inline mode
 			// rejects \tag, so `\[ x \tag{1} \]` rendered as a red parse error.
 			displayMode: displayMode || /^\\(\[|begin\{equation\})/.test(match[0])

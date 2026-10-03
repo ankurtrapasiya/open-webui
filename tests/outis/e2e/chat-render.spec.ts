@@ -143,3 +143,14 @@ test('CR-12 a multi-line display equation with a lone "=" line renders as math, 
 	expect(await message.innerText()).not.toMatch(/\\begin\{bmatrix\}/);
 	await expect(message.locator('pre code, .cm-content').first()).toContainText('x = 1');
 });
+
+test('CR-13 a thousands separator written as a bare "{" (10{000{000) renders, not a red error', async ({ page, api }) => {
+	const content = [
+		'- **Risk-free value:** $€1{000,000 \\times 0.95 = €950,000$',
+		'',
+		'$$\\text{CVA} = €100{000{000 - €97{000{000 = €3{000{000$$'
+	].join('\n');
+	const message = await openChat(page, api, content, 'CR-13');
+	await expect(message.locator('.katex')).toHaveCount(2);
+	await expect(message.locator('.katex-error')).toHaveCount(0);
+});

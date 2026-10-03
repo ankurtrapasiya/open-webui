@@ -47,6 +47,11 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   setext heading underline, so the Wolfram Tutor's Bellman system showed as raw LaTeX under a big
   heading. `joinDisplayMath` in `src/lib/utils/index.ts` joins each display block onto one line
   before lexing, skipping fenced code.)
+- **CR-13** A formula whose thousands separator lost its `,}` (`$€1{000,000$`,
+  `$$€100{000{000$$`) renders as KaTeX with no `.katex-error`. (Found 2026-10-03: mercury-2.5
+  writes `10{,}000{,}000` as `10{000{000` about one reply in three; the unclosed `{` was a red
+  parse error. `repairThousands` in `katex-extension.ts` puts `{,}` back, only when braces
+  do not balance.)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).
