@@ -426,3 +426,21 @@ test('TH-26 light theme: the favicon is darkened and the splash is the page colo
 	expect(await css(page, 'img[src$="favicon.png"]', 'filter')).toBe('brightness(0.431)');
 	expect(await probe(page, '', 'background-color', 'splash-screen')).toBe(T['outis-light'].bg);
 });
+
+test('TH-27 maths is highlighted by role in Outis-Dark, and Outis-Light is untouched', async ({ page, api }) => {
+	const chat = await api.chat({ title: 'TH-27', assistant: 'Inline $x = 1$ here.\n\n$$y \\le \\sum_i (x_i + 2)$$\n\nEnd.' });
+	await useTheme(page, 'outis-dark');
+	await page.goto(`/c/${chat.id}`);
+	await expect(page.locator('.katex-display')).toHaveCount(1);
+	expect(await css(page, '.katex .mathnormal', 'color')).toBe('rgb(255, 201, 112)');
+	expect(await css(page, '.katex .mrel', 'color')).toBe('rgb(255, 159, 174)');
+	expect(await css(page, '.katex .mbin', 'color')).toBe('rgb(143, 211, 255)');
+	expect(await css(page, '.katex .mopen', 'color')).toBe('rgb(157, 196, 179)');
+	expect(await css(page, '.katex-display', 'background-color')).toBe('rgb(19, 29, 24)');
+
+	await useTheme(page, 'outis-light');
+	await page.goto(`/c/${chat.id}`);
+	await expect(page.locator('html')).toHaveClass(/\boutis-light\b/);
+	await expect(page.locator('.katex-display')).toHaveCount(1);
+	expect(await css(page, '.katex .mrel', 'color')).not.toBe('rgb(255, 159, 174)');
+});

@@ -94,6 +94,11 @@ Light only:
 
 - **TH-26** Favicon image `filter` is `brightness(0.431)`; splash background is
   `rgb(250, 253, 252)`.
+- **TH-27** Outis-Dark highlights maths by TeX class: variables (`.mathnormal`) `#ffc970`,
+  operators (`.mop`, `.mbin`) `#8fd3ff`, relations (`.mrel`) `#ff9fae`, brackets and punctuation
+  `#9dc4b3`, the rest `#f2e6cf`; a display equation (`.katex-display`) sits on `#131d18` with a
+  2px accent left edge. A formula's own `\color{}` is kept. Outis-Light is unchanged. (Asked
+  2026-10-03: maths read as one more line of mint prose.)
 
 ## Notes for the test author
 
