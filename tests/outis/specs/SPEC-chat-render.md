@@ -50,8 +50,13 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **CR-13** A formula whose thousands separator lost its `,}` (`$€1{000,000$`,
   `$$€100{000{000$$`) renders as KaTeX with no `.katex-error`. (Found 2026-10-03: mercury-2.5
   writes `10{,}000{,}000` as `10{000{000` about one reply in three; the unclosed `{` was a red
-  parse error. `repairThousands` in `katex-extension.ts` puts `{,}` back, only when braces
+  parse error. `repairLatex` in `katex-extension.ts` puts `{,}` back, only when braces
   do not balance.)
+- **CR-14** A formula with every backslash doubled (`$IC \\times \\sqrt{BR}$`) renders as
+  KaTeX with a real square root and no "times" text. A matrix `\\` next to single-backslash
+  commands is untouched. (Found 2026-10-03: mercury-2.5 doubles backslashes as if JSON-escaping;
+  KaTeX read `\\` as a line break. `repairLatex` halves them only when no single-backslash
+  command is present.)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).

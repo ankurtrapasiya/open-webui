@@ -40,3 +40,14 @@ describe('katex extension: dropped thousands separator', () => {
 		expect(t.text).toBe('x^{100} + 1{,}000');
 	});
 });
+
+describe('katex extension: doubled backslashes', () => {
+	it('$IC \\\\times \\\\sqrt{BR}$ (all doubled) is halved and renders', () => {
+		const [t] = mathTokens('$IR = IC \\\\times \\\\sqrt{BR}$ here');
+		expect(t.text).toBe('IR = IC \\times \\sqrt{BR}');
+	});
+	it('a matrix line break next to single-backslash commands is left alone', () => {
+		const [t] = mathTokens('$\\begin{matrix} a \\\\ b \\end{matrix}$');
+		expect(t.text.trim()).toBe('\\begin{matrix} a \\\\ b \\end{matrix}');
+	});
+});

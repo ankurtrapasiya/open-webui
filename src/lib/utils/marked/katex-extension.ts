@@ -86,10 +86,13 @@ const findClosingDelimiter = (src: string, i: number): number => {
 	return -1;
 };
 
-// Some models (seen: inception/mercury-2.5) write the thousands separator {,} as a bare "{",
-// e.g. 10{000{000, which leaves the braces unbalanced and KaTeX shows a red parse error. Only when
-// the braces do not balance, put the missing ",}" back after each digit-brace-3-digits.
-export const repairThousands = (tex: string) => {
+// Repairs for broken LaTeX that inception/mercury-2.5 (the book models' base) writes:
+// - thousands separator {,} as a bare "{" (10{000{000): braces never close, KaTeX shows a red
+//   parse error. Only when braces do not balance, put ",}" back after digit-brace-3-digits.
+// - every backslash doubled, as if JSON-escaped ($IC \\times \\sqrt{BR}$): KaTeX reads "\\" as a
+//   line break and prints "times" as text. Only when no single-backslash command exists, halve them.
+export const repairLatex = (tex: string) => {
+	if (/\\\\[a-zA-Z]/.test(tex) && !/(?<!\\)\\[a-zA-Z]/.test(tex)) tex = tex.replace(/\\\\/g, '\\');
 	const depth = (tex.match(/(?<!\\)\{/g) ?? []).length - (tex.match(/(?<!\\)\}/g) ?? []).length;
 	return depth > 0 ? tex.replace(/(\d)\{(?=\d{3}(?!\d))/g, '$1{,}') : tex;
 };
@@ -115,7 +118,7 @@ export const tokenizeDisplayMath = (
 	];
 
 	return validators.every((v) => v())
-		? { type, raw, text: repairThousands(text), displayMode: true }
+		? { type, raw, text: repairLatex(text), displayMode: true }
 		: undefined;
 };
 
@@ -180,7 +183,7 @@ function katexTokenizer(src, tokens, displayMode: boolean) {
 		return {
 			type,
 			raw: match[0],
-			text: repairThousands(text),
+			text: repairLatex(text),
 			// \[ and \begin{equation} are display math in LaTeX even on one line; inline mode
 			// rejects \tag, so `\[ x \tag{1} \]` rendered as a red parse error.
 			displayMode: displayMode || /^\\(\[|begin\{equation\})/.test(match[0])

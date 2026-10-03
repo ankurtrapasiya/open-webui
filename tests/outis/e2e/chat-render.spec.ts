@@ -154,3 +154,11 @@ test('CR-13 a thousands separator written as a bare "{" (10{000{000) renders, no
 	await expect(message.locator('.katex')).toHaveCount(2);
 	await expect(message.locator('.katex-error')).toHaveCount(0);
 });
+
+test('CR-14 a formula with every backslash doubled ($IC \\\\times \\\\sqrt{BR}$) renders as maths', async ({ page, api }) => {
+	const content = 'Law: $IR = IC \\\\times \\\\sqrt{BR}$ and $0.02 \\\\times \\\\sqrt{400} = 0.40$.';
+	const message = await openChat(page, api, content, 'CR-14');
+	await expect(message.locator('.katex')).toHaveCount(2);
+	await expect(message.locator('.katex .sqrt')).toHaveCount(2);
+	expect(await message.innerText()).not.toMatch(/times/);
+});
