@@ -44,6 +44,12 @@ Browser:
   `.mermaid-diagram .outis-diagram svg`, no Mermaid svg, and saving keeps the ` ```mermaid ` fence.
   Mind maps are always the PlantUML mindmap skill's drawing; the filter converts a Mermaid
   mindmap. (Asked 2026-10-03. The suite has no Kroki, so a stub filter draws "lang: source".)
+- **NR-19** A Kroki drawing (plantuml, dot, a mermaid mind map) hides its code once drawn and
+  shows a `.diagram-source-toggle` button, "▸ Diagram source", under the drawing; clicking it
+  shows the code ("▾ Diagram source") and clicking again hides it. A mermaid flowchart keeps its
+  code visible and gets no toggle. A block created empty starts unfolded, so typing a new diagram
+  is not hidden at its first good render. (Asked 2026-10-03, to match the chat, where the filter
+  puts the source in a closed `<details>`.)
 - **NR-15** A non-mermaid code block gets no `.mermaid-diagram` drawing.
 - **NR-16** A 1600x1200 image in a note fills at least 90% of the editor width and is taller
   than 400px. (Found 2026-10-01: note images were capped at `max-h-72`, 288px, so a rendered

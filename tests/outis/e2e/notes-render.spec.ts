@@ -178,14 +178,23 @@ class Filter:
         return body
 `;
 
-test('NR-18 a mermaid mindmap and a plantuml block in a note are drawn by the Kroki filter', async ({ page, api }) => {
-	const ctx = (api as any).ctx;
+// Installs the stub as `kroki_diagram_renderer` for the length of `body`.
+async function withKrokiStub(api: any, label: string, body: () => Promise<void>) {
+	const ctx = api.ctx;
 	await ctx.delete('/api/v1/functions/id/kroki_diagram_renderer/delete').catch(() => null);
 	const made = await ctx.post('/api/v1/functions/create', {
-		data: { id: 'kroki_diagram_renderer', name: 'Kroki stub', content: KROKI_STUB, meta: { description: 'NR-18' } }
+		data: { id: 'kroki_diagram_renderer', name: 'Kroki stub', content: KROKI_STUB, meta: { description: label } }
 	});
 	expect(made.ok()).toBe(true);
 	try {
+		await body();
+	} finally {
+		await ctx.delete('/api/v1/functions/id/kroki_diagram_renderer/delete').catch(() => null);
+	}
+}
+
+test('NR-18 a mermaid mindmap and a plantuml block in a note are drawn by the Kroki filter', async ({ page, api }) => {
+	await withKrokiStub(api, 'NR-18', async () => {
 		const md = 'Map\n\n```mermaid\nmindmap\n  root((NR18 root))\n    Alpha\n```\n\nUML\n\n```plantuml\n@startuml\nNR18a -> NR18b\n@enduml\n```';
 		const { note, editor } = await openNote(page, api, md, 'NR-18');
 		const drawings = editor.locator('.mermaid-diagram .outis-diagram svg');
@@ -196,9 +205,27 @@ test('NR-18 a mermaid mindmap and a plantuml block in a note are drawn by the Kr
 		// No Mermaid drawing of the mindmap: Mermaid's own svg carries an aria-roledescription.
 		await expect(editor.locator('.mermaid-diagram svg[aria-roledescription]')).toHaveCount(0);
 		expect((await api.getNote(note.id)).data.content.md).toMatch(/```mermaid\s*\nmindmap/);
-	} finally {
-		await ctx.delete('/api/v1/functions/id/kroki_diagram_renderer/delete').catch(() => null);
-	}
+	});
+});
+
+test('NR-19 a Kroki drawing folds its source behind a "Diagram source" toggle; mermaid does not', async ({ page, api }) => {
+	await withKrokiStub(api, 'NR-19', async () => {
+		const md = '```plantuml\n@startuml\nNR19a -> NR19b\n@enduml\n```\n\n```mermaid\ngraph TD\n  NR19m --> X\n```';
+		const { note, editor } = await openNote(page, api, md, 'NR-19');
+		await expect(editor.locator('.mermaid-diagram .outis-diagram svg')).toHaveCount(1);
+		const plant = editor.locator('pre', { hasText: '@startuml' });
+		const toggle = editor.locator('.diagram-source-toggle:visible');
+		await expect(plant).toBeHidden();
+		await expect(toggle).toHaveCount(1);
+		await expect(toggle).toHaveText('▸ Diagram source');
+		await expect(editor.locator('pre', { hasText: 'NR19m' })).toBeVisible();
+		await toggle.click();
+		await expect(plant).toBeVisible();
+		await expect(toggle).toHaveText('▾ Diagram source');
+		await toggle.click();
+		await expect(plant).toBeHidden();
+		expect((await api.getNote(note.id)).data.content.md).toContain('NR19a -> NR19b');
+	});
 });
 
 test('NR-15 an ordinary code block gets no diagram', async ({ page, api }) => {
