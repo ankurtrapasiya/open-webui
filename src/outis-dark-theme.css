@@ -81,6 +81,10 @@ html.outis-dark {
 	/* Texting Bubbles surface: the card step with the border step as its edge. */
 	--outis-bubble-bg: var(--color-gray-850);
 	--outis-bubble-border: var(--color-gray-800);
+	--outis-rail: var(--color-gray-700);
+	--outis-rail-node: var(--color-gray-500);
+	--outis-math-var: #ffc970;
+	--outis-math-op: #8fd3ff;
 	--outis-code-border: #1f2c26;
 }
 

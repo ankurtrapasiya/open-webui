@@ -117,6 +117,10 @@ html.outis-light {
 	/* Texting Bubbles surface: the code surface and its hairline. */
 	--outis-bubble-bg: var(--outis-code-bg);
 	--outis-bubble-border: var(--outis-code-border);
+	--outis-rail: var(--color-gray-200);
+	--outis-rail-node: var(--color-gray-500);
+	--outis-math-var: #b26b00;
+	--outis-math-op: #0b6aa6;
 }
 
 /* app.css's `body { background: #fff; color: #000 }` is a hardcoded literal,

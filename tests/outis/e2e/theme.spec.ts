@@ -447,7 +447,7 @@ test('TH-27 maths is highlighted by role in Outis-Dark, and Outis-Light is untou
 	expect(await css(page, '.katex .mrel', 'color')).not.toBe('rgb(255, 159, 174)');
 });
 
-test('TH-28 Texting Bubbles follows the Outis themes: square, themed, maths and code unboxed', async ({ page, api }) => {
+test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async ({ page, api }) => {
 	const ctx = (api as any).ctx;
 	const src = readFileSync(join(__dirname, '../fixtures/texting_bubbles.py'), 'utf8');
 	await ctx.delete('/api/v1/functions/id/texting_bubbles/delete').catch(() => null);
@@ -457,24 +457,27 @@ test('TH-28 Texting Bubbles follows the Outis themes: square, themed, maths and 
 	expect(made.ok()).toBe(true);
 	expect((await ctx.post('/api/v1/functions/id/texting_bubbles/toggle')).ok()).toBe(true);
 	try {
-		const md = 'First bubble.\n\n$$a = \\frac{b}{c}$$\n\n```python\nprint(1)\n```\n\nLast bubble.';
+		const md = '## Heading\n\nFirst paragraph.\n\n$$a = \\frac{b}{c}$$\n\n```python\nprint(1)\n```\n\nLast paragraph.';
 		const chat = await api.chat({ title: 'TH-28', assistant: md });
 		const P = '#response-content-container > div > .markdown-prose';
-		const bg = { 'outis-dark': 'rgb(20, 28, 25)', 'outis-light': 'rgb(234, 242, 237)' };
-		const edge = { 'outis-dark': 'rgb(26, 40, 35)', 'outis-light': 'rgb(211, 224, 216)' };
+		const want = {
+			'outis-dark': { rail: 'rgb(42, 61, 52)', heading: 'rgb(45, 255, 143)', formula: 'rgb(255, 201, 112)' },
+			'outis-light': { rail: 'rgb(215, 227, 221)', heading: 'rgb(0, 131, 80)', formula: 'rgb(178, 107, 0)' }
+		};
 		for (const theme of ['outis-dark', 'outis-light'] as const) {
 			await useTheme(page, theme);
 			await page.goto(`/c/${chat.id}`);
 			await expect(page.locator('[data-tb="on"]')).toHaveCount(1, { timeout: 20_000 });
-			const bubble = `${P} > p`;
-			expect(await css(page, bubble, 'border-top-left-radius')).toBe('0px');
-			expect(await css(page, bubble, 'background-color')).toBe(bg[theme]);
-			expect(await css(page, bubble, 'border-top-color')).toBe(edge[theme]);
-			for (const kind of ['[data-tb-math]', '[data-tb-code]']) {
-				expect(await css(page, `${P} > ${kind}`, 'background-color')).toBe('rgba(0, 0, 0, 0)');
-				expect(await css(page, `${P} > ${kind}`, 'border-top-width')).toBe('0px');
-			}
-			// Display maths spans the reply, so the formula sits centred, not in a left-aligned bubble.
+			// No box per paragraph: transparent, square, hanging off the rail.
+			expect(await css(page, `${P} > p`, 'background-color')).toBe('rgba(0, 0, 0, 0)');
+			expect(await css(page, `${P} > p`, 'border-top-left-radius')).toBe('0px');
+			expect(await css(page, `${P} > p`, 'border-left-width')).toBe('2px');
+			expect(await css(page, `${P} > p`, 'border-left-color')).toBe(want[theme].rail);
+			// Nodes by kind: accent for a heading, amber for a formula.
+			expect(await css(page, `${P} > h2`, 'background-color', '::before')).toBe(want[theme].heading);
+			expect(await css(page, `${P} > [data-tb-math]`, 'background-color', '::before')).toBe(want[theme].formula);
+			expect(await css(page, `${P} > [data-tb-math]`, 'overflow-x')).toBe('visible');
+			// Display maths spans the reply, so the formula sits centred.
 			const [mathW, proseW] = await page.evaluate((p) => [
 				document.querySelector(`${p} > [data-tb-math]`)!.getBoundingClientRect().width,
 				document.querySelector(p)!.getBoundingClientRect().width

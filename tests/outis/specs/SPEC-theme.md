@@ -100,11 +100,14 @@ Light only:
   2px accent left edge. A formula's own `\color{}` is kept. Outis-Light is unchanged. (Asked
   2026-10-03: maths read as one more line of mint prose.)
 - **TH-28** With the third-party Texting Bubbles event function installed (fixture
-  `tests/outis/fixtures/texting_bubbles.py`, 1.0.0), a bubbled reply follows the theme: square
-  corners (typing bubble too), bubble `#141c19` / `#eaf2ed` with a 1px `#1a2823` / `#d3e0d8`
-  edge, typing dots the accent; display maths and code get no bubble box and span the reply, so
-  maths stays centred. A colour picked in the plugin's own setting still wins. Animations stop
-  under `prefers-reduced-motion`. (Asked 2026-10-03.)
+  `tests/outis/fixtures/texting_bubbles.py`, 1.0.0), a reply reads as a study thread, not a box
+  per paragraph: blocks are full width, transparent and square, hanging off a 2px rail
+  (`#2a3d34` / `#d7e3dd`), each with an 8px square node coloured by kind -- muted text, accent
+  heading (`#2dff8f` / `#008350`, heading sizes kept), amber formula (`#ffc970` / `#b26b00`),
+  sky code. Display maths spans the reply, centred. Blocks still reveal one at a time with
+  accent typing dots. A colour picked in the plugin's own setting brings its bubbles back.
+  Animations stop under `prefers-reduced-motion`. (Asked 2026-10-03/04: bubbles every few lines
+  broke up reading of coursework maths.)
 
 ## Notes for the test author
 

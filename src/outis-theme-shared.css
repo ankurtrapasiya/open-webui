@@ -526,17 +526,76 @@ html:is(.outis-dark, .outis-light) :is([data-tb='on'], [data-tb-live]) #response
 html:is(.outis-dark, .outis-light) [data-tb-live] #response-content-container > div > span.animate-pulse.align-text-bottom {
 	border-radius: 0 !important;
 }
-html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > :is(p, ul, ol, blockquote, h1, h2, h3, h4, h5, h6, [data-tb-table], [data-tb-embed]) {
-	border: 1px solid var(--outis-bubble-border);
+/* Study thread instead of a box per paragraph (asked 2026-10-04: bubbles every few lines broke
+ * up reading; the use is coursework -- maths and concepts). Blocks still arrive one at a time,
+ * but hang off one continuous rail at full width, each with a square node coloured by kind:
+ * muted for text, accent for a heading, amber for a formula (the variables' colour), sky for
+ * code. Scanning the rail for amber finds every formula in a long answer. The base rules use
+ * :where() so the per-kind rules below (headings, lists) win without a specificity race. */
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose {
+	gap: 0;
 }
-/* Display maths and code keep the look they have in a normal reply: full width, maths centred
- * on its own card, code on its own surface -- no second box around either. */
-html:is(.outis-dark, .outis-light) [data-tb='on'] #response-content-container > div > .markdown-prose > :is([data-tb-math], [data-tb-code]) {
+html:is(.outis-dark, .outis-light):not([data-tb-color]) :is([data-tb='on'], [data-tb-live]) #response-content-container > div > .markdown-prose > :where(p, ul, ol, blockquote, h1, h2, h3, h4, h5, h6, [data-tb-table], [data-tb-embed], [data-tb-math], [data-tb-code], .tb-osk-bubble) {
+	--outis-node: var(--outis-rail-node);
+	position: relative;
+	align-self: stretch;
+	width: auto;
+	max-width: 100%;
+	padding: 0.4rem 0 0.4rem 1.25rem;
+	border: 0;
+	border-left: 2px solid var(--outis-rail);
+	background: transparent;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) :is([data-tb='on'], [data-tb-live]) #response-content-container > div > .markdown-prose > :is(ul, ol) {
+	padding-left: 2.5rem;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > :where(p, ul, ol, blockquote, h1, h2, h3, h4, h5, h6, [data-tb-table], [data-tb-embed], [data-tb-math], [data-tb-code])::before {
+	content: '';
+	position: absolute;
+	left: -5px;
+	top: calc(0.4rem + 0.45em);
+	width: 8px;
+	height: 8px;
+	background: var(--outis-node);
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > :is(h1, h2, h3, h4, h5, h6) {
+	--outis-node: var(--color-blue-500);
+	padding-top: 0.9rem;
+	font-weight: 600;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > :is(h1, h2, h3, h4, h5, h6)::before {
+	top: calc(0.9rem + 0.4em);
+}
+html:is(.outis-dark, .outis-light) [data-tb='on'] #response-content-container > div > .markdown-prose > h1 {
+	font-size: 1.18em;
+}
+html:is(.outis-dark, .outis-light) [data-tb='on'] #response-content-container > div > .markdown-prose > h2 {
+	font-size: 1.09em;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > [data-tb-math] {
+	--outis-node: var(--outis-math-var);
+	/* The equation scrolls inside .katex-display; scrolling here would clip the node. */
+	overflow: visible;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > [data-tb-math]::before {
+	top: 50%;
+	margin-top: -4px;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > [data-tb-math] .katex-display {
+	border-left: 0;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > [data-tb-code] {
+	--outis-node: var(--outis-math-op);
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > [data-tb-code]::before {
+	top: 1.1rem;
+}
+/* With a reader-picked bubble colour the plugin's own bubbles stay; maths and code still unboxed. */
+html:is(.outis-dark, .outis-light)[data-tb-color] [data-tb='on'] #response-content-container > div > .markdown-prose > :is([data-tb-math], [data-tb-code]) {
 	align-self: stretch;
 	width: auto;
 	max-width: 100%;
 	padding: 0;
-	border: 0;
 	background: transparent;
 }
 @media (prefers-reduced-motion: reduce) {
