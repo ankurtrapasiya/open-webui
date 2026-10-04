@@ -31,6 +31,7 @@ passes, or names the broken feature and the acceptance criterion it broke.
 | `chat-behaviour` | Tool images, document dedupe, skills persist, composer UX, code wrap | [SPEC-chat-behaviour.md](SPEC-chat-behaviour.md) |
 | `theme` | Outis-Dark/Light, fonts, type scale, surfaces, focus, CodeMirror | [SPEC-theme.md](SPEC-theme.md) |
 | `branding` | "Outis" everywhere the instance names itself | [SPEC-branding.md](SPEC-branding.md) |
+| `uploads` | File uploads: CSV read locally whatever the extraction engine | [SPEC-uploads.md](SPEC-uploads.md) |
 
 No module depends on another. Build order is by risk: notes → chat → theme → branding.
 
