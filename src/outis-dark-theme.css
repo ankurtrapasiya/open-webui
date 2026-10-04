@@ -429,20 +429,21 @@ html.outis-dark div:has(> div[class*='language-']) > .sticky {
    glance), brackets muted so they recede, everything else (numbers, \text,
    fraction bars) warm cream instead of the prose's mint. All ≥ 8.9:1 on the
    darkest-to-lightest surfaces here. A formula's own \color{} wins: atoms
-   under an inline colour style are left alone. Asked 2026-10-03. */
+   under an inline colour style inside the formula are left alone (scoped to
+   .katex: the chat's own wrappers carry colour styles too). Asked 2026-10-03. */
 html.outis-dark .katex {
 	color: #f2e6cf;
 }
-html.outis-dark .katex .mathnormal:not([style*='color'] *) {
+html.outis-dark .katex .mathnormal:not(.katex [style*='color'] *) {
 	color: #ffc970;
 }
-html.outis-dark .katex :is(.mop, .mbin):not([style*='color'] *) {
+html.outis-dark .katex :is(.mop, .mbin):not(.katex [style*='color'] *) {
 	color: #8fd3ff;
 }
-html.outis-dark .katex .mrel:not([style*='color'] *) {
+html.outis-dark .katex .mrel:not(.katex [style*='color'] *) {
 	color: #ff9fae;
 }
-html.outis-dark .katex :is(.mopen, .mclose, .mpunct):not([style*='color'] *) {
+html.outis-dark .katex :is(.mopen, .mclose, .mpunct):not(.katex [style*='color'] *) {
 	color: #9dc4b3;
 }
 
