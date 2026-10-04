@@ -539,6 +539,12 @@ class Loader:
                     if uncompressed_size > max_bytes:
                         raise ValueError('Document archive is too large after decompression')
 
+        # A CSV is plain text: read it here, whatever the engine. Browsers often label .csv as
+        # application/vnd.ms-excel, which skipped the text check and sent it to Docling, which
+        # refuses CSV ("File format not allowed"). The built-in reader also adds a column summary.
+        if file_ext == 'csv':
+            return CSVLoaderWithSummary(file_path, filename, self._detect_text_encoding(file_path))
+
         if (
             self.engine == 'external'
             and self.kwargs.get('EXTERNAL_DOCUMENT_LOADER_URL')
