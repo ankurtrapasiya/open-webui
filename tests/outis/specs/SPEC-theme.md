@@ -99,6 +99,12 @@ Light only:
   `#9dc4b3`, the rest `#f2e6cf`; a display equation (`.katex-display`) sits on `#131d18` with a
   2px accent left edge. A formula's own `\color{}` is kept. Outis-Light is unchanged. (Asked
   2026-10-03: maths read as one more line of mint prose.)
+- **TH-28** With the third-party Texting Bubbles event function installed (fixture
+  `tests/outis/fixtures/texting_bubbles.py`, 1.0.0), a bubbled reply follows the theme: square
+  corners (typing bubble too), bubble `#141c19` / `#eaf2ed` with a 1px `#1a2823` / `#d3e0d8`
+  edge, typing dots the accent; display maths and code get no bubble box and span the reply, so
+  maths stays centred. A colour picked in the plugin's own setting still wins. Animations stop
+  under `prefers-reduced-motion`. (Asked 2026-10-03.)
 
 ## Notes for the test author
 

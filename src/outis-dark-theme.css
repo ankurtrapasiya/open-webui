@@ -78,6 +78,9 @@ html.outis-dark {
 	/* Code-block surface. The fill is the same near-black one step up from the
 	   page; the hairline is what says "block". */
 	--outis-code-bg: #0f1512;
+	/* Texting Bubbles surface: the card step with the border step as its edge. */
+	--outis-bubble-bg: var(--color-gray-850);
+	--outis-bubble-border: var(--color-gray-800);
 	--outis-code-border: #1f2c26;
 }
 

@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 
@@ -443,4 +445,43 @@ test('TH-27 maths is highlighted by role in Outis-Dark, and Outis-Light is untou
 	await expect(page.locator('html')).toHaveClass(/\boutis-light\b/);
 	await expect(page.locator('.katex-display')).toHaveCount(1);
 	expect(await css(page, '.katex .mrel', 'color')).not.toBe('rgb(255, 159, 174)');
+});
+
+test('TH-28 Texting Bubbles follows the Outis themes: square, themed, maths and code unboxed', async ({ page, api }) => {
+	const ctx = (api as any).ctx;
+	const src = readFileSync(join(__dirname, '../fixtures/texting_bubbles.py'), 'utf8');
+	await ctx.delete('/api/v1/functions/id/texting_bubbles/delete').catch(() => null);
+	const made = await ctx.post('/api/v1/functions/create', {
+		data: { id: 'texting_bubbles', name: 'Texting Bubbles', content: src, meta: { description: 'TH-28' } }
+	});
+	expect(made.ok()).toBe(true);
+	expect((await ctx.post('/api/v1/functions/id/texting_bubbles/toggle')).ok()).toBe(true);
+	try {
+		const md = 'First bubble.\n\n$$a = \\frac{b}{c}$$\n\n```python\nprint(1)\n```\n\nLast bubble.';
+		const chat = await api.chat({ title: 'TH-28', assistant: md });
+		const P = '#response-content-container > div > .markdown-prose';
+		const bg = { 'outis-dark': 'rgb(20, 28, 25)', 'outis-light': 'rgb(234, 242, 237)' };
+		const edge = { 'outis-dark': 'rgb(26, 40, 35)', 'outis-light': 'rgb(211, 224, 216)' };
+		for (const theme of ['outis-dark', 'outis-light'] as const) {
+			await useTheme(page, theme);
+			await page.goto(`/c/${chat.id}`);
+			await expect(page.locator('[data-tb="on"]')).toHaveCount(1, { timeout: 20_000 });
+			const bubble = `${P} > p`;
+			expect(await css(page, bubble, 'border-top-left-radius')).toBe('0px');
+			expect(await css(page, bubble, 'background-color')).toBe(bg[theme]);
+			expect(await css(page, bubble, 'border-top-color')).toBe(edge[theme]);
+			for (const kind of ['[data-tb-math]', '[data-tb-code]']) {
+				expect(await css(page, `${P} > ${kind}`, 'background-color')).toBe('rgba(0, 0, 0, 0)');
+				expect(await css(page, `${P} > ${kind}`, 'border-top-width')).toBe('0px');
+			}
+			// Display maths spans the reply, so the formula sits centred, not in a left-aligned bubble.
+			const [mathW, proseW] = await page.evaluate((p) => [
+				document.querySelector(`${p} > [data-tb-math]`)!.getBoundingClientRect().width,
+				document.querySelector(p)!.getBoundingClientRect().width
+			], P);
+			expect(mathW).toBeGreaterThan(proseW * 0.98);
+		}
+	} finally {
+		await ctx.delete('/api/v1/functions/id/texting_bubbles/delete').catch(() => null);
+	}
 });

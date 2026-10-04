@@ -114,6 +114,9 @@ html.outis-light {
 	   1.08:1 from the paper the old fill alone did neither. */
 	--outis-code-bg: #eaf2ed;
 	--outis-code-border: #d3e0d8;
+	/* Texting Bubbles surface: the code surface and its hairline. */
+	--outis-bubble-bg: var(--outis-code-bg);
+	--outis-bubble-border: var(--outis-code-border);
 }
 
 /* app.css's `body { background: #fff; color: #000 }` is a hardcoded literal,

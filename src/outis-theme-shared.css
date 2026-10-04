@@ -510,3 +510,38 @@ html:is(.outis-dark, .outis-light) div[class*='language-'] .cm-editor,
 html:is(.outis-dark, .outis-light) div[class*='language-'] .cm-gutters {
 	background-color: var(--outis-code-bg) !important;
 }
+
+/* Texting Bubbles (a third-party event function, installed 2026-10-03) injects its own <style>
+ * at runtime and marks a bubbled reply with [data-tb="on"] (and [data-tb-live] while it
+ * streams). Its look is stock: 1.5rem corners, gray bubbles and dots, display maths squeezed
+ * into a left-aligned bubble, code inside a second rounded box, motion always on. These rules
+ * bring it into the Outis themes without editing the plugin, which an update would overwrite.
+ * A colour the reader picked in the plugin's own setting ([data-tb-color]) still wins. */
+html:is(.outis-dark, .outis-light):not([data-tb-color]) :is([data-tb='on'], [data-tb-live]) {
+	--tb-bubble: var(--outis-bubble-bg);
+	--tb-dot: var(--color-blue-500);
+}
+/* Square, like everything else; only the typing dots stay round (genuine circles). */
+html:is(.outis-dark, .outis-light) :is([data-tb='on'], [data-tb-live]) #response-content-container > div > .markdown-prose > *,
+html:is(.outis-dark, .outis-light) [data-tb-live] #response-content-container > div > span.animate-pulse.align-text-bottom {
+	border-radius: 0 !important;
+}
+html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > :is(p, ul, ol, blockquote, h1, h2, h3, h4, h5, h6, [data-tb-table], [data-tb-embed]) {
+	border: 1px solid var(--outis-bubble-border);
+}
+/* Display maths and code keep the look they have in a normal reply: full width, maths centred
+ * on its own card, code on its own surface -- no second box around either. */
+html:is(.outis-dark, .outis-light) [data-tb='on'] #response-content-container > div > .markdown-prose > :is([data-tb-math], [data-tb-code]) {
+	align-self: stretch;
+	width: auto;
+	max-width: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+	html:is(.outis-dark, .outis-light) [data-tb-live] #response-content-container *,
+	html:is(.outis-dark, .outis-light) [data-tb-live] #response-content-container *::after {
+		animation: none !important;
+	}
+}
