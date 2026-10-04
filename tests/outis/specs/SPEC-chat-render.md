@@ -33,7 +33,9 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **CR-4** Script in the embed cannot read `parent.localStorage` (sandbox, no same-origin).
 - **CR-5** With `collapseCodeBlocks: true`, a python block's code is visible and no
   "hidden lines" placeholder shows.
-- **CR-6** An html block's code stays visible below the embed.
+- **CR-6** Once an html/svg block's embed is drawn, its code is folded ("N hidden lines",
+  Expand button); Expand shows it. While the block streams, the code shows. (Changed
+  2026-10-04 from "code stays visible", to match the folded diagram source.)
 - **CR-7** `<video>/api/v1/files/x/content</video>` on one line inside a paragraph renders a
   `<video>` with that src, and the surrounding text still shows.
 - **CR-8** The same tag split over three lines renders a `<video>` too.

@@ -54,9 +54,12 @@ test('CR-5 code blocks open expanded even with "Collapse code blocks" switched o
 	}
 });
 
-test('CR-6 an html block keeps its code visible under the embed', async ({ page, api }) => {
+test('CR-6 an html block folds its code under the embed; Expand shows it', async ({ page, api }) => {
 	const message = await openChat(page, api, fence('html', '<p>CR6 code</p>'), 'CR-6');
 	await expect(message.locator('iframe[title="Interactive content"]')).toBeVisible();
+	await expect(message.getByText('1 hidden lines')).toBeVisible();
+	await expect(message.getByText('<p>CR6 code</p>')).toHaveCount(0);
+	await message.getByRole('button', { name: 'Expand' }).click();
 	await expect(message.locator('pre code, .cm-content').first()).toContainText('<p>CR6 code</p>');
 });
 

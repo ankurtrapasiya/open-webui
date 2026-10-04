@@ -376,6 +376,14 @@
 	$: inlineHtml =
 		['html', 'svg'].includes(lang) && (token?.raw ?? '').slice(-4).includes('```') ? code : null;
 
+	// Once the embed is drawn, its code folds away like a diagram's source (asked 2026-10-04);
+	// Expand shows it. Only the first time, so a reader's Expand is not undone on re-render.
+	let foldedForEmbed = false;
+	$: if (inlineHtml && !foldedForEmbed) {
+		foldedForEmbed = true;
+		collapsed = true;
+	}
+
 	let mermaid = null;
 	const renderMermaid = async (code) => {
 		if (!mermaid) {

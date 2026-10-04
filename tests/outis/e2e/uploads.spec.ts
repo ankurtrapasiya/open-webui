@@ -1,7 +1,7 @@
 import { test, expect } from '../support/fixtures';
 
-// Docling is the live instance's extraction engine. The suite has no Docling, so the config
-// points at a port nothing listens on: anything still routed there fails the upload.
+// Live uploads go to extract-router, which hands documents to Docling. The suite has neither, so
+// Docling at a port nothing listens on stands in: anything still routed there fails the upload.
 test('UP-1 a CSV labelled as Excel is read locally even with Docling as the engine', async ({ api }) => {
 	const ctx = (api as any).ctx;
 	const before = await (await ctx.get('/api/v1/retrieval/config')).json();
