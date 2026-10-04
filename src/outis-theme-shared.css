@@ -585,7 +585,7 @@ html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response
 	border-left: 0;
 }
 html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > [data-tb-code] {
-	--outis-node: var(--outis-math-op);
+	--outis-node: var(--outis-math-num);
 }
 html:is(.outis-dark, .outis-light):not([data-tb-color]) [data-tb='on'] #response-content-container > div > .markdown-prose > [data-tb-code]::before {
 	top: 1.1rem;
@@ -603,4 +603,38 @@ html:is(.outis-dark, .outis-light)[data-tb-color] [data-tb='on'] #response-conte
 	html:is(.outis-dark, .outis-light) [data-tb-live] #response-content-container *::after {
 		animation: none !important;
 	}
+}
+
+/* Maths colours: one colour per kind of atom, the same rule in both themes, values from each
+ * theme's code palette (--outis-math-* in outis-dark-theme.css / outis-light-theme.css), so a
+ * number in a formula is the colour of a number in code. Asked 2026-10-04 ("proper rules, not
+ * random colours"). KaTeX tags most atoms by TeX class; lib/utils/outis-math.ts adds .outis-num
+ * (digit runs) and .outis-op (a demoted trailing operator), which CSS cannot tell apart.
+ *   variables      x, sigma, bold w           --outis-math-var
+ *   numbers        2, 120, 3.14               --outis-math-num
+ *   functions/sets log, max, Cov, E, R        --outis-math-fn
+ *   symbols        + - x Sum Int = <= -> in    --outis-math-op
+ *   brackets       ( ) [ ] || ,               --outis-math-punct
+ *   words, bars, roots                         prose colour
+ * A formula's own \color{} wins: atoms under a colour style inside the formula are skipped. */
+html:is(.outis-dark, .outis-light) .katex :is(.mathnormal, .mathbf, .boldsymbol):not(.katex [style*='color'] *) {
+	color: var(--outis-math-var);
+}
+html:is(.outis-dark, .outis-light) .katex .outis-num:not(.katex [style*='color'] *) {
+	color: var(--outis-math-num);
+}
+html:is(.outis-dark, .outis-light) .katex :is(.mop:not(.op-symbol):not(.op-limits), .mathrm, .mathbb, .mathcal, .mathfrak):not(.katex [style*='color'] *) {
+	color: var(--outis-math-fn);
+}
+html:is(.outis-dark, .outis-light) .katex :is(.mbin, .mrel, .op-symbol, .outis-op):not(.katex [style*='color'] *) {
+	color: var(--outis-math-op);
+}
+html:is(.outis-dark, .outis-light) .katex :is(.mopen, .mclose, .mpunct):not(.katex [style*='color'] *) {
+	color: var(--outis-math-punct);
+}
+/* A display equation sits on a card with an accent edge, so it reads as a figure in the text. */
+html:is(.outis-dark, .outis-light) .katex-display {
+	background-color: var(--outis-math-card);
+	border-left: 2px solid var(--color-blue-700);
+	padding: 0.75em 1em;
 }

@@ -83,8 +83,13 @@ html.outis-dark {
 	--outis-bubble-border: var(--color-gray-800);
 	--outis-rail: var(--color-gray-700);
 	--outis-rail-node: var(--color-gray-500);
-	--outis-math-var: #ffc970;
-	--outis-math-op: #8fd3ff;
+	/* Maths colours by kind (see outis-theme-shared.css), from the code palette below. */
+	--outis-math-var: #ffa657;
+	--outis-math-num: #79c0ff;
+	--outis-math-fn: #d2a8ff;
+	--outis-math-op: #ff7b72;
+	--outis-math-punct: #8b949e;
+	--outis-math-card: #131d18;
 	--outis-code-border: #1f2c26;
 }
 
@@ -430,34 +435,5 @@ html.outis-dark div:has(> div[class*='language-']) > .sticky {
 	color: #7aab98;
 }
 
-/* Maths, highlighted by role the way code is. KaTeX tags every atom with its
-   TeX class, so the colours follow the structure of the formula: variables
-   amber, operators sky, relations coral (so `=` splits the two sides at a
-   glance), brackets muted so they recede, everything else (numbers, \text,
-   fraction bars) warm cream instead of the prose's mint. All ≥ 8.9:1 on the
-   darkest-to-lightest surfaces here. A formula's own \color{} wins: atoms
-   under an inline colour style inside the formula are left alone (scoped to
-   .katex: the chat's own wrappers carry colour styles too). Asked 2026-10-03. */
-html.outis-dark .katex {
-	color: #f2e6cf;
-}
-html.outis-dark .katex .mathnormal:not(.katex [style*='color'] *) {
-	color: #ffc970;
-}
-html.outis-dark .katex :is(.mop, .mbin):not(.katex [style*='color'] *) {
-	color: #8fd3ff;
-}
-html.outis-dark .katex .mrel:not(.katex [style*='color'] *) {
-	color: #ff9fae;
-}
-html.outis-dark .katex :is(.mopen, .mclose, .mpunct):not(.katex [style*='color'] *) {
-	color: #9dc4b3;
-}
-
-/* A display equation sits on a raised card with an accent edge, so it reads
-   as a figure in the text rather than one more centred line. */
-html.outis-dark .katex-display {
-	background-color: #131d18;
-	border-left: 2px solid var(--color-blue-700);
-	padding: 0.75em 1em;
-}
+/* Maths colours live in outis-theme-shared.css; the values per kind are the --outis-math-*
+   variables in the html.outis-dark block above. */

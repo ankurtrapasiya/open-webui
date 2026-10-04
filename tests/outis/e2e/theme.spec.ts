@@ -429,22 +429,30 @@ test('TH-26 light theme: the favicon is darkened and the splash is the page colo
 	expect(await probe(page, '', 'background-color', 'splash-screen')).toBe(T['outis-light'].bg);
 });
 
-test('TH-27 maths is highlighted by role in Outis-Dark, and Outis-Light is untouched', async ({ page, api }) => {
-	const chat = await api.chat({ title: 'TH-27', assistant: 'Inline $x = 1$ here.\n\n$$y \\le \\sum_i (x_i + 2)$$\n\nEnd.' });
-	await useTheme(page, 'outis-dark');
-	await page.goto(`/c/${chat.id}`);
-	await expect(page.locator('.katex-display')).toHaveCount(1);
-	expect(await css(page, '.katex .mathnormal', 'color')).toBe('rgb(255, 201, 112)');
-	expect(await css(page, '.katex .mrel', 'color')).toBe('rgb(255, 159, 174)');
-	expect(await css(page, '.katex .mbin', 'color')).toBe('rgb(143, 211, 255)');
-	expect(await css(page, '.katex .mopen', 'color')).toBe('rgb(157, 196, 179)');
-	expect(await css(page, '.katex-display', 'background-color')).toBe('rgb(19, 29, 24)');
-
-	await useTheme(page, 'outis-light');
-	await page.goto(`/c/${chat.id}`);
-	await expect(page.locator('html')).toHaveClass(/\boutis-light\b/);
-	await expect(page.locator('.katex-display')).toHaveCount(1);
-	expect(await css(page, '.katex .mrel', 'color')).not.toBe('rgb(255, 159, 174)');
+test('TH-27 maths is coloured by kind, one rule in both themes', async ({ page, api }) => {
+	const chat = await api.chat({
+		title: 'TH-27',
+		assistant: 'Inline $x = 1$ here.\n\n$$y \\le \\sum_i (x_i + 2.5) + \\log z \\quad \\text{Ch 22}$$\n\nEnd.'
+	});
+	const want = {
+		'outis-dark': { v: 'rgb(255, 166, 87)', n: 'rgb(121, 192, 255)', f: 'rgb(210, 168, 255)', o: 'rgb(255, 123, 114)', p: 'rgb(139, 148, 158)', card: 'rgb(19, 29, 24)' },
+		'outis-light': { v: 'rgb(149, 56, 0)', n: 'rgb(5, 80, 174)', f: 'rgb(102, 57, 186)', o: 'rgb(164, 14, 38)', p: 'rgb(87, 96, 106)', card: 'rgb(234, 242, 237)' }
+	};
+	const D = '.katex-display';
+	for (const theme of ['outis-dark', 'outis-light'] as const) {
+		await useTheme(page, theme);
+		await page.goto(`/c/${chat.id}`);
+		await expect(page.locator(`${D} .outis-num`)).toHaveCount(1); // 2.5; "Ch 22" in \text is not a number
+		const w = want[theme];
+		expect(await css(page, `${D} .mathnormal`, 'color')).toBe(w.v);
+		expect(await css(page, `${D} .outis-num`, 'color')).toBe(w.n);
+		expect(await css(page, `${D} .mop:not(.op-symbol):not(.op-limits)`, 'color')).toBe(w.f);
+		expect(await css(page, `${D} .mrel`, 'color')).toBe(w.o);
+		expect(await css(page, `${D} .op-symbol`, 'color')).toBe(w.o);
+		expect(await css(page, `${D} .mopen`, 'color')).toBe(w.p);
+		expect(await css(page, D, 'background-color')).toBe(w.card);
+		await expect(page.locator(`${D} .text .outis-num`)).toHaveCount(0);
+	}
 });
 
 test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async ({ page, api }) => {
@@ -461,8 +469,8 @@ test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async
 		const chat = await api.chat({ title: 'TH-28', assistant: md });
 		const P = '#response-content-container > div > .markdown-prose';
 		const want = {
-			'outis-dark': { rail: 'rgb(42, 61, 52)', heading: 'rgb(45, 255, 143)', formula: 'rgb(255, 201, 112)' },
-			'outis-light': { rail: 'rgb(215, 227, 221)', heading: 'rgb(0, 131, 80)', formula: 'rgb(178, 107, 0)' }
+			'outis-dark': { rail: 'rgb(42, 61, 52)', heading: 'rgb(45, 255, 143)', formula: 'rgb(255, 166, 87)' },
+			'outis-light': { rail: 'rgb(215, 227, 221)', heading: 'rgb(0, 131, 80)', formula: 'rgb(149, 56, 0)' }
 		};
 		for (const theme of ['outis-dark', 'outis-light'] as const) {
 			await useTheme(page, theme);

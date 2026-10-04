@@ -52,6 +52,7 @@
 	import '../outis-theme-shared.css';
 	import '../outis-dark-theme.css';
 	import '../outis-light-theme.css';
+	import { watchMath } from '$lib/utils/outis-math';
 	import 'tippy.js/dist/tippy.css';
 
 	import { executeToolServer, getBackendConfig, getModels, getVersion } from '$lib/apis';
@@ -1097,6 +1098,7 @@
 	};
 
 	onMount(async () => {
+		watchMath(); // Outis: tag KaTeX digits/operators for the maths colour rules
 		const originalFetch = window.fetch.bind(window);
 		window.fetch = async (input, init) => {
 			const response = await originalFetch(input, init);
