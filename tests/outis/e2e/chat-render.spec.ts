@@ -165,3 +165,16 @@ test('CR-14 a formula with every backslash doubled ($IC \\\\times \\\\sqrt{BR}$)
 	await expect(message.locator('.katex .sqrt')).toHaveCount(2);
 	expect(await message.innerText()).not.toMatch(/times/);
 });
+
+test('CR-15 an svg drawn past its own viewBox is widened to fit, not clipped', async ({ page, api }) => {
+	// The 2026-10-04 case: a 420-tall chart with its last legend line at y=424.
+	const svg = '<svg width="620" height="420" viewBox="0 0 620 420"><rect x="0" y="0" width="620" height="400" fill="#eee"/><text x="20" y="424" font-size="12">CR15 last legend line</text></svg>';
+	const message = await openChat(page, api, fence('html', svg), 'CR-15');
+	const frame = message.frameLocator('iframe[title="Interactive content"]');
+	await expect(frame.locator('text')).toHaveText('CR15 last legend line');
+	await expect.poll(() => frame.locator('svg').evaluate((s: SVGSVGElement) => {
+		const vb = s.viewBox.baseVal, b = s.getBBox();
+		return vb.y + vb.height >= b.y + b.height && Number(s.getAttribute('height')) > 420;
+	})).toBe(true);
+});
+

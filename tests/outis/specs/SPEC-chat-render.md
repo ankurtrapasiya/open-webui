@@ -36,6 +36,9 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **CR-6** Once an html/svg block's embed is drawn, its code is folded ("N hidden lines",
   Expand button); Expand shows it. While the block streams, the code shows. (Changed
   2026-10-04 from "code stays visible", to match the folded diagram source.)
+- **CR-15** In a sandboxed embed, a top-level `<svg>` whose drawing spills past its own viewBox
+  gets the viewBox widened to the drawing (+4px) and its height grown to keep the scale, so
+  nothing is clipped. (Found 2026-10-04: a legend line at y=424 in a 420-tall chart.)
 - **CR-7** `<video>/api/v1/files/x/content</video>` on one line inside a paragraph renders a
   `<video>` with that src, and the surrounding text still shows.
 - **CR-8** The same tag split over three lines renders a `<video>` too.

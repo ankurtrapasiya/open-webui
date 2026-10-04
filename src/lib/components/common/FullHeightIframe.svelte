@@ -43,6 +43,26 @@
 		addEventListener('load', post);
 	})();<\/script>`;
 
+	// Fork: a hand-written top-level <svg> whose drawing spills past its own viewBox gets the box
+	// widened to fit (height grown to keep the scale), so nothing is clipped. Found 2026-10-04: a
+	// model drew a chart's last legend line at y=424 in a 420-tall SVG. Library charts already fit.
+	const SVG_FIT = `<script>(() => {
+		const fit = () => document.querySelectorAll('body > svg, body > div > svg').forEach((s) => {
+			const vb = s.viewBox && s.viewBox.baseVal;
+			if (!vb || !vb.width || !vb.height) return;
+			let b;
+			try { b = s.getBBox(); } catch (e) { return; }
+			const pad = 4;
+			const x0 = Math.min(vb.x, b.x - pad), y0 = Math.min(vb.y, b.y - pad);
+			const x1 = Math.max(vb.x + vb.width, b.x + b.width + pad), y1 = Math.max(vb.y + vb.height, b.y + b.height + pad);
+			if (x0 === vb.x && y0 === vb.y && x1 === vb.x + vb.width && y1 === vb.y + vb.height) return;
+			const w = parseFloat(s.getAttribute('width')), h = parseFloat(s.getAttribute('height'));
+			s.setAttribute('viewBox', [x0, y0, x1 - x0, y1 - y0].join(' '));
+			if (w && h) s.setAttribute('height', String(Math.round((w * (y1 - y0)) / (x1 - x0))));
+		});
+		addEventListener('load', () => { fit(); setTimeout(fit, 300); });
+	})();<\/script>`;
+
 	// Fork: tell the embed the app's theme and font, so tool UIs can match Outis light/dark
 	// (data-outis-theme on <html>, --outis-font) instead of guessing from the OS setting.
 	// Later theme switches arrive as {type: 'outis:theme'} messages.
@@ -92,7 +112,7 @@
 			iframeDoc = await processHtmlForDeps(src as string);
 			// Fork: without allow-same-origin the parent cannot measure the embed, which then
 			// stays at the browser's 150px default (tool charts cut off). Let it report its height.
-			if (!allowSameOrigin) iframeDoc += HEIGHT_REPORTER;
+			if (!allowSameOrigin) iframeDoc += HEIGHT_REPORTER + SVG_FIT;
 			iframeDoc = withOutisTheme(iframeDoc);
 			iframeSrc = null;
 		}
