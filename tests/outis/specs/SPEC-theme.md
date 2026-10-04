@@ -94,19 +94,16 @@ Light only:
 
 - **TH-26** Favicon image `filter` is `brightness(0.431)`; splash background is
   `rgb(250, 253, 252)`.
-- **TH-27** Maths is coloured by kind, one rule in both themes, values from each theme's code
-  palette: variables (`.mathnormal`, bold) `#ffa657` / `#953800`; numbers (digit runs, tagged
-  `.outis-num` by `lib/utils/outis-math.ts`; not inside `\text{}`) `#79c0ff` / `#0550ae`;
-  functions and sets (`.mop` names, `\mathrm`, `\mathbb`) `#d2a8ff` / `#6639ba`; symbols
-  (`.mbin`, `.mrel`, big operators) `#ff7b72` / `#a40e26`; brackets and punctuation `#8b949e` /
-  `#57606a`; words, bars and roots in the prose colour. Display equations sit on a card
-  (`#131d18` / `#eaf2ed`) with a 2px accent edge. A formula's own `\color{}` wins. (Asked
-  2026-10-03, made rule-based for both themes 2026-10-04.)
+- **TH-27** A formula is one colour -- symbols, numbers, variables, brackets, bars -- per theme:
+  `#f0c674` (Outis-Dark) / `#7a4f00` (Outis-Light), different from the prose colour. Display
+  equations sit on a card (`#131d18` / `#eaf2ed`) with a 2px accent edge. A formula's own
+  `\color{}` wins. (Asked 2026-10-03; colour-by-kind tried and replaced 2026-10-04: different
+  colours inside one equation read as noise.)
 - **TH-28** With the third-party Texting Bubbles event function installed (fixture
   `tests/outis/fixtures/texting_bubbles.py`, 1.0.0), a reply reads as a study thread, not a box
   per paragraph: blocks are full width, transparent and square, hanging off a 2px rail
   (`#2a3d34` / `#d7e3dd`), each with an 8px square node coloured by kind -- muted text, accent
-  heading (`#2dff8f` / `#008350`, heading sizes kept), formula node in the variable colour (`#ffa657` / `#953800`),
+  heading (`#2dff8f` / `#008350`, heading sizes kept), formula node in the maths colour (`#f0c674` / `#7a4f00`),
   number-blue code. Display maths spans the reply, centred. Blocks still reveal one at a time with
   accent typing dots. A colour picked in the plugin's own setting brings its bubbles back.
   Animations stop under `prefers-reduced-motion`. (Asked 2026-10-03/04: bubbles every few lines

@@ -119,14 +119,11 @@ html.outis-light {
 	--outis-bubble-border: var(--outis-code-border);
 	--outis-rail: var(--color-gray-200);
 	--outis-rail-node: var(--color-gray-500);
-	/* Maths colours by kind (see outis-theme-shared.css), from the code palette below; function
-	   and symbol one shade darker than the code's so they clear 4.5:1 on the card. */
-	--outis-math-var: #953800;
-	--outis-math-num: #0550ae;
-	--outis-math-fn: #6639ba;
-	--outis-math-op: #a40e26;
-	--outis-math-punct: #57606a;
+	/* Maths: the whole formula in one colour, set apart from the prose (7.0:1 page, 6.3:1
+	   card). See outis-theme-shared.css. */
+	--outis-math: #7a4f00;
 	--outis-math-card: var(--outis-code-bg);
+	--outis-code-node: #0550ae;
 }
 
 /* app.css's `body { background: #fff; color: #000 }` is a hardcoded literal,

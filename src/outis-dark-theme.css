@@ -83,13 +83,11 @@ html.outis-dark {
 	--outis-bubble-border: var(--color-gray-800);
 	--outis-rail: var(--color-gray-700);
 	--outis-rail-node: var(--color-gray-500);
-	/* Maths colours by kind (see outis-theme-shared.css), from the code palette below. */
-	--outis-math-var: #ffa657;
-	--outis-math-num: #79c0ff;
-	--outis-math-fn: #d2a8ff;
-	--outis-math-op: #ff7b72;
-	--outis-math-punct: #8b949e;
+	/* Maths: the whole formula in one colour, set apart from the mint prose (12.1:1 page,
+	   10.7:1 card). See outis-theme-shared.css. */
+	--outis-math: #f0c674;
 	--outis-math-card: #131d18;
+	--outis-code-node: #79c0ff;
 	--outis-code-border: #1f2c26;
 }
 
