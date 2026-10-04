@@ -93,12 +93,12 @@
 					// Explicit setProperty (not just the html.outis-dark CSS rule) because
 					// inline style always beats a class selector — without this, switching
 					// from Dark/OLED Dark would leave their inline overrides in place.
-					document.documentElement.style.setProperty('--color-gray-800', '#1a2823');
-					document.documentElement.style.setProperty('--color-gray-850', '#141c19');
-					document.documentElement.style.setProperty('--color-gray-900', '#0f1512');
-					document.documentElement.style.setProperty('--color-gray-950', '#090d0c');
+					document.documentElement.style.setProperty('--color-gray-800', '#2b2825');
+					document.documentElement.style.setProperty('--color-gray-850', '#211f1c');
+					document.documentElement.style.setProperty('--color-gray-900', '#1a1816');
+					document.documentElement.style.setProperty('--color-gray-950', '#151311');
 					document.documentElement.classList.add('dark', 'outis-dark');
-					metaThemeColorTag.setAttribute('content', '#090d0c');
+					metaThemeColorTag.setAttribute('content', '#151311');
 				} else if (localStorage.theme === 'outis-light') {
 					// The dark themes set these four INLINE, and inline style beats any
 					// class selector -- so switching away from Dark/OLED Dark/Outis-Dark
@@ -109,7 +109,7 @@
 						(p) => document.documentElement.style.removeProperty(p)
 					);
 					document.documentElement.classList.add('light', 'outis-light');
-					metaThemeColorTag.setAttribute('content', '#fafdfc');
+					metaThemeColorTag.setAttribute('content', '#fbf9f5');
 				} else if (localStorage.theme === 'light') {
 					document.documentElement.classList.add('light');
 					metaThemeColorTag.setAttribute('content', '#ffffff');
@@ -267,7 +267,7 @@
 		}
 
 		html.outis-light #splash-screen {
-			background: #fafdfc;
+			background: #fbf9f5;
 		}
 
 		#logo-her {

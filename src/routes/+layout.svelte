@@ -1024,10 +1024,10 @@
 			themeToApply.split(' ').forEach((cls) => document.documentElement.classList.add(cls));
 			if (newTheme === 'outis-dark') {
 				// See the Inline-style hazard note in OUTIS_DARK_THEME_SPEC.md.
-				document.documentElement.style.setProperty('--color-gray-800', '#1a2823');
-				document.documentElement.style.setProperty('--color-gray-850', '#141c19');
-				document.documentElement.style.setProperty('--color-gray-900', '#0f1512');
-				document.documentElement.style.setProperty('--color-gray-950', '#090d0c');
+				document.documentElement.style.setProperty('--color-gray-800', '#2b2825');
+				document.documentElement.style.setProperty('--color-gray-850', '#211f1c');
+				document.documentElement.style.setProperty('--color-gray-900', '#1a1816');
+				document.documentElement.style.setProperty('--color-gray-950', '#151311');
 			}
 			if (newTheme === 'outis-light') {
 				// See the Inline-style hazard note in OUTIS_LIGHT_THEME_SPEC.md.

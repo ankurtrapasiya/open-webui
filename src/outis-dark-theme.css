@@ -13,45 +13,44 @@
  */
 
 html.outis-dark {
-	/* Neutral scale — near-black, green-tinted (replaces the default grays) */
-	--color-gray-50: #d4ede2;
-	--color-gray-100: #b9d9cb;
-	--color-gray-200: #9dc4b3;
-	--color-gray-300: #7aab98;
-	--color-gray-400: #5c8f7d;
-	--color-gray-500: #4a6a5a;
-	--color-gray-600: #3a5346;
-	--color-gray-700: #2a3d34;
-	--color-gray-800: #1a2823;
-	--color-gray-850: #141c19;
-	--color-gray-900: #0f1512;
-	--color-gray-950: #090d0c;
+	/* Neutral scale — warm near-black (OKLCH H75, chroma ≤ 0.013), the night
+	   reading ground. See OUTIS_READING_SPEC.md: warm and dim beats green and
+	   bright for reading before sleep, and 950 sits at #151311 rather than
+	   near-black so the bright glyphs halate less. Contrast on 950:
+	   50 14.0 / 100 11.7 / 200 9.2 / 300 6.9 / 400 4.9 / 500 3.2:1. */
+	--color-gray-50: #e4dfd8;
+	--color-gray-100: #d2cdc6;
+	--color-gray-200: #bcb6af;
+	--color-gray-300: #a39d96;
+	--color-gray-400: #88827b;
+	--color-gray-500: #69645d;
+	--color-gray-600: #514c47;
+	--color-gray-700: #3c3934;
+	--color-gray-800: #2b2825;
+	--color-gray-850: #211f1c;
+	--color-gray-900: #1a1816;
+	--color-gray-950: #151311;
 
-	/* Accent — blue is the interactive/focus/link color throughout the app;
+	/* Accent — blue is the interactive/focus/link colour throughout the app;
 	   green is already used for "positive" states. Both map to one green
 	   scale so the whole app reads as a single accent hue.
 
-	   600-900 are re-derived from an even OKLCH lightness ramp between the
-	   500 (L 0.880, the validated hero accent — unchanged) and 950 (L 0.228,
-	   unchanged) anchors, ΔL≈0.130/step, chroma tapering alongside lightness.
-	   The original values interpolated 500->600 in raw hex and cliffed by
-	   ΔL=0.306 in one step -- 2.7-10x every other step in either this scale
-	   or the neutral scale -- so anything using blue-600/700 (a normal
-	   Tailwind hover/default pairing, ~5 direct usages found in components)
-	   read markedly dimmer than the 500 used for links/focus rings, with
-	   nothing perceptually in between. See OUTIS_DARK_CONSISTENCY_SPEC.md
-	   Finding 2 for the full derivation and contrast numbers. */
-	--color-blue-50: #eafff5;
-	--color-blue-100: #d0ffe8;
-	--color-blue-200: #a6ffd2;
-	--color-blue-300: #6ffcb0;
-	--color-blue-400: #4dfa9e;
-	--color-blue-500: #2dff8f;
-	--color-blue-600: #00cf76;
-	--color-blue-700: #00a05a;
-	--color-blue-800: #037340;
-	--color-blue-900: #064928;
-	--color-blue-950: #082217;
+	   Desaturated for night (OUTIS_READING_SPEC.md): the old neon #2dff8f
+	   (C 0.22) measured APCA Lc 88 against body text's Lc 60, so buttons and
+	   links outshone the answer being read. Now an even OKLCH ramp at H158,
+	   chroma ≤ 0.11; 500 is Lc 67 (10:1), below body text and still well
+	   above the 4.5:1 floor on every surface. */
+	--color-blue-50: #e5fcee;
+	--color-blue-100: #d0f6df;
+	--color-blue-200: #b8edcd;
+	--color-blue-300: #9ee3bb;
+	--color-blue-400: #8edbaf;
+	--color-blue-500: #7ad0a0;
+	--color-blue-600: #56ad7e;
+	--color-blue-700: #3b8960;
+	--color-blue-800: #266645;
+	--color-blue-900: #17452d;
+	--color-blue-950: #0b2819;
 
 	--color-green-50: var(--color-blue-50);
 	--color-green-100: var(--color-blue-100);
@@ -72,23 +71,23 @@ html.outis-dark {
 	--color-yellow-600: #d9a82a;
 
 	/* Consumed by the autofill rules in outis-theme-shared.css. */
-	--outis-input-bg: #090d0c;
-	--outis-input-fg: #d4ede2;
+	--outis-input-bg: #151311;
+	--outis-input-fg: #e4dfd8;
 
 	/* Code-block surface. The fill is the same near-black one step up from the
 	   page; the hairline is what says "block". */
-	--outis-code-bg: #0f1512;
+	--outis-code-bg: #1a1816;
 	/* Texting Bubbles surface: the card step with the border step as its edge. */
 	--outis-bubble-bg: var(--color-gray-850);
 	--outis-bubble-border: var(--color-gray-800);
 	--outis-rail: var(--color-gray-700);
 	--outis-rail-node: var(--color-gray-500);
-	/* Maths: the whole formula in one colour, set apart from the mint prose (12.1:1 page,
-	   10.7:1 card). See outis-theme-shared.css. */
+	/* Maths: the whole formula in one colour, set apart from the warm-gray prose (11.5:1
+	   page, 10.3:1 card). See outis-theme-shared.css. */
 	--outis-math: #f0c674;
-	--outis-math-card: #131d18;
+	--outis-math-card: #201e1a;
 	--outis-code-node: #79c0ff;
-	--outis-code-border: #1f2c26;
+	--outis-code-border: #2b2825;
 }
 
 /* Finding 3 (OUTIS_DARK_CONSISTENCY_SPEC.md): literal `text-white`/
@@ -186,8 +185,8 @@ html.outis-dark [class~='dark:bg-gray-200'] {
    above, different shape: `bg-blue-500 text-white` (unconditional, no dark:
    prefix -- calendar "today" badges in CalendarView.svelte/CalendarSidebar.svelte,
    and the selected-row indicator in FileEntryRow.svelte, 4 elements total).
-   White text on this theme's blue-500 (the bright green accent, #2dff8f)
-   measures 1.33:1 contrast -- effectively invisible, reported live via
+   White text on this theme's blue-500 (the green accent, #7ad0a0)
+   measures 1.6:1 contrast -- effectively invisible, reported live via
    screenshot ("20" unreadable on the calendar's today marker). Only 4 of the
    10 `bg-blue-500` usages in the app pair it with `text-white` this way
    (checked); the rest use translucent /20 backgrounds with their own
@@ -203,8 +202,8 @@ html.outis-dark [class~='bg-blue-500'][class~='text-white'] {
    one exception to the token system found during testing. Override it
    directly rather than relying on custom-property cascade. */
 html.outis-dark body {
-	background: #090d0c;
-	color: #d4ede2;
+	background: #151311;
+	color: #e4dfd8;
 }
 
 /* app.css's `.editor-selection { background: rgba(180, 213, 255, 0.5) }` is
@@ -212,12 +211,12 @@ html.outis-dark body {
    text-selection highlight in every RichTextInput (chat compose, channel
    compose, Notes) rendered in the stock blue, unrelated to the theme.
    Reported live via screenshot ("select all" text). Reuses the exact
-   rgba(45, 255, 143, 0.16) accentSoft value already used for CodeMirror's
+   rgba(122, 208, 160, 0.22) accentSoft value already used for CodeMirror's
    own selection highlight (codemirror-outis-dark-theme.ts), so the two
    selection highlights read as one consistent color rather than two
    different green tints. */
 html.outis-dark .editor-selection {
-	background: rgba(45, 255, 143, 0.16);
+	background: rgba(122, 208, 160, 0.22);
 }
 
 /* `.editor-selection` above only ever applies once the editor has *lost*
@@ -234,79 +233,72 @@ html.outis-dark .editor-selection {
    three selection surfaces in the app -- native text selection, the
    editor's blur-preserved selection, and code blocks -- read as one color. */
 html.outis-dark ::selection {
-	background: rgba(45, 255, 143, 0.16);
+	background: rgba(122, 208, 160, 0.22);
 }
 
 /* ---------------------------------------------------------------------
  * The reading area's color system
  *
- * Tailwind Typography's `prose-invert` variant hardcodes literal colors
- * (white headings/links/bold/code/kbd, slate-300 body, etc.) instead of
- * referencing --color-gray-* — the same class of hardcoded-literal issue
- * as the `.dark body` rule above, and why the gray-scale override alone
- * left the prose glaring white. It does expose every role as a
- * --tw-prose-invert-* custom property though, so the whole system is a
- * set of variable swaps rather than per-element restyling.
+ * Tailwind Typography's `prose-invert` hardcodes literal colours but exposes
+ * every role as a --tw-prose-invert-* custom property, so the whole system
+ * is a set of variable swaps rather than per-element restyling.
  *
- * A first pass just re-tinted those literals mint, which fixed the hue
- * but not the reading experience: body sat at 12.9:1 and headings at
- * 16.9:1, and `<strong>` was given the *same* value as headings — so a
- * bold run-in mid-paragraph shouted as loudly as a section heading and
- * the page read as one flat sheet. On a near-black ground that range
- * also halates during sustained reading.
+ * Tuned for night reading (OUTIS_READING_SPEC.md). Light-on-dark already
+ * costs some legibility, and this face sits at 12.8px, so body text is held
+ * at APCA Lc 79 -- inside the 75-90 band for dark body text, below the
+ * halation zone near pure white. One warm ladder, rank by lightness:
  *
- * Now: one tonal ladder (OKLCH hue 162, low chroma, the same discipline
- * as the code-block palette), with body dropped to a comfortable 10.5:1
- * and each role given its own rung:
+ *   headings  #e7e2dc  Lc 89  brightest, plus size and weight
+ *   strong    #dfdad4  Lc 84
+ *   body      #d7d2cb  Lc 79  the reading baseline
+ *   quiet     #bab4ac  Lc 61  quotes, lead, captions, counters
+ *   links     accent-400      the one interactive colour, underlined
  *
- *   headings  #ebd0a7  13.1:1   amber — see below
- *   strong    #c1d0c8  12.2:1   above body, below headings
- *   body      #b2c2b9  10.5:1   the reading baseline
- *   quiet     #86978e   6.4:1   quotes, lead, captions, counters
- *   trace     #2a3d34           rules, borders, quote bars
- *
- * Headings break the ladder's hue on purpose: they take the amber the
- * code palette uses for strings. Warm-on-cool separates them from body
- * text by *hue* rather than by brightness, so the answer's spine is
- * scannable without another near-white tone on screen — and prose and
- * code end up drawing from one palette. That leaves green meaning
- * exactly one thing in the reading area: interactive.
+ * Headings are no longer amber: maths owns the gold (#f0c674), and a heading
+ * in the same hue read as a formula. Rank is shown by size and weight, the
+ * research-backed way, so colour in the reading area means exactly two
+ * things -- green is interactive, gold is maths.
  * ------------------------------------------------------------------ */
 html.outis-dark .markdown-prose,
 html.outis-dark .markdown-prose-sm,
 html.outis-dark .markdown-prose-xs,
 html.outis-dark .input-prose,
 html.outis-dark .input-prose-sm {
-	--tw-prose-invert-headings: #d6bf9b;
-	--tw-prose-invert-bold: #b0bfb6;
-	--tw-prose-invert-body: #a5b5ad;
-	--tw-prose-invert-kbd: #b0bfb6;
-	--tw-prose-invert-lead: #7f9086;
-	--tw-prose-invert-quotes: #7f9086;
-	--tw-prose-invert-captions: #7f9086;
-	--tw-prose-invert-counters: #7f9086;
-	--tw-prose-invert-bullets: #6b7b72;
-	--tw-prose-invert-links: #6bae88;
-	--tw-prose-invert-hr: #2a3d34;
-	--tw-prose-invert-quote-borders: #2a3d34;
-	--tw-prose-invert-th-borders: #2a3d34;
-	--tw-prose-invert-td-borders: #1a2823;
+	--tw-prose-invert-headings: #e7e2dc;
+	--tw-prose-invert-bold: #dfdad4;
+	--tw-prose-invert-body: #d7d2cb;
+	--tw-prose-invert-kbd: #dfdad4;
+	--tw-prose-invert-lead: #bab4ac;
+	--tw-prose-invert-quotes: #bab4ac;
+	--tw-prose-invert-captions: #bab4ac;
+	--tw-prose-invert-counters: #bab4ac;
+	--tw-prose-invert-bullets: #918b84;
+	--tw-prose-invert-links: var(--color-blue-400);
+	--tw-prose-invert-hr: #3c3934;
+	--tw-prose-invert-quote-borders: #3c3934;
+	--tw-prose-invert-th-borders: #3c3934;
+	--tw-prose-invert-td-borders: #2b2825;
+}
+
+/* Light glyphs on a dark ground look bolder than the same weight in ink
+   (irradiation), so the night reading text gets a hair more air. */
+html.outis-dark .markdown-prose {
+	letter-spacing: 0.01em;
 }
 
 /* Inline code. There is no --tw-prose-invert-code to set here: the repo's
    tailwind.config.js turns the typography plugin's `code` styles off
    entirely (`code: false`), so an inline `snippet` inherits body color and
-   reads as ordinary prose. Given a real rule, and given the same mint the
-   code blocks use for identifiers, so a snippet in a sentence and a
-   snippet in a block are the same color. `:not(pre) > code` keeps this
+   reads as ordinary prose. Given a real rule: gray-100 on the card step,
+   one notch brighter than body so a snippet stands out in a sentence. `:not(pre) > code` keeps this
    off fenced blocks, which CodeMirror and highlight.js own. */
 html.outis-dark .markdown-prose :not(pre) > code,
 html.outis-dark .markdown-prose-sm :not(pre) > code,
 html.outis-dark .markdown-prose-xs :not(pre) > code,
 html.outis-dark .input-prose :not(pre) > code,
 html.outis-dark .input-prose-sm :not(pre) > code {
-	color: #b9d9cb;
-	background: #141c19;
+	color: var(--color-gray-100);
+	background: var(--color-gray-850);
 	padding: 0.1em 0.35em;
 	font-size: 0.95em;
 }
@@ -430,8 +422,19 @@ html.outis-dark div:has(> div[class*='language-']) .dark\:bg-black {
    them. They're furniture, not content — drop them to gray-300 so the code
    is the brightest thing in its own block. */
 html.outis-dark div:has(> div[class*='language-']) > .sticky {
-	color: #7aab98;
+	color: var(--color-gray-300);
 }
 
-/* Maths colours live in outis-theme-shared.css; the values per kind are the --outis-math-*
-   variables in the html.outis-dark block above. */
+/* Maths colours live in outis-theme-shared.css; the value is --outis-math above. */
+
+/* Rendered diagrams: the Kroki filter bakes the old green-black neutrals in as
+   fallbacks. Re-point the neutral roles at this palette so a diagram sits on the
+   same warm ground as the page; branch hues keep their baked values. */
+html.outis-dark .outis-diagram {
+	--outis-diagram-ground: var(--color-gray-900);
+	--outis-diagram-fill: #24211d;
+	--outis-diagram-border: var(--color-gray-600);
+	--outis-diagram-text: #d7d2cb;
+	--outis-diagram-deep: var(--color-gray-850);
+	--outis-diagram-arrow: var(--color-gray-500);
+}

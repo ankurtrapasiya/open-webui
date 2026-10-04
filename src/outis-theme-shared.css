@@ -373,6 +373,21 @@ html:is(.outis-dark, .outis-light) .markdown-prose h3 {
 	font-size: 1em;
 }
 
+/* Reading measure and paragraph rhythm (OUTIS_READING_SPEC.md). The chat column is
+   58rem, about 112 characters of this mono face per line; comprehension is best at
+   45-75 and WCAG 1.4.8 caps it at 80. Only running text is capped -- code, tables,
+   maths (including a bubbled formula) and diagrams keep the
+   full column. Paragraph gap 0.8em takes the space between
+   paragraphs to 1.5x the line spacing (WCAG 1.4.8). */
+html:is(.outis-dark, .outis-light)
+	.markdown-prose
+	:is(p, li, blockquote, h1, h2, h3, h4, h5, h6):not([data-tb-math], :has(.katex-display)) {
+	max-width: 75ch;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose p:not(:last-child) {
+	margin-bottom: 0.8em;
+}
+
 /* CodeBlock.svelte's wrapper carries `text-sm` (14px), inherited by the
    highlight.js path while a response is still streaming (before CodeMirror
    takes over) -- same 14px-vs-12px mismatch fixed for CodeMirror itself in

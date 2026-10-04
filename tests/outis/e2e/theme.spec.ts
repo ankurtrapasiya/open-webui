@@ -7,22 +7,22 @@ import { test, expect } from '../support/fixtures';
 const T = {
 	'outis-dark': {
 		classes: ['dark', 'outis-dark'],
-		themeColor: '#090d0c',
-		bg: 'rgb(9, 13, 12)',
-		text: 'rgb(212, 237, 226)',
-		accent: 'rgb(45, 255, 143)',
-		filled: 'rgb(45, 255, 143)', // dark:bg-white controls
-		codeBg: 'rgb(15, 21, 18)',
-		selection: 'rgba(45, 255, 143, 0.16)'
+		themeColor: '#151311',
+		bg: 'rgb(21, 19, 17)',
+		text: 'rgb(228, 223, 216)',
+		accent: 'rgb(122, 208, 160)',
+		filled: 'rgb(122, 208, 160)', // dark:bg-white controls
+		codeBg: 'rgb(26, 24, 22)',
+		selection: 'rgba(122, 208, 160, 0.22)'
 	},
 	'outis-light': {
 		classes: ['light', 'outis-light'],
-		themeColor: '#fafdfc',
-		bg: 'rgb(250, 253, 252)',
-		text: 'rgb(39, 55, 47)',
+		themeColor: '#fbf9f5',
+		bg: 'rgb(251, 249, 245)',
+		text: 'rgb(54, 50, 45)',
 		accent: 'rgb(0, 131, 80)',
 		filled: 'rgb(0, 110, 67)', // bg-black / bg-gray-900 controls
-		codeBg: 'rgb(234, 242, 237)',
+		codeBg: 'rgb(243, 240, 234)',
 		selection: 'rgba(0, 131, 80, 0.14)'
 	}
 } as const;
@@ -101,7 +101,7 @@ test('TH-1 a fresh browser boots in Outis-Dark with the default font', async ({ 
 	await expect(html).toHaveClass(/\bdark\b/);
 	await expect(html).toHaveClass(/\boutis-dark\b/);
 	expect(await page.evaluate(() => localStorage.theme)).toBe('outis-dark');
-	expect(await page.locator('meta[name="theme-color"]').first().getAttribute('content')).toBe('#090d0c');
+	expect(await page.locator('meta[name="theme-color"]').first().getAttribute('content')).toBe('#151311');
 	expect(await html.getAttribute('data-outis-font')).toBeNull();
 });
 
@@ -142,7 +142,7 @@ test('TH-4 switching through other themes leaves no dark palette on Outis-Light'
 		['800', '850', '900', '950'].map((n) => document.documentElement.style.getPropertyValue(`--color-gray-${n}`))
 	);
 	expect(inline).toEqual(['', '', '', '']);
-	expect(await rootVar(page, '--color-gray-900')).toBe('#0e1913');
+	expect(await rootVar(page, '--color-gray-900')).toBe('#1b1916');
 });
 
 test('TH-5 the Font picker exists only under the Outis themes', async ({ page }) => {
@@ -432,8 +432,8 @@ test('TH-26 light theme: the favicon is darkened and the splash is the page colo
 test('TH-27 a formula is one colour, set apart from the prose, in both themes', async ({ page, api }) => {
 	const chat = await api.chat({ title: 'TH-27', assistant: 'Inline $x = 1$ here.\n\n$$y \\le \\sum_i (x_i + 2.5) + \\log z$$\n\nEnd.' });
 	const want = {
-		'outis-dark': { math: 'rgb(240, 198, 116)', card: 'rgb(19, 29, 24)' },
-		'outis-light': { math: 'rgb(122, 79, 0)', card: 'rgb(234, 242, 237)' }
+		'outis-dark': { math: 'rgb(240, 198, 116)', card: 'rgb(32, 30, 26)' },
+		'outis-light': { math: 'rgb(122, 79, 0)', card: 'rgb(243, 240, 234)' }
 	};
 	const D = '.katex-display';
 	for (const theme of ['outis-dark', 'outis-light'] as const) {
@@ -468,8 +468,8 @@ test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async
 		const chat = await api.chat({ title: 'TH-28', assistant: md });
 		const P = '#response-content-container > div > .markdown-prose';
 		const want = {
-			'outis-dark': { rail: 'rgb(42, 61, 52)', heading: 'rgb(45, 255, 143)', formula: 'rgb(240, 198, 116)' },
-			'outis-light': { rail: 'rgb(215, 227, 221)', heading: 'rgb(0, 131, 80)', formula: 'rgb(122, 79, 0)' }
+			'outis-dark': { rail: 'rgb(60, 57, 52)', heading: 'rgb(122, 208, 160)', formula: 'rgb(240, 198, 116)' },
+			'outis-light': { rail: 'rgb(227, 223, 216)', heading: 'rgb(0, 131, 80)', formula: 'rgb(122, 79, 0)' }
 		};
 		for (const theme of ['outis-dark', 'outis-light'] as const) {
 			await useTheme(page, theme);
@@ -493,5 +493,37 @@ test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async
 		}
 	} finally {
 		await ctx.delete('/api/v1/functions/id/texting_bubbles/delete').catch(() => null);
+	}
+});
+
+test('TH-29 reading ladder and measure: body text in its contrast band, text capped at 75ch, code full width', async ({ page, api }) => {
+	const want = {
+		'outis-dark': { body: 'rgb(215, 210, 203)', heading: 'rgb(231, 226, 220)', band: [11, 14] },
+		'outis-light': { body: 'rgb(51, 48, 43)', heading: 'rgb(29, 26, 22)', band: [12, 17] }
+	};
+	for (const theme of THEMES) {
+		await richChat(page, api, theme);
+		const P = '.markdown-prose p';
+		const body = await css(page, P, 'color');
+		expect(body).toBe(want[theme].body);
+		expect(await css(page, '.markdown-prose h1', 'color')).toBe(want[theme].heading);
+		const c = contrast(body, T[theme].bg);
+		expect(c).toBeGreaterThan(want[theme].band[0]);
+		expect(c).toBeLessThan(want[theme].band[1]);
+		// The accent no longer outshines the text being read.
+		if (theme === 'outis-dark') expect(contrast(T[theme].accent, T[theme].bg)).toBeLessThan(c);
+		// 75ch of the reading face, and code blocks still use the whole column.
+		const [maxW, chW, codeW] = await page.evaluate((p) => {
+			const el = document.querySelector(p)!;
+			const probe = document.createElement('span');
+			probe.style.cssText = 'position:absolute;visibility:hidden;width:1ch';
+			el.appendChild(probe);
+			const ch = probe.getBoundingClientRect().width;
+			probe.remove();
+			const code = document.querySelector('div[class*="language-"]')!.getBoundingClientRect().width;
+			return [parseFloat(getComputedStyle(el).maxWidth), ch, code];
+		}, P);
+		expect(maxW).toBeCloseTo(75 * chW, 0);
+		expect(codeW).toBeGreaterThan(maxW);
 	}
 });

@@ -1,6 +1,6 @@
 # Spec: theme
 
-Fork commits: ~30 theme commits (fb1066519 … 4a475f9a3). Design docs:
+Fork commits: ~30 theme commits (fb1066519 … 4a475f9a3). Design docs: `OUTIS_READING_SPEC.md` (colour, from 2026-10-04),
 `OUTIS_DARK_THEME_SPEC.md`, `OUTIS_LIGHT_THEME_SPEC.md`, `OUTIS_DARK_CONSISTENCY_SPEC.md`.
 Where those docs and the CSS disagree, the CSS is the truth (e.g. prose scale is 0.85, the
 default font is IBM Plex Mono).
@@ -24,12 +24,12 @@ dark / light.
 Boot and switching:
 
 - **TH-1** Fresh browser: `<html>` has `dark outis-dark`, `localStorage.theme ===
-  'outis-dark'`, meta theme-color `#090d0c`, no `data-outis-font`.
+  'outis-dark'`, meta theme-color `#151311`, no `data-outis-font`.
 - **TH-2** Stored `outis-mneme` boots as `outis-dark` and rewrites the stored value.
 - **TH-3** Settings → General lists Outis-Dark and Outis-Light; choosing each applies its
-  classes and theme-color (`#090d0c` / `#fafdfc`).
+  classes and theme-color (`#151311` / `#fbf9f5`).
 - **TH-4** Outis-Dark → Outis-Light → OLED Dark → Outis-Light leaves no inline
-  `--color-gray-800/850/900/950` on `<html>`, and computed `--color-gray-900` is `#0e1913`.
+  `--color-gray-800/850/900/950` on `<html>`, and computed `--color-gray-900` is `#1b1916`.
 - **TH-5** The Font picker is present under Outis themes and absent under Dark, OLED Dark and
   Light.
 
@@ -55,10 +55,10 @@ Shape:
 
 Surfaces and colour:
 
-- **TH-14** Body background / text: `rgb(9, 13, 12)` / `rgb(212, 237, 226)` in dark;
-  `rgb(250, 253, 252)` / `rgb(39, 55, 47)` in light.
+- **TH-14** Body background / text: `rgb(21, 19, 17)` / `rgb(228, 223, 216)` in dark;
+  `rgb(251, 249, 245)` / `rgb(54, 50, 45)` in light.
 - **TH-15** Primary filled buttons (the settings Save button) use the accent at rest: dark
-  `rgb(45, 255, 143)`, light `rgb(0, 110, 67)`, text contrast ≥ 4.5:1. The lighter hover green
+  `rgb(122, 208, 160)`, light `rgb(0, 110, 67)`, text contrast ≥ 4.5:1. The lighter hover green
   appears only on hover. (First run found the dark hover colour applied at rest because one
   selector lacked `:hover`; fixed 2026-09-25.)
 - **TH-16** Confirm dialog button (delete a chat): accent background, text contrast ≥ 4.5:1,
@@ -66,16 +66,16 @@ Surfaces and colour:
 - **TH-17** Focus: Tab to a button → outline colour is the accent, not stock blue. Focusing
   the composer shows no outline on `#chat-input-container` or the editor; with
   `html.high-contrast` the editor outline returns.
-- **TH-18** Text selection colour: `rgba(45, 255, 143, 0.16)` in dark,
+- **TH-18** Text selection colour: `rgba(122, 208, 160, 0.22)` in dark,
   `rgba(0, 131, 80, 0.14)` in light.
 - **TH-19** Text on an accent badge (`bg-blue-500 text-white`, as the calendar's today badge
-  uses) is `rgb(9, 13, 12)` in dark.
-- **TH-20** `dark:text-white` renders as gray-50 `rgb(212, 237, 226)`, not pure white.
+  uses) is `rgb(21, 19, 17)` in dark.
+- **TH-20** `dark:text-white` renders as gray-50 `rgb(228, 223, 216)`, not pure white.
 
 Code blocks:
 
-- **TH-21** Code block, CodeMirror and gutters share one background: `rgb(15, 21, 18)` /
-  `rgb(234, 242, 237)`; no `rgb(0, 0, 0)` seam.
+- **TH-21** Code block, CodeMirror and gutters share one background: `rgb(26, 24, 22)` /
+  `rgb(243, 240, 234)`; no `rgb(0, 0, 0)` seam.
 - **TH-22** Clicking into a code block gives its wrapper an accent border on all four sides;
   unfocused, the border is the code-border colour.
 - **TH-23** An open code editor follows the theme: switching Outis-Dark → Outis-Light while a
@@ -93,21 +93,29 @@ Stray colours:
 Light only:
 
 - **TH-26** Favicon image `filter` is `brightness(0.431)`; splash background is
-  `rgb(250, 253, 252)`.
+  `rgb(251, 249, 245)`.
 - **TH-27** A formula is one colour -- symbols, numbers, variables, brackets, bars -- per theme:
   `#f0c674` (Outis-Dark) / `#7a4f00` (Outis-Light), different from the prose colour. Display
-  equations sit on a card (`#131d18` / `#eaf2ed`) with a 2px accent edge. A formula's own
+  equations sit on a card (`#201e1a` / `#f3f0ea`) with a 2px accent edge. A formula's own
   `\color{}` wins. (Asked 2026-10-03; colour-by-kind tried and replaced 2026-10-04: different
   colours inside one equation read as noise.)
 - **TH-28** With the third-party Texting Bubbles event function installed (fixture
   `tests/outis/fixtures/texting_bubbles.py`, 1.0.0), a reply reads as a study thread, not a box
   per paragraph: blocks are full width, transparent and square, hanging off a 2px rail
-  (`#2a3d34` / `#d7e3dd`), each with an 8px square node coloured by kind -- muted text, accent
-  heading (`#2dff8f` / `#008350`, heading sizes kept), formula node in the maths colour (`#f0c674` / `#7a4f00`),
+  (`#3c3934` / `#e3dfd8`), each with an 8px square node coloured by kind -- muted text, accent
+  heading (`#7ad0a0` / `#008350`, heading sizes kept), formula node in the maths colour (`#f0c674` / `#7a4f00`),
   number-blue code. Display maths spans the reply, centred. Blocks still reveal one at a time with
   accent typing dots. A colour picked in the plugin's own setting brings its bubbles back.
   Animations stop under `prefers-reduced-motion`. (Asked 2026-10-03/04: bubbles every few lines
   broke up reading of coursework maths.)
+
+Reading (asked 2026-10-04; research and numbers in `OUTIS_READING_SPEC.md`):
+
+- **TH-29** Reply body text sits in its contrast band -- dark `rgb(215, 210, 203)` at 11-14:1
+  (APCA Lc ~79), light `rgb(51, 48, 43)` at 12-17:1 (Lc ~96) -- and headings are the
+  brightest/darkest neutral (`rgb(231, 226, 220)` / `rgb(29, 26, 22)`), not a hue. In dark the
+  accent's contrast is below body text's. Running text (p, li, blockquote, headings) is capped
+  at 75ch; code blocks keep the full column.
 
 ## Notes for the test author
 

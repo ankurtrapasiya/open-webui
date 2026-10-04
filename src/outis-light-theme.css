@@ -13,36 +13,31 @@
  * Typography resolves `--tw-prose-*` instead of `--tw-prose-invert-*`, and
  * `bg-white` stops being a scrim and becomes the app's ground.
  *
- * Design note. outis-dark is a phosphor tube: light is emitted, so the
- * ground is near-black and every colour glows on top of it. Inverting that
- * literally would be unreadable, so this theme takes the other half of the
- * same lineage — ink on paper, the line-printer page. Same green-tinted
- * hue family (OKLCH H162), read from the other end: outis-dark's darkest
- * surface (#0f1512) is almost exactly this theme's darkest ink (#0e1913).
- * The paper is deliberately cool rather than cream, so a screenshot of
- * either theme is obviously the same product.
+ * Design note. outis-dark is the night page, outis-light the day page:
+ * both warm-neutral, both tuned for long reading rather than for a look
+ * (OUTIS_READING_SPEC.md). The one shared hue is the green accent, which
+ * means "interactive" in both.
  */
 
 html.outis-light {
-	/* Neutral scale — green-tinted paper through green-black ink. Holds
-	   src/tailwind.css's own lightness ramp so every existing light-mode
-	   layout keeps the contrast relationship it was designed with, and adds
-	   chroma at H162. Contrast on the paper below: 1.08 / 1.17 / 1.29 /
-	   1.53 / 1.99 / 2.68 / 5.29 / 7.94 / 12.26 / 14.62 / 17.58 / 19.07 —
-	   gray-600 is the first rung that carries body text, which is where
-	   stock light mode starts using it. */
-	--color-gray-50: #eff5f2;
-	--color-gray-100: #e4ede8;
-	--color-gray-200: #d7e3dd;
-	--color-gray-300: #c3d2ca;
-	--color-gray-400: #a7bab0;
-	--color-gray-500: #8ca195;
-	--color-gray-600: #596f63;
-	--color-gray-700: #40544a;
-	--color-gray-800: #27372f;
-	--color-gray-850: #1c2a22;
-	--color-gray-900: #0e1913;
-	--color-gray-950: #070e0a;
+	/* Neutral scale — warm paper through warm-black ink (OKLCH H80, chroma
+	   ≤ 0.013), holding src/tailwind.css's own lightness ramp so every
+	   light-mode layout keeps the contrast it was designed with. Warm rather
+	   than green-cool, after the reading apps (Kindle, Apple Books): see
+	   OUTIS_READING_SPEC.md. Contrast on the paper: 1.06 / 1.15 / 1.27 / 1.52
+	   / 1.98 / 2.68 / 5.30 / 7.93 / 12.2 / 14.4 / 16.8 / 18.5. */
+	--color-gray-50: #f6f3ef;
+	--color-gray-100: #edeae5;
+	--color-gray-200: #e3dfd8;
+	--color-gray-300: #d2cdc5;
+	--color-gray-400: #b9b4ab;
+	--color-gray-500: #9f9a92;
+	--color-gray-600: #6d6861;
+	--color-gray-700: #524e47;
+	--color-gray-800: #36322d;
+	--color-gray-850: #292622;
+	--color-gray-900: #1b1916;
+	--color-gray-950: #100e0b;
 
 	/* The paper, and the ink.
 
@@ -53,8 +48,8 @@ html.outis-light {
 	   leaving it pure white against a tinted gray-50 reads as a bug rather
 	   than as a theme. --color-black gets the same treatment so `bg-black/60`
 	   modal scrims tint into the family instead of sitting outside it. */
-	--color-white: #fafdfc;
-	--color-black: #070e0a;
+	--color-white: #fbf9f5;
+	--color-black: #100e0b;
 
 	/* Accent (H158). Blue is the interactive/focus/link colour throughout the
 	   app and green is already "positive", so both map to one scale and the
@@ -106,20 +101,20 @@ html.outis-light {
 	--color-yellow-600: #b47d00;
 
 	/* Consumed by the autofill rules in outis-theme-shared.css. */
-	--outis-input-bg: #fafdfc;
-	--outis-input-fg: #27372f;
+	--outis-input-bg: #fbf9f5;
+	--outis-input-fg: #36322d;
 
 	/* Code-block surface. A touch deeper than gray-50 so the fill is felt
 	   rather than guessed, and a hairline to give it an actual edge -- at
 	   1.08:1 from the paper the old fill alone did neither. */
-	--outis-code-bg: #eaf2ed;
-	--outis-code-border: #d3e0d8;
+	--outis-code-bg: #f3f0ea;
+	--outis-code-border: #e3dfd8;
 	/* Texting Bubbles surface: the code surface and its hairline. */
 	--outis-bubble-bg: var(--outis-code-bg);
 	--outis-bubble-border: var(--outis-code-border);
 	--outis-rail: var(--color-gray-200);
 	--outis-rail-node: var(--color-gray-500);
-	/* Maths: the whole formula in one colour, set apart from the prose (7.0:1 page, 6.3:1
+	/* Maths: the whole formula in one colour, set apart from the prose (6.8:1 page, 6.3:1
 	   card). See outis-theme-shared.css. */
 	--outis-math: #7a4f00;
 	--outis-math-card: var(--outis-code-bg);
@@ -131,8 +126,8 @@ html.outis-light {
    twin of the `.dark body` rule outis-dark overrides for the same reason.
    Override it directly rather than relying on custom-property cascade. */
 html.outis-light body {
-	background: #fafdfc;
-	color: #27372f;
+	background: #fbf9f5;
+	color: #36322d;
 }
 
 /* Filled primary controls, light-mode half.
@@ -197,49 +192,45 @@ html.outis-light ::selection {
 /* ---------------------------------------------------------------------
  * The reading area's color system
  *
- * The light-mode mirror of outis-dark's prose ladder. Tailwind Typography
- * hardcodes literal colors for every role but exposes each as a
- * --tw-prose-* custom property, so this is a set of variable swaps rather
- * than per-element restyling. Without `dark`, it is these properties that
- * resolve rather than the --tw-prose-invert-* ones outis-dark sets.
+ * Tailwind Typography exposes every role as a --tw-prose-* custom property,
+ * so this is a set of variable swaps. Without `dark`, these resolve rather
+ * than the --tw-prose-invert-* ones outis-dark sets.
  *
- * Same role order as the dark theme, lightness flipped — headings carry
- * the most contrast, then bold, then body, then the quiet roles:
+ * Tuned for daytime reading (OUTIS_READING_SPEC.md). Dark-on-light is the
+ * faster, more accurate polarity, and the face sits at 12.8px, so body text
+ * is held near APCA Lc 96 (12.5:1) -- well above the Lc 90 body preference,
+ * short of pure black on white. Warm off-white paper, warm-black ink:
  *
- *   headings  #543900  10.46:1  ochre — see below
- *   strong    #37473f   9.61:1  above body, below headings
- *   body      #3f5047   8.38:1  the reading baseline
- *   links     #007548   5.64:1  the accent, the one interactive colour
- *   quiet     #607369   4.94:1  quotes, lead, captions, counters
- *   trace     #d7e3dd           rules, borders, quote bars
+ *   headings  #1d1a16  Lc 101  darkest, plus size and weight
+ *   strong    #211f1b  Lc 100
+ *   body      #33302b  Lc 96   the reading baseline
+ *   quiet     #615d56  Lc 79   quotes, lead, captions, counters
+ *   links     #00784a  Lc 74   the accent, the one interactive colour
  *
- * Headings break the ladder's hue on purpose, exactly as they do in the
- * dark theme: they take the warm hue the code palette uses for strings.
- * Warm-on-cool separates them from body text by *hue* rather than by
- * another near-black tone, so the answer's spine is scannable without a
- * second ink weight competing with it — and prose and code draw from one
- * palette. That leaves green meaning exactly one thing in the reading
- * area: interactive.
+ * Headings are no longer ochre: maths owns that hue (#7a4f00), and a heading
+ * in it read as a formula. Rank is shown by size and weight, so colour in the
+ * reading area means exactly two things -- green is interactive, ochre is
+ * maths.
  * ------------------------------------------------------------------ */
 html.outis-light .markdown-prose,
 html.outis-light .markdown-prose-sm,
 html.outis-light .markdown-prose-xs,
 html.outis-light .input-prose,
 html.outis-light .input-prose-sm {
-	--tw-prose-headings: #5a3f0a;
-	--tw-prose-bold: #3d4d44;
-	--tw-prose-body: #42544a;
-	--tw-prose-kbd: #3d4d44;
-	--tw-prose-lead: #61756b;
-	--tw-prose-quotes: #61756b;
-	--tw-prose-captions: #61756b;
-	--tw-prose-counters: #61756b;
-	--tw-prose-bullets: #788b81;
+	--tw-prose-headings: #1d1a16;
+	--tw-prose-bold: #211f1b;
+	--tw-prose-body: #33302b;
+	--tw-prose-kbd: #211f1b;
+	--tw-prose-lead: #615d56;
+	--tw-prose-quotes: #615d56;
+	--tw-prose-captions: #615d56;
+	--tw-prose-counters: #615d56;
+	--tw-prose-bullets: #847f78;
 	--tw-prose-links: #00784a;
-	--tw-prose-hr: #d7e3dd;
-	--tw-prose-quote-borders: #d7e3dd;
-	--tw-prose-th-borders: #d7e3dd;
-	--tw-prose-td-borders: #e4ede8;
+	--tw-prose-hr: #e3dfd8;
+	--tw-prose-quote-borders: #e3dfd8;
+	--tw-prose-th-borders: #e3dfd8;
+	--tw-prose-td-borders: #edeae5;
 }
 
 /* Inline code. There is no --tw-prose-code to set here: the repo's
@@ -255,8 +246,8 @@ html.outis-light .markdown-prose-sm :not(pre) > code,
 html.outis-light .markdown-prose-xs :not(pre) > code,
 html.outis-light .input-prose :not(pre) > code,
 html.outis-light .input-prose-sm :not(pre) > code {
-	color: #3a4d43;
-	background: #e4ede8;
+	color: var(--color-gray-850);
+	background: var(--color-gray-100);
 	padding: 0.1em 0.35em;
 	font-size: 0.95em;
 }
@@ -411,7 +402,7 @@ html.outis-light img[src$='favicon.png'] {
    them. They're furniture, not content — lift them to gray-600 so the code
    is the strongest thing in its own block. */
 html.outis-light div:has(> div[class*='language-']) > .sticky {
-	color: #596f63;
+	color: var(--color-gray-600);
 }
 
 /* ---------------------------------------------------------------------
@@ -438,16 +429,16 @@ html.outis-light div:has(> div[class*='language-']) > .sticky {
  * than by their own fill.
  * ------------------------------------------------------------------ */
 html.outis-light .outis-diagram {
-	--outis-diagram-ground: #fafdfc; /* page ground */
-	--outis-diagram-fill: #eff5f2; /* node fill, and notes */
-	--outis-diagram-border: #c3d2ca; /* node border */
-	--outis-diagram-text: #27372f; /* all label text */
-	--outis-diagram-deep: #e4ede8; /* sunken fill, and group bodies */
-	--outis-diagram-arrow: #a7bab0; /* arrowheads */
+	--outis-diagram-ground: #fbf9f5; /* page ground */
+	--outis-diagram-fill: #f6f3ef; /* node fill, and notes */
+	--outis-diagram-border: #d2cdc5; /* node border */
+	--outis-diagram-text: #36322d; /* all label text */
+	--outis-diagram-deep: #edeae5; /* sunken fill, and group bodies */
+	--outis-diagram-arrow: #b9b4ab; /* arrowheads */
 	--outis-diagram-root-fill: #e6fcee; /* mindmap root */
 	--outis-diagram-root-text: #006e43; /* mindmap root label */
 	--outis-diagram-root-border: #008350; /* mindmap root border */
-	--outis-diagram-line: #596f63; /* connectors */
+	--outis-diagram-line: #6d6861; /* connectors */
 	--outis-diagram-b1-fill: #bfe0dc; /* branch 1, and participants */
 	--outis-diagram-b1-border: #23524f; /* branch 1 border */
 	--outis-diagram-b2-fill: #c6d9ec; /* branch 2, and actors */
