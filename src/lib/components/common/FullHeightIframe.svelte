@@ -64,10 +64,12 @@
 			if (!vb || !vb.width || !vb.height) return;
 			let b;
 			try { b = s.getBBox(); } catch (e) { return; }
+			// Only when the drawing really spills over (0.5px slack for rounding); touching an edge is fine.
+			const over = b.x < vb.x - 0.5 || b.y < vb.y - 0.5 || b.x + b.width > vb.x + vb.width + 0.5 || b.y + b.height > vb.y + vb.height + 0.5;
+			if (!over) return;
 			const pad = 4;
 			const x0 = Math.min(vb.x, b.x - pad), y0 = Math.min(vb.y, b.y - pad);
 			const x1 = Math.max(vb.x + vb.width, b.x + b.width + pad), y1 = Math.max(vb.y + vb.height, b.y + b.height + pad);
-			if (x0 === vb.x && y0 === vb.y && x1 === vb.x + vb.width && y1 === vb.y + vb.height) return;
 			const w = parseFloat(s.getAttribute('width')), h = parseFloat(s.getAttribute('height'));
 			s.setAttribute('viewBox', [x0, y0, x1 - x0, y1 - y0].join(' '));
 			if (w && h) s.setAttribute('height', String(Math.round((w * (y1 - y0)) / (x1 - x0))));
