@@ -178,3 +178,19 @@ test('CR-15 an svg drawn past its own viewBox is widened to fit, not clipped', a
 	})).toBe(true);
 });
 
+
+test('CR-16 an embed shorter than the 480px starting frame shrinks to its content', async ({ page, api }) => {
+	const message = await openChat(page, api, fence('html', '<div style="height:200px;background:#eee">CR16 short</div>'), 'CR-16');
+	const frame = message.locator('iframe[title="Interactive content"]');
+	await expect(frame).toBeVisible();
+	await expect.poll(async () => (await frame.boundingBox())!.height).toBeLessThan(300);
+});
+
+test('CR-17 a fixed-size svg chart scales to the embed width (at most 1.6x)', async ({ page, api }) => {
+	const svg = '<svg width="300" height="150" viewBox="0 0 300 150"><rect width="300" height="150" fill="#ddd"/><text x="10" y="20">CR17</text></svg>';
+	const message = await openChat(page, api, fence('html', svg), 'CR-17');
+	const frame = message.frameLocator('iframe[title="Interactive content"]');
+	await expect(frame.locator('text')).toHaveText('CR17');
+	// 300 * 1.6 = 480: wider than drawn, capped so text does not balloon.
+	await expect.poll(() => frame.locator('svg').evaluate((s) => Math.round(s.getBoundingClientRect().width))).toBe(480);
+});

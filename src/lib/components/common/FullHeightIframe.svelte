@@ -37,14 +37,26 @@
 	let iframeDoc: string | null = null;
 	let registeredWindow: Window | null = null;
 
+	// Measures the content (body box + its margins), not documentElement.scrollHeight: that one is
+	// never below the frame's own height, so an embed could grow but never shrink -- a 320px chart
+	// sat on the 480px starting frame (found 2026-10-04).
 	const HEIGHT_REPORTER = `<script>(() => {
-		const post = () => parent.postMessage({ type: 'iframe:height', height: Math.min(document.documentElement.scrollHeight, 3000) }, '*');
-		new ResizeObserver(post).observe(document.documentElement);
+		const post = () => {
+			const b = document.body;
+			if (!b) return;
+			const cs = getComputedStyle(b);
+			const h = Math.max(b.getBoundingClientRect().height, b.scrollHeight) + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+			parent.postMessage({ type: 'iframe:height', height: Math.min(Math.max(Math.ceil(h), 60), 3000) }, '*');
+		};
+		const ro = new ResizeObserver(post);
+		ro.observe(document.documentElement);
+		addEventListener('DOMContentLoaded', () => document.body && ro.observe(document.body));
 		addEventListener('load', post);
 	})();<\/script>`;
 
 	// Fork: a hand-written top-level <svg> whose drawing spills past its own viewBox gets the box
-	// widened to fit (height grown to keep the scale), so nothing is clipped. Found 2026-10-04: a
+	// widened to fit (height grown to keep the scale), so nothing is clipped; then it is scaled to
+	// the frame's width (see fill below). Found 2026-10-04: a
 	// model drew a chart's last legend line at y=424 in a 420-tall SVG. Library charts already fit.
 	const SVG_FIT = `<script>(() => {
 		const fit = () => document.querySelectorAll('body > svg, body > div > svg').forEach((s) => {
@@ -60,7 +72,15 @@
 			s.setAttribute('viewBox', [x0, y0, x1 - x0, y1 - y0].join(' '));
 			if (w && h) s.setAttribute('height', String(Math.round((w * (y1 - y0)) / (x1 - x0))));
 		});
-		addEventListener('load', () => { fit(); setTimeout(fit, 300); });
+		// A chart drawn at a fixed size hugged the left of a wider frame. Scale it to the frame's
+		// width, keeping its shape, at most 1.6x so text stays readable; narrower frames scale down.
+		const fill = () => document.querySelectorAll('body > svg, body > div > svg').forEach((s) => {
+			const vb = s.viewBox && s.viewBox.baseVal;
+			if (!vb || !vb.width || !vb.height || s.dataset.outisFill) return;
+			s.dataset.outisFill = '1';
+			Object.assign(s.style, { display: 'block', width: '100%', height: 'auto', margin: '0 auto', maxWidth: Math.round(vb.width * 1.6) + 'px' });
+		});
+		addEventListener('load', () => { fit(); fill(); setTimeout(() => { fit(); fill(); }, 300); });
 	})();<\/script>`;
 
 	// Fork: tell the embed the app's theme and font, so tool UIs can match Outis light/dark
