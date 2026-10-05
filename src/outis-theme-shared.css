@@ -373,17 +373,10 @@ html:is(.outis-dark, .outis-light) .markdown-prose h3 {
 	font-size: 1em;
 }
 
-/* Reading measure and paragraph rhythm (OUTIS_READING_SPEC.md). The chat column is
-   58rem, about 112 characters of this mono face per line; comprehension is best at
-   45-75 and WCAG 1.4.8 caps it at 80. Only running text is capped -- code, tables,
-   maths (including a bubbled formula) and diagrams keep the
-   full column. Paragraph gap 0.8em takes the space between
-   paragraphs to 1.5x the line spacing (WCAG 1.4.8). */
-html:is(.outis-dark, .outis-light)
-	.markdown-prose
-	:is(p, li, blockquote, h1, h2, h3, h4, h5, h6):not([data-tb-math], :has(.katex-display)) {
-	max-width: 75ch;
-}
+/* Paragraph rhythm (OUTIS_READING_SPEC.md). Running text uses the whole chat column, the same width as code,
+   tables, maths and the chat's embedded cards: the user asked on 2026-10-05 for the space to be used rather than
+   a 75ch reading measure (which left about a third of the 58rem column empty beside full-width cards).
+   Paragraph gap 0.8em takes the space between paragraphs to 1.5x the line spacing (WCAG 1.4.8). */
 html:is(.outis-dark, .outis-light) .markdown-prose p:not(:last-child) {
 	margin-bottom: 0.8em;
 }

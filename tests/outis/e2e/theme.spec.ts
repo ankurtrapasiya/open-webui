@@ -496,7 +496,7 @@ test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async
 	}
 });
 
-test('TH-29 reading ladder and measure: body text in its contrast band, text capped at 75ch, code full width', async ({ page, api }) => {
+test('TH-29 reading ladder and measure: body text in its contrast band, text as wide as code', async ({ page, api }) => {
 	const want = {
 		'outis-dark': { body: 'rgb(215, 210, 203)', heading: 'rgb(231, 226, 220)', band: [11, 14] },
 		'outis-light': { body: 'rgb(51, 48, 43)', heading: 'rgb(29, 26, 22)', band: [12, 17] }
@@ -512,18 +512,13 @@ test('TH-29 reading ladder and measure: body text in its contrast band, text cap
 		expect(c).toBeLessThan(want[theme].band[1]);
 		// The accent no longer outshines the text being read.
 		if (theme === 'outis-dark') expect(contrast(T[theme].accent, T[theme].bg)).toBeLessThan(c);
-		// 75ch of the reading face, and code blocks still use the whole column.
-		const [maxW, chW, codeW] = await page.evaluate((p) => {
+		// No reading measure (user's choice 2026-10-05): running text spans the column, as wide as a code block.
+		const [maxW, textW, codeW] = await page.evaluate((p) => {
 			const el = document.querySelector(p)!;
-			const probe = document.createElement('span');
-			probe.style.cssText = 'position:absolute;visibility:hidden;width:1ch';
-			el.appendChild(probe);
-			const ch = probe.getBoundingClientRect().width;
-			probe.remove();
 			const code = document.querySelector('div[class*="language-"]')!.getBoundingClientRect().width;
-			return [parseFloat(getComputedStyle(el).maxWidth), ch, code];
+			return [getComputedStyle(el).maxWidth, el.getBoundingClientRect().width, code];
 		}, P);
-		expect(maxW).toBeCloseTo(75 * chW, 0);
-		expect(codeW).toBeGreaterThan(maxW);
+		expect(maxW).toBe('none');
+		expect(Math.abs(textW - codeW)).toBeLessThan(4);
 	}
 });

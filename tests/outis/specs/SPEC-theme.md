@@ -114,8 +114,8 @@ Reading (asked 2026-10-04; research and numbers in `OUTIS_READING_SPEC.md`):
 - **TH-29** Reply body text sits in its contrast band -- dark `rgb(215, 210, 203)` at 11-14:1
   (APCA Lc ~79), light `rgb(51, 48, 43)` at 12-17:1 (Lc ~96) -- and headings are the
   brightest/darkest neutral (`rgb(231, 226, 220)` / `rgb(29, 26, 22)`), not a hue. In dark the
-  accent's contrast is below body text's. Running text (p, li, blockquote, headings) is capped
-  at 75ch; code blocks keep the full column.
+  accent's contrast is below body text's. Running text (p, li, blockquote, headings) uses the
+  full column, as wide as code blocks (the 75ch cap was removed at the user's request, 2026-10-05).
 
 ## Notes for the test author
 
