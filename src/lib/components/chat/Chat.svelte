@@ -807,7 +807,7 @@
 	}
 
 	let saveControlsTimer;
-	$: if (!loading && !$temporaryChatEnabled && $chatId && params && chatFiles) {
+	$: if (!loading && !$temporaryChatEnabled && $chatId && params && chatFiles && selectedToolIds) {
 		clearTimeout(saveControlsTimer);
 		saveControlsTimer = setTimeout(saveControls, 400);
 	}
@@ -829,7 +829,11 @@
 		messageInput?.setText('');
 
 		files = [];
-		// selectedToolIds is not cleared here either, for the same reason as skills below:
+		// Opening a different chat must not inherit this one's tools (CB-26); the target chat's
+		// saved ticks are restored after loadChat below. A new chat getting its id is the same
+		// chat, so its ticks stay.
+		if ($chatId && $chatId !== chatIdProp) selectedToolIds = [];
+		// selectedToolIds is otherwise not cleared here, for the same reason as skills below:
 		// tools ticked for a chat (Wolfram, a quiz, a video tool) are how the chat works, and
 		// clearing them meant the second message went out with no tools at all.
 		// selectedSkillIds is deliberately NOT cleared here. A skill is the
@@ -853,6 +857,8 @@
 		const loaded = chatIdProp ? await loadChat() : false;
 		noteChatDebug('loadChat completed inside navigateHandler', { loaded });
 		if (loaded) {
+			// Read before loading=false: the controls autosave may rewrite `chat` after that.
+			const savedToolIds = chat?.chat?.toolIds;
 			await tick();
 			loading = false;
 			noteChatDebug('embedded chat loading false');
@@ -875,6 +881,7 @@
 			if (!(await restoreChatInput(storageChatInput))) {
 				await setDefaults();
 			}
+			if (Array.isArray(savedToolIds)) selectedToolIds = savedToolIds;
 
 			messageInput?.focus({ preventScroll: true });
 		} else if (!embedded) {
@@ -4022,11 +4029,18 @@
 	const saveControls = async () => {
 		if (!$chatId || $temporaryChatEnabled) return;
 		const loaded = chat?.chat ?? {};
-		if (equal(params, loaded.params ?? {}) && equal(chatFiles, loaded.files ?? [])) return;
+		if (
+			equal(params, loaded.params ?? {}) &&
+			equal(chatFiles, loaded.files ?? []) &&
+			equal(selectedToolIds, loaded.toolIds ?? [])
+		)
+			return;
 
 		const res = await updateChatById(localStorage.token, $chatId, {
 			params,
-			files: chatFiles
+			files: chatFiles,
+			// The chat's own tool ticks, so reopening it restores them (CB-26).
+			toolIds: selectedToolIds
 		}).catch((err) => {
 			console.error('[controls autosave]', err);
 			return null;
