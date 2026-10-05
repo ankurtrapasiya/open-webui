@@ -630,15 +630,19 @@ html:is(.outis-dark, .outis-light) .katex-display {
 /* ------------------------------------------------------------------
  * Reading colour guide (asked 2026-10-05: "the text part is all the same, so it is a lot to read").
  * One code across every reply, taught to every model by the global "Outis reading guide" filter:
- *   **bold**  key term or concept          -> the accent (Outis green)
+ *   **bold**  key term or concept          -> warm copper (--outis-key)
  *   *italic*  an example                   -> the code-node blue
  *   `code`    a number, value or code name -> the maths amber, on a faint chip
  *   > [!TIP] takeaway, [!NOTE] plain meaning, [!IMPORTANT] rule to remember, [!WARNING] trap,
  *   > [!CAUTION] "Your turn": a question for the reader
  * Maths keeps its own colours. `body` in the selectors outranks the per-theme inline-code rules.
  * ------------------------------------------------------------------ */
+/* Key terms in warm copper (2026-10-05: "use warm colours where you use bold"), contrast 5.3:1 light, 8.5:1 dark. */
+html.outis-light { --outis-key: #a3471a; }
+html.outis-dark { --outis-key: #f2a06e; }
 html:is(.outis-dark, .outis-light) body .markdown-prose strong {
-	color: var(--color-blue-500);
+	color: var(--outis-key);
+	font-weight: 600;
 }
 html:is(.outis-dark, .outis-light) body .markdown-prose :is(h1, h2, h3, h4, h5, h6) strong {
 	color: inherit;
@@ -648,7 +652,14 @@ html:is(.outis-dark, .outis-light) body .markdown-prose em {
 }
 html:is(.outis-dark, .outis-light) body .markdown-prose :not(pre) > code {
 	color: var(--outis-math);
-	background: color-mix(in srgb, var(--outis-math) 12%, transparent);
+	background: color-mix(in srgb, var(--outis-math) 20%, transparent);
+	padding: 0.08em 0.38em;
+}
+/* Highlighted text: a real highlighter band in the maths amber, text keeps its own colour. */
+html:is(.outis-dark, .outis-light) body .markdown-prose mark {
+	background: color-mix(in srgb, var(--outis-math) 30%, transparent);
+	color: inherit;
+	padding: 0 0.15em;
 }
 html:is(.outis-dark, .outis-light) body .outis-alert {
 	--alert: var(--outis-code-node);
