@@ -633,7 +633,8 @@ html:is(.outis-dark, .outis-light) .katex-display {
  *   **bold**  key term or concept          -> the accent (Outis green)
  *   *italic*  an example                   -> the code-node blue
  *   `code`    a number, value or code name -> the maths amber, on a faint chip
- *   > [!TIP] takeaway, [!NOTE] plain meaning, [!IMPORTANT] rule to remember, [!WARNING]/[!CAUTION] trap
+ *   > [!TIP] takeaway, [!NOTE] plain meaning, [!IMPORTANT] rule to remember, [!WARNING] trap,
+ *   > [!CAUTION] "Your turn": a question for the reader
  * Maths keeps its own colours. `body` in the selectors outranks the per-theme inline-code rules.
  * ------------------------------------------------------------------ */
 html:is(.outis-dark, .outis-light) body .markdown-prose strong {
@@ -669,6 +670,16 @@ html:is(.outis-dark, .outis-light) body .outis-alert[data-alert='TIP'] {
 html:is(.outis-dark, .outis-light) body .outis-alert[data-alert='IMPORTANT'] {
 	--alert: var(--outis-math);
 }
-html:is(.outis-dark, .outis-light) body .outis-alert:is([data-alert='WARNING'], [data-alert='CAUTION']) {
+html:is(.outis-dark, .outis-light) body .outis-alert[data-alert='WARNING'] {
 	--alert: var(--color-red-500);
+}
+/* [!CAUTION] is "Your turn": a question the reader should answer (quiz, quick recall). Neutral and high contrast,
+   so it reads as a pause rather than as another fact. */
+html:is(.outis-dark, .outis-light) body .outis-alert[data-alert='CAUTION'] {
+	--alert: var(--color-gray-50);
+	background: var(--color-gray-850);
+}
+html.outis-light body .outis-alert[data-alert='CAUTION'] {
+	--alert: var(--color-gray-900);
+	background: var(--color-gray-100);
 }

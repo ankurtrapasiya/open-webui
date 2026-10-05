@@ -50,7 +50,7 @@
 		TIP: 'Takeaway',
 		IMPORTANT: 'Remember',
 		WARNING: 'Trap',
-		CAUTION: 'Caution'
+		CAUTION: 'Your turn'
 	};
 
 	export function alertComponent(token: Token): AlertData | false {
