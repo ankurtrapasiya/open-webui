@@ -512,13 +512,16 @@ test('TH-29 reading ladder and measure: body text in its contrast band, text as 
 		expect(c).toBeLessThan(want[theme].band[1]);
 		// The accent no longer outshines the text being read.
 		if (theme === 'outis-dark') expect(contrast(T[theme].accent, T[theme].bg)).toBeLessThan(c);
-		// No reading measure (user's choice 2026-10-05): running text spans the column, as wide as a code block.
-		const [maxW, textW, codeW] = await page.evaluate((p) => {
-			const el = document.querySelector(p)!;
-			const code = document.querySelector('div[class*="language-"]')!.getBoundingClientRect().width;
-			return [getComputedStyle(el).maxWidth, el.getBoundingClientRect().width, code];
-		}, P);
+		// No reading measure (user's choice 2026-10-05): a paragraph of the reply that holds the code block spans
+		// that reply's full width. (The first .markdown-prose p on the page can sit in a narrower element.)
+		const [maxW, textW, proseW] = await page.evaluate(() => {
+			const prose = document.querySelector('div[class*="language-"]')!.closest('.markdown-prose')!;
+			const el = prose.querySelector('p')!;
+			const cs = getComputedStyle(prose);
+			const inner = prose.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+			return [getComputedStyle(el).maxWidth, el.getBoundingClientRect().width, inner];
+		});
 		expect(maxW).toBe('none');
-		expect(Math.abs(textW - codeW)).toBeLessThan(4);
+		expect(Math.abs(textW - proseW)).toBeLessThan(2);
 	}
 });
