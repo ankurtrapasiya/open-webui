@@ -42,6 +42,9 @@ if [ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/health")"
 	exit 2
 fi
 
+echo "== backend checks inside the image"
+docker exec -i -e STUDY_MEMORY_PY=/app/backend/open_webui/utils/study_memory.py "$NAME" python3 - <"$SUITE/backend/test_study_memory.py"
+
 cd "$SUITE"
 [ -d node_modules/@playwright/test ] || npm ci --no-audit --no-fund
 npx playwright install chromium >/dev/null

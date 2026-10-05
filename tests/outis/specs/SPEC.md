@@ -28,6 +28,7 @@ passes, or names the broken feature and the acceptance criterion it broke.
 | `quiz-theme` | QuizUI tool embed takes Outis light/dark colours (needs outis-mneme) | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `math-latex` | Global filter adds the LaTeX rule for every model (needs outis-mneme) | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `code-format` | Outlet filter Black-formats python blocks in replies (needs outis-mneme) | [SPEC-chat-render.md](SPEC-chat-render.md) |
+| `memory` | Background memory reviewer keeps study state only, under `study/` | [SPEC-memory.md](SPEC-memory.md) |
 | `chat-behaviour` | Tool images, document dedupe, skills persist, composer UX, code wrap | [SPEC-chat-behaviour.md](SPEC-chat-behaviour.md) |
 | `theme` | Outis-Dark/Light, fonts, type scale, surfaces, focus, CodeMirror | [SPEC-theme.md](SPEC-theme.md) |
 | `branding` | "Outis" everywhere the instance names itself | [SPEC-branding.md](SPEC-branding.md) |

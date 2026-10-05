@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import logging
 import re
 from typing import Any
@@ -11,6 +12,7 @@ from open_webui.models.memories import Memories
 from open_webui.utils.access_control import has_permission
 from open_webui.utils.json_codec import JSONCodec
 from open_webui.utils.misc import add_or_update_system_message, get_content_from_message
+from open_webui.utils.study_memory import in_study, keep_study_operations
 
 log = logging.getLogger(__name__)
 
@@ -485,6 +487,7 @@ async def _review_memory(
     existing_lines = [
         f'- id={memory.id} type={memory.type} path={memory.path or ""} content={memory.content}'
         for memory in (existing_memories or [])[:80]
+        if in_study(memory.path)
     ]
 
     assistant_content = get_content_from_message(assistant_message)
@@ -519,6 +522,8 @@ async def _review_memory(
         existing_text='\n'.join(existing_lines) if existing_lines else '(none)',
         transcript='\n\n'.join(transcript_lines),
     )
+    # Outis: the reviewer keeps study state only, and never touches memories outside study/.
+    operations = keep_study_operations(operations, {memory.id: memory.path for memory in existing_memories or []})
     if operations:
         from open_webui.routers.memories import UpdateMemoriesForm, update_memories
 
@@ -538,18 +543,28 @@ async def _generate_memory_operations(
 
     review_prompt = f"""Review the completed conversation turn and decide whether long-term memory should change.
 
-Memory types:
-- user: durable facts, preferences, or instructions about the user.
-- context: other durable context that may help future chats for this user account.
+This memory is a learner model for a study tutor. It records what the user knows and where
+they get stuck, so later tutoring starts from the right place. It is not a profile of the user.
+
+Save only:
+- Concepts the user showed they understand, struggled with, or confused with another concept.
+- The example, picture or analogy that finally made a concept click for them.
+- Lasting study preferences the user states (for example "show worked numbers before symbols").
+
+Never save, even if the user says it:
+- Name, contact details, employer, job title, location, usernames or login IDs.
+- University, degree programme, course codes, grades, or deadlines.
+- Anything else that could identify the user, plus secrets, credentials, mood, or one-off chat steps.
 
 Rules:
-- Save enduring details that can improve future conversations.
-- Do not save one-off activity, meals, temporary mood, routine daily events, or other short-lived details unless the user explicitly asks to remember them.
-- Do not save secrets, credentials, transient task steps, or unsupported guesses.
-- Use path when there is a clear path for the memory.
-- Leave path empty when there is no clear place for the memory.
-- Prefer replace/move/remove over duplicate add when an existing memory should change.
-- Do not invent type, status, trait, score, importance, or stability schemas.
+- Every path starts with study/ and names the subject then the concept, lower-case, e.g.
+  study/statistics/covariance, study/finance/sharpe-ratio, study/preferences/explanations.
+- Use type "context" for concepts and type "user" for study preferences.
+- Content is one or two plain sentences: the state (understood / shaky / confused with X),
+  what showed it, and the example that worked if any. End with the date as (YYYY-MM-DD).
+- One memory per concept: replace the existing study/ memory instead of adding a second one.
+- Do not save from a turn that only explained something; save when the user's own words or
+  answers show what they know or do not know.
 - Return only JSON in this shape:
   {{"operations":[
     {{"action":"add","type":"user|context","path":"...","content":"..."}},
@@ -558,6 +573,8 @@ Rules:
     {{"action":"remove","id":"..."}}
   ]}}
 - Use an empty operations array if nothing should be remembered.
+
+Today is {datetime.date.today().isoformat()}.
 
 Existing memories:
 {existing_text}
