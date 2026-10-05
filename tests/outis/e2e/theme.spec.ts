@@ -521,7 +521,7 @@ test('TH-29 reading ladder and measure: body text in its contrast band, text as 
 			const inner = prose.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
 			return [getComputedStyle(el).maxWidth, el.getBoundingClientRect().width, inner];
 		});
-		expect(maxW).toBe('none');
+		expect(['none', '100%']).toContain(maxW); // no ch cap (the reading rail sets 100%, which is the full column)
 		expect(Math.abs(textW - proseW)).toBeLessThan(2);
 	}
 });
