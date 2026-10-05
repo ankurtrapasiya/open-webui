@@ -626,3 +626,49 @@ html:is(.outis-dark, .outis-light) .katex-display {
 	border-left: 2px solid var(--color-blue-700);
 	padding: 0.75em 1em;
 }
+
+/* ------------------------------------------------------------------
+ * Reading colour guide (asked 2026-10-05: "the text part is all the same, so it is a lot to read").
+ * One code across every reply, taught to every model by the global "Outis reading guide" filter:
+ *   **bold**  key term or concept          -> the accent (Outis green)
+ *   *italic*  an example                   -> the code-node blue
+ *   `code`    a number, value or code name -> the maths amber, on a faint chip
+ *   > [!TIP] takeaway, [!NOTE] plain meaning, [!IMPORTANT] rule to remember, [!WARNING]/[!CAUTION] trap
+ * Maths keeps its own colours. `body` in the selectors outranks the per-theme inline-code rules.
+ * ------------------------------------------------------------------ */
+html:is(.outis-dark, .outis-light) body .markdown-prose strong {
+	color: var(--color-blue-500);
+}
+html:is(.outis-dark, .outis-light) body .markdown-prose :is(h1, h2, h3, h4, h5, h6) strong {
+	color: inherit;
+}
+html:is(.outis-dark, .outis-light) body .markdown-prose em {
+	color: var(--outis-code-node);
+}
+html:is(.outis-dark, .outis-light) body .markdown-prose :not(pre) > code {
+	color: var(--outis-math);
+	background: color-mix(in srgb, var(--outis-math) 12%, transparent);
+}
+html:is(.outis-dark, .outis-light) body .outis-alert {
+	--alert: var(--outis-code-node);
+	border-left-color: var(--alert) !important;
+	background: color-mix(in srgb, var(--alert) 8%, transparent);
+	padding-right: 0.6rem;
+	margin: 0.5rem 0;
+}
+html:is(.outis-dark, .outis-light) body .outis-alert > div:first-child {
+	color: var(--alert) !important;
+	padding-bottom: 0.15rem;
+}
+html:is(.outis-dark, .outis-light) body .outis-alert > div:first-child svg {
+	color: var(--alert);
+}
+html:is(.outis-dark, .outis-light) body .outis-alert[data-alert='TIP'] {
+	--alert: var(--color-blue-500);
+}
+html:is(.outis-dark, .outis-light) body .outis-alert[data-alert='IMPORTANT'] {
+	--alert: var(--outis-math);
+}
+html:is(.outis-dark, .outis-light) body .outis-alert:is([data-alert='WARNING'], [data-alert='CAUTION']) {
+	--alert: var(--color-red-500);
+}

@@ -43,6 +43,16 @@
 		}
 	};
 
+	// Fork: reading-guide labels (2026-10-05). The type says what the reader gets from the box, so a model
+	// can write the content straight after the marker. Colours come from the Outis theme (data-alert).
+	const alertLabels: Record<AlertType, string> = {
+		NOTE: 'Meaning',
+		TIP: 'Takeaway',
+		IMPORTANT: 'Remember',
+		WARNING: 'Trap',
+		CAUTION: 'Caution'
+	};
+
 	export function alertComponent(token: Token): AlertData | false {
 		const regExpStr = `^(?:\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\\])\\s*?\n*`;
 		const regExp = new RegExp(regExpStr);
@@ -100,10 +110,10 @@ Renders the following Markdown as alerts:
 > Example warning
 
 -->
-<div class={`border-l-4 pl-2.5 ${alertStyles[alert.type].border} my-0.5`}>
+<div class={`outis-alert border-l-4 pl-2.5 ${alertStyles[alert.type].border} my-0.5`} data-alert={alert.type}>
 	<div class="{alertStyles[alert.type].text} items-center flex gap-1 py-1.5">
 		<svelte:component this={alertStyles[alert.type].icon} className="inline-block size-4" />
-		<span class=" font-normal">{alert.type}</span>
+		<span class=" font-normal">{alertLabels[alert.type]}</span>
 	</div>
 	<div class="pb-2">
 		<MarkdownTokens
