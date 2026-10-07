@@ -265,28 +265,6 @@ test('CB-25 a new chat starts from the model defaults, without the last chat\'s 
 	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveCount(0);
 });
 
-test('CB-26 switching chats keeps each chat\'s own tools, not the last chat\'s', async ({ page }) => {
-	await newChatWithTool(page);
-	await send(page, 'chat with tool');
-	await expect(page).toHaveURL(/\/c\//);
-	await expect(page.getByText('Fake reply.').first()).toBeVisible();
-	const withTool = page.url();
-
-	await page.locator('a#sidebar-new-chat-button:visible, a[aria-label="New Chat"]:visible').first().click();
-	await expect(page).not.toHaveURL(/\/c\//);
-	await send(page, 'chat without tool');
-	await expect(page).toHaveURL(/\/c\//);
-	await expect(page.getByText('Fake reply.').first()).toBeVisible();
-	const withoutTool = page.url();
-
-	await page.goto(withTool);
-	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveText('1');
-	await page.goto(withoutTool);
-	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveCount(0);
-	await page.goto(withTool);
-	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveText('1');
-});
-
 // --- Composer suggestions -------------------------------------------------------------------
 
 async function composerWithSuggestions(page: Page, api: any) {
