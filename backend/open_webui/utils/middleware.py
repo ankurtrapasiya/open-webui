@@ -3335,21 +3335,30 @@ async def build_chat_response_context(request, form_data, user, model, metadata,
     }
 
 
-# Fork: a model sometimes closes a long tool-call argument object with one brace too many,
-# e.g. '{"source": "...\\frac{r}{n}..."}}' (seen 2026-10-07: Qwen3 235B, four retries in a row,
-# on LaTeX-heavy arguments). Every retry was rejected and the tool never ran. Accept a complete
-# JSON object followed only by stray closing brackets; anything else still fails as before.
+# Fork: models break long, LaTeX-heavy tool-call arguments in two ways (seen 2026-10-07, Qwen3
+# 235B, four retries in a row, every one rejected so the tool never ran): one closing brace too
+# many ('{"source": "..."}}'), and a backslash before a character JSON cannot escape ("\$1,000").
+# Accept a complete JSON object followed only by stray closing brackets, reading an invalid escape
+# as a literal backslash; anything else still fails as before.
+_INVALID_JSON_ESCAPE = re.compile(r'\\(.)', re.S)
+
+
 def parse_tool_call_arguments(tool_args: str):
     try:
         return JSONCodec.loads(tool_args)
     except Exception:
         pass
-    try:
-        obj, end = json.JSONDecoder().raw_decode(tool_args.strip())
-        if isinstance(obj, dict) and not tool_args.strip()[end:].strip(' \t\r\n}]'):
+    text = tool_args.strip()
+    repaired = _INVALID_JSON_ESCAPE.sub(
+        lambda m: m.group(0) if m.group(1) in '"\\/bfnrtu' else '\\\\' + m.group(1), text
+    )
+    for candidate in (text, repaired):
+        try:
+            obj, end = json.JSONDecoder().raw_decode(candidate)
+        except Exception:
+            continue
+        if isinstance(obj, dict) and not candidate[end:].strip(' \t\r\n}]'):
             return obj
-    except Exception:
-        pass
     return ast.literal_eval(tool_args)
 
 

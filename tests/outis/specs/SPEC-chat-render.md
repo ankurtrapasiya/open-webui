@@ -72,10 +72,11 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   commands is untouched. (Found 2026-10-03: mercury-2.5 doubles backslashes as if JSON-escaping;
   KaTeX read `\\` as a line break. `repairLatex` halves them only when no single-backslash
   command is present.)
-- **CR-19** A tool call whose arguments end in one stray `}` (`{}}`) still runs: the tool's
-  embed shows. Anything after the object other than closing brackets still fails as before.
-  (Found 2026-10-07: Qwen3 235B closed a LaTeX-heavy argument object with `}}` on four retries
-  in a row, and every one was rejected. `parse_tool_call_arguments` in `utils/middleware.py`.)
+- **CR-19** A tool call whose arguments carry one stray `}` and an invalid JSON escape
+  (`{"text": "costs \$5"}}`) still runs: the embed shows `costs \$5`, the backslash kept.
+  Anything after the object other than closing brackets still fails as before. (Found
+  2026-10-07: Qwen3 235B sent both defects on four retries in a row and every one was rejected.
+  `parse_tool_call_arguments` in `utils/middleware.py`.)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).

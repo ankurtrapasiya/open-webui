@@ -134,12 +134,27 @@ test('CR-18 a tool embed holding entity-like text still shows, unaltered', async
 	await expect(f.locator('#js')).toHaveText('true &quot;');
 });
 
-test('CR-19 a tool call whose arguments end in a stray "}" still runs', async ({ page, api }) => {
-	await api.tool('regression_embed', EMBED_TOOL);
-	const { chatId, messageId } = await api.startChat({ model: 'fake-model', content: 'CALL tall_embed {}}', tool_ids: ['regression_embed'] });
+const ECHO_TOOL = `"""
+title: Regression echo embed
+"""
+from fastapi.responses import HTMLResponse
+import html
+class Tools:
+    def echo_embed(self, text: str):
+        """
+        Show the text in an embed.
+        :param text: the text
+        """
+        return HTMLResponse('<!doctype html><html><body><p id="cr19">' + html.escape(text) + '</p></body></html>', headers={"Content-Disposition": "inline"})
+`;
+
+test('CR-19 tool arguments with a stray "}" or an invalid escape still run the tool', async ({ page, api }) => {
+	await api.tool('regression_echo_embed', ECHO_TOOL);
+	// Both defects at once, as Qwen3 235B sent them: "\$" is not a JSON escape, and one "}" too many.
+	const { chatId, messageId } = await api.startChat({ model: 'fake-model', content: 'CALL echo_embed {"text": "costs \\$5"}}', tool_ids: ['regression_echo_embed'] });
 	await api.waitForReply(chatId, messageId);
 	await page.goto(`/c/${chatId}`);
-	await expect(page.frameLocator('iframe[title="Embedded Content"]').locator('#cr10')).toHaveText('CR10 tall');
+	await expect(page.frameLocator('iframe[title="Embedded Content"]').locator('#cr19')).toHaveText('costs \\$5');
 });
 
 test('CR-11 an embed is told the Outis theme (data-outis-theme) and follows a theme switch', async ({ page, api }) => {
