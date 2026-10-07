@@ -51,6 +51,11 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   Safari plays every video full-screen instead of inside the message. (Found 2026-10-01.)
 - **CR-10** A tool returning a 700px-tall `HTMLResponse` shows an "Embedded Content" iframe
   taller than 650px.
+- **CR-18** A tool embed whose text holds entity-like sequences (`&quot;`, `&#39;`, a script with
+  `a&&gt.has(1)`) still shows, byte for byte: the text reads `&quot;` literally and the script runs.
+  (Found 2026-10-07: the structured-output path stored embeds unescaped but read them back through
+  an HTML-entity decode, so the JSON broke and the embed vanished, e.g. a KaTeX equation card.
+  `escapeAttribute` in `structuredOutput.ts` escapes them as the backend's `html.escape` does.)
 - **CR-12** A display equation spread over several lines, with a line holding only `=` between
   two matrices, renders as one KaTeX display block: no heading, no raw `\begin{bmatrix}`. A `$$`
   block likewise; a python fence is untouched. (Found 2026-10-01: the lone `=` was read as a
@@ -67,6 +72,10 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   commands is untouched. (Found 2026-10-03: mercury-2.5 doubles backslashes as if JSON-escaping;
   KaTeX read `\\` as a line break. `repairLatex` halves them only when no single-backslash
   command is present.)
+- **CR-19** A tool call whose arguments end in one stray `}` (`{}}`) still runs: the tool's
+  embed shows. Anything after the object other than closing brackets still fails as before.
+  (Found 2026-10-07: Qwen3 235B closed a LaTeX-heavy argument object with `}}` on four retries
+  in a row, and every one was rejected. `parse_tool_call_arguments` in `utils/middleware.py`.)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).

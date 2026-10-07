@@ -122,6 +122,20 @@ function stringifyAttribute(value: unknown): string {
 	}
 }
 
+// Fork: tool-call attributes are read back with an HTML-entity decode (ToolCallDisplay,
+// ConsecutiveDetailsGroup), written for the backend's <details> path, which escapes them with
+// html.escape. Escape the same way here, or any "&quot;", "&#39;" or "&gt" inside a tool's
+// embed is decoded into a real character, its JSON breaks and the embed silently disappears
+// (found 2026-10-07: KaTeX's own code holds "n&&gt.has(r)").
+function escapeAttribute(value: string): string {
+	return value
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#x27;');
+}
+
 function isDoneStatus(status?: string): boolean {
 	return status === 'completed' || status === 'failed' || status === 'incomplete';
 }
@@ -228,9 +242,9 @@ function buildToolCallToken(item: OutputItem, toolOutputByCallId: Record<string,
 			name,
 			done: isDone ? 'true' : 'false',
 			status,
-			arguments: stringifyAttribute(item.arguments ?? ''),
-			files: stringifyAttribute(resultItem?.files),
-			embeds: stringifyAttribute(resultItem?.embeds)
+			arguments: escapeAttribute(stringifyAttribute(item.arguments ?? '')),
+			files: escapeAttribute(stringifyAttribute(resultItem?.files)),
+			embeds: escapeAttribute(stringifyAttribute(resultItem?.embeds))
 		}
 	};
 }

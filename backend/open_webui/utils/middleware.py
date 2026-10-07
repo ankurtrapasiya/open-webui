@@ -3335,6 +3335,24 @@ async def build_chat_response_context(request, form_data, user, model, metadata,
     }
 
 
+# Fork: a model sometimes closes a long tool-call argument object with one brace too many,
+# e.g. '{"source": "...\\frac{r}{n}..."}}' (seen 2026-10-07: Qwen3 235B, four retries in a row,
+# on LaTeX-heavy arguments). Every retry was rejected and the tool never ran. Accept a complete
+# JSON object followed only by stray closing brackets; anything else still fails as before.
+def parse_tool_call_arguments(tool_args: str):
+    try:
+        return JSONCodec.loads(tool_args)
+    except Exception:
+        pass
+    try:
+        obj, end = json.JSONDecoder().raw_decode(tool_args.strip())
+        if isinstance(obj, dict) and not tool_args.strip()[end:].strip(' \t\r\n}]'):
+            return obj
+    except Exception:
+        pass
+    return ast.literal_eval(tool_args)
+
+
 async def execute_tool_call_for_output(request, form_data, user, metadata, event_caller, event_emitter, tool_call):
     tools = metadata.get('tools', {})
     name = tool_call.get('function', {}).get('name', '')
@@ -3342,19 +3360,16 @@ async def execute_tool_call_for_output(request, form_data, user, metadata, event
     params = {}
     if tool_args and tool_args.strip():
         try:
-            params = JSONCodec.loads(tool_args)
-        except Exception:
-            try:
-                params = ast.literal_eval(tool_args)
-            except Exception as e:
-                log.debug(e)
-                return {
-                    'tool_call_id': tool_call.get('id', ''),
-                    'content': (
-                        'Error: Tool call arguments could not be parsed. '
-                        'The model generated malformed or incomplete JSON.'
-                    ),
-                }
+            params = parse_tool_call_arguments(tool_args)
+        except Exception as e:
+            log.debug(e)
+            return {
+                'tool_call_id': tool_call.get('id', ''),
+                'content': (
+                    'Error: Tool call arguments could not be parsed. '
+                    'The model generated malformed or incomplete JSON.'
+                ),
+            }
     if not isinstance(params, dict):
         return {
             'tool_call_id': tool_call.get('id', ''),
@@ -5982,13 +5997,10 @@ async def streaming_chat_response_handler(response, ctx):
                         params = {}
                         if tool_args and tool_args.strip():
                             try:
-                                params = JSONCodec.loads(tool_args)
-                            except Exception:
-                                try:
-                                    params = ast.literal_eval(tool_args)
-                                except Exception as e:
-                                    log.debug(e)
-                                    return None
+                                params = parse_tool_call_arguments(tool_args)
+                            except Exception as e:
+                                log.debug(e)
+                                return None
                         if not isinstance(params, dict):
                             raise ValueError('Tool call arguments must be a JSON object.')
                         tool_call.setdefault('function', {})['arguments'] = JSONCodec.dumps(params)

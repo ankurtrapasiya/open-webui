@@ -108,6 +108,40 @@ test('CR-10 a tool embed (HTMLResponse) grows to its content, not the 150px ifra
 	await expect.poll(async () => (await frame.boundingBox())?.height ?? 0).toBeGreaterThan(650);
 });
 
+const ENTITY_TOOL = `"""
+title: Regression entity embed
+"""
+from fastapi.responses import HTMLResponse
+class Tools:
+    def entity_embed(self):
+        """
+        An embed whose text looks like HTML entities.
+        """
+        return HTMLResponse(
+            content='<!doctype html><html><body><p id="cr18">say &amp;quot; and &amp;#39;</p><p id="js"></p>'
+            '<script>const gt = new Set([1]); const a = 1; document.getElementById("js").textContent = String(a&&gt.has(1)) + " &quot;";</script></body></html>',
+            headers={"Content-Disposition": "inline"},
+        )
+`;
+
+test('CR-18 a tool embed holding entity-like text still shows, unaltered', async ({ page, api }) => {
+	await api.tool('regression_entity_embed', ENTITY_TOOL);
+	const { chatId, messageId } = await api.startChat({ model: 'fake-model', content: 'CALL entity_embed', tool_ids: ['regression_entity_embed'] });
+	await api.waitForReply(chatId, messageId);
+	await page.goto(`/c/${chatId}`);
+	const f = page.frameLocator('iframe[title="Embedded Content"]');
+	await expect(f.locator('#cr18')).toHaveText('say &quot; and &#39;');
+	await expect(f.locator('#js')).toHaveText('true &quot;');
+});
+
+test('CR-19 a tool call whose arguments end in a stray "}" still runs', async ({ page, api }) => {
+	await api.tool('regression_embed', EMBED_TOOL);
+	const { chatId, messageId } = await api.startChat({ model: 'fake-model', content: 'CALL tall_embed {}}', tool_ids: ['regression_embed'] });
+	await api.waitForReply(chatId, messageId);
+	await page.goto(`/c/${chatId}`);
+	await expect(page.frameLocator('iframe[title="Embedded Content"]').locator('#cr10')).toHaveText('CR10 tall');
+});
+
 test('CR-11 an embed is told the Outis theme (data-outis-theme) and follows a theme switch', async ({ page, api }) => {
 	const html =
 		'<!DOCTYPE html><html><head></head><body><p id="t"></p><script>setInterval(() => (document.getElementById("t").textContent = document.documentElement.dataset.outisTheme), 50)</script></body></html>';
