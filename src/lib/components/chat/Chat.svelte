@@ -806,11 +806,24 @@
 		initEmbeddedDraft();
 	}
 
+	// The autosave is debounced, so it remembers which chat it is for: by the time it fires the
+	// page may have moved on, and $chatId would point at another chat (CB-26).
 	let saveControlsTimer;
-	$: if (!loading && !$temporaryChatEnabled && $chatId && params && chatFiles) {
+	let saveControlsPendingId = '';
+	$: if (!loading && !$temporaryChatEnabled && $chatId && params && chatFiles && selectedToolIds) {
 		clearTimeout(saveControlsTimer);
-		saveControlsTimer = setTimeout(saveControls, 400);
+		saveControlsPendingId = $chatId;
+		saveControlsTimer = setTimeout(flushControls, 400);
 	}
+	const cancelPendingControls = () => {
+		clearTimeout(saveControlsTimer);
+		saveControlsPendingId = '';
+	};
+	const flushControls = async () => {
+		const id = saveControlsPendingId;
+		cancelPendingControls();
+		if (id) await saveControls(id);
+	};
 
 	const navigateHandler = async () => {
 		noteChatDebug('navigateHandler start');
@@ -821,7 +834,7 @@
 			updateLastReadAt($chatId);
 		}
 
-		clearTimeout(saveControlsTimer);
+		cancelPendingControls();
 		await saveControls();
 		loading = true;
 
@@ -829,7 +842,11 @@
 		messageInput?.setText('');
 
 		files = [];
-		// selectedToolIds is not cleared here either, for the same reason as skills below:
+		// Opening a different chat must not inherit this one's tools (CB-26); the target chat's
+		// saved ticks are restored after loadChat below. A new chat getting its id is the same
+		// chat, so its ticks stay.
+		if ($chatId && $chatId !== chatIdProp) selectedToolIds = [];
+		// selectedToolIds is otherwise not cleared here, for the same reason as skills below:
 		// tools ticked for a chat (Wolfram, a quiz, a video tool) are how the chat works, and
 		// clearing them meant the second message went out with no tools at all.
 		// selectedSkillIds is deliberately NOT cleared here. A skill is the
@@ -853,6 +870,8 @@
 		const loaded = chatIdProp ? await loadChat() : false;
 		noteChatDebug('loadChat completed inside navigateHandler', { loaded });
 		if (loaded) {
+			// Read before loading=false: the controls autosave may rewrite `chat` after that.
+			const savedToolIds = chat?.chat?.toolIds;
 			await tick();
 			loading = false;
 			noteChatDebug('embedded chat loading false');
@@ -875,6 +894,7 @@
 			if (!(await restoreChatInput(storageChatInput))) {
 				await setDefaults();
 			}
+			if (Array.isArray(savedToolIds)) selectedToolIds = savedToolIds;
 
 			messageInput?.focus({ preventScroll: true });
 		} else if (!embedded) {
@@ -889,7 +909,7 @@
 	};
 
 	const initEmbeddedDraft = async () => {
-		clearTimeout(saveControlsTimer);
+		cancelPendingControls();
 		await saveControls();
 
 		if ($chatId && !$temporaryChatEnabled) {
@@ -1642,8 +1662,9 @@
 
 		return () => {
 			try {
-				clearTimeout(saveControlsTimer);
-				saveControls();
+				const pendingId = saveControlsPendingId;
+				cancelPendingControls();
+				saveControls(pendingId || $chatId);
 				if (chatIdProp && !$temporaryChatEnabled) {
 					updateLastReadAt(chatIdProp);
 				}
@@ -2026,6 +2047,9 @@
 	const initNewChat = async () => {
 		console.log('initNewChat');
 		resetWebSearchConfirmation();
+		// A chat started here keeps this page, so New Chat lands here, not in navigateHandler:
+		// save a pending change of the outgoing chat (its tool ticks) before resetting (CB-26).
+		await flushControls();
 
 		// Mark the outgoing chat as read before resetting; in-place created chats
 		// keep chatIdProp undefined, so navigateHandler never marks them read.
@@ -4019,20 +4043,27 @@
 		}
 	};
 
-	const saveControls = async () => {
-		if (!$chatId || $temporaryChatEnabled) return;
+	const saveControls = async (id = $chatId) => {
+		if (!id || $temporaryChatEnabled) return;
 		const loaded = chat?.chat ?? {};
-		if (equal(params, loaded.params ?? {}) && equal(chatFiles, loaded.files ?? [])) return;
+		if (
+			equal(params, loaded.params ?? {}) &&
+			equal(chatFiles, loaded.files ?? []) &&
+			equal(selectedToolIds, loaded.toolIds ?? [])
+		)
+			return;
 
-		const res = await updateChatById(localStorage.token, $chatId, {
+		const res = await updateChatById(localStorage.token, id, {
 			params,
-			files: chatFiles
+			files: chatFiles,
+			// The chat's own tool ticks, so reopening it restores them (CB-26).
+			toolIds: selectedToolIds
 		}).catch((err) => {
 			console.error('[controls autosave]', err);
 			return null;
 		});
 		// Refresh the dedupe baseline so a later revert still saves.
-		if (res) chat = res;
+		if (res && id === $chatId) chat = res;
 	};
 
 	const MAX_DRAFT_LENGTH = 5000;

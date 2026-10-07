@@ -101,6 +101,14 @@ Settings for these tests: `ui.showFormattingToolbar = true`,
   `selectedToolIds` on every send, the same bug CB-9 fixed for skills, so the second message
   went out with no tools and tool use looked flaky.)
 - **CB-25** Starting a new chat drops the last chat's tools (model defaults still apply).
+- **CB-26** Each chat keeps its own ticked tools: reopening a chat restores them, and opening
+  another chat does not inherit them. (Found 2026-10-05: tool ticks lived only in the page,
+  so switching chats carried the last chat's tools over and lost this chat's own. First attempt
+  failed CI twice, 2026-10-05 and 2026-10-07: the ticks are saved 400ms after a change, and New
+  Chat on a chat started from the home page goes through `initNewChat`, which reset the chat
+  before that save ran, so it was dropped. Now `initNewChat` flushes a pending save first, and
+  the debounced save carries the id of the chat it was made for instead of reading `$chatId`
+  when it fires.)
 - **CB-11** All 8 suggestion chips are visible without scrolling the suggestion list
   (`scrollHeight <= clientHeight`).
 - **CB-12** Focusing the empty chat input does not create `#floating-menu`.
