@@ -1325,7 +1325,7 @@
 					message.followUps = data.follow_ups;
 
 					if (shouldAutoScrollResponse()) {
-						scrollToBottom('smooth');
+						followReply('smooth');
 					}
 				} else if (type === 'chat:outlet') {
 					// Outlet filter ran on backend — sync in-memory state
@@ -2506,13 +2506,25 @@
 
 	let scrollRAF = null;
 	let contentsRAF = null;
+	// Fork: while a reply streams, follow it only until its top reaches the top of the view, then hold still,
+	// so its cards and first lines stay where the user is reading (user's request 2026-10-08: cards kept moving).
+	const followReply = async (behavior: ScrollBehavior = 'auto') => {
+		await tick();
+		const el = document.getElementById(`message-${history.currentId}`);
+		if (!messagesContainerElement || !el) return scrollToBottom(behavior);
+		const c = messagesContainerElement;
+		const replyTop = c.scrollTop + el.getBoundingClientRect().top - c.getBoundingClientRect().top - 16;
+		const target = Math.min(c.scrollHeight - c.clientHeight, Math.max(replyTop, 0));
+		if (target > c.scrollTop + 1) c.scrollTo({ top: target, behavior });
+	};
+
 	const autoScrollToBottom = () => {
 		if (!shouldAutoScrollResponse()) return;
 
 		if (!scrollRAF) {
 			scrollRAF = requestAnimationFrame(async () => {
 				scrollRAF = null;
-				await scrollToBottom();
+				await followReply();
 			});
 		}
 	};
