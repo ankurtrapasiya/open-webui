@@ -722,6 +722,26 @@
 							</div>
 						{/if}
 
+						<!-- Fork: embeds (tool / filter cards) above the reply text. They arrive before the text streams, so
+						     below it they kept sliding down as text grew (user's request 2026-10-08; it was below since 2026-10-05). -->
+						{#if !readOnly && message?.embeds && message.embeds.length > 0}
+							<div
+								class="my-1 w-full flex overflow-x-auto gap-2 flex-wrap"
+								id={`${message.id}-embeds-container`}
+							>
+								{#each message.embeds as embed, idx}
+									<div class="my-2 w-full" id={`${message.id}-embeds-${idx}`}>
+										<FullHeightIframe
+											src={embed}
+											allowScripts={true}
+											allowForms={$settings?.iframeSandboxAllowForms ?? true}
+											allowSameOrigin={$settings?.iframeSandboxAllowSameOrigin ?? false}
+											allowPopups={true}
+										/>
+									</div>
+								{/each}
+							</div>
+						{/if}
 
 						{#if edit === true}
 							<div
@@ -888,26 +908,6 @@
 								<Error content={message?.error?.content ?? message.content} />
 							{/if}
 
-							<!-- Fork: embeds (tool / filter cards) after the reply text, so a reply reads text first, then its
-							     interactive cards (user's request, 2026-10-05). -->
-							{#if !readOnly && message?.embeds && message.embeds.length > 0}
-								<div
-									class="my-1 w-full flex overflow-x-auto gap-2 flex-wrap"
-									id={`${message.id}-embeds-container`}
-								>
-									{#each message.embeds as embed, idx}
-										<div class="my-2 w-full" id={`${message.id}-embeds-${idx}`}>
-											<FullHeightIframe
-												src={embed}
-												allowScripts={true}
-												allowForms={$settings?.iframeSandboxAllowForms ?? true}
-												allowSameOrigin={$settings?.iframeSandboxAllowSameOrigin ?? false}
-												allowPopups={true}
-											/>
-										</div>
-									{/each}
-								</div>
-							{/if}
 
 							{#if (message?.sources || message?.citations) && (model?.info?.meta?.capabilities?.citations ?? true)}
 								<Citations
