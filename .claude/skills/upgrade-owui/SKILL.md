@@ -81,9 +81,11 @@ Look at each hunk with base: `git checkout --conflict=zdiff3 -- <file>`. Rules:
   top-level `execute_tool_call`; the fork's `parse_tool_call_arguments` moved with it).
 - **Upstream fixed the same thing:** take theirs, delete the fork's now-dead code (v0.12.0:
   `escapeAttribute` → upstream `encode`). The fork's regression test still decides.
-- **Rebrand:** "Open WebUI" → "Outis" goes into `src/lib/i18n/locales/en-US/translation.json`
-  values, not the source string. Strings about the upstream project, community or company keep
-  the upstream name. The rebrand is allowed under the licence for ≤50 users per 30 days.
+- **Rebrand:** a literal `$i18n.t('… Open WebUI …')` is rebranded in the source string (BR-11
+  scans those); a dotted key (`settings.admin.*`) is rebranded in its
+  `src/lib/i18n/locales/en-US/translation.json` value (BR-10). Strings about the upstream
+  project, community or company keep the upstream name (add them to BR-11's allow-list).
+  The rebrand is allowed under the licence for ≤50 users per 30 days.
 - **Colour classes:** the fork maps stray `sky-*` accents to `blue-*` (themed). If upstream
   rewrote such a block, take theirs and redo the substitution.
 - Upstream renamed a file (v0.12.0: `routers/audio.py` → `routers/audio/__init__.py`): git
@@ -136,8 +138,19 @@ been disabled for this repository", seen at v0.12.0): build the same tag locally
 local suite in step 7 is the gate. Tell the user CI is blocked so they can check the GitHub
 side.
 ```bash
-docker build --build-arg BUILD_HASH=$(git rev-parse HEAD) -t ghcr.io/ankurtrapasiya/open-webui:outis-mneme-$(git rev-parse --short=7 HEAD) .
+# the Dockerfile's 4096 MB Node heap runs out (exit 134); CI raises it the same way
+sed -E 's/--max-old-space-size=[0-9]+/--max-old-space-size=8192/' Dockerfile > /tmp/Dockerfile.ci
+docker build -f /tmp/Dockerfile.ci --build-arg BUILD_HASH=$(git rev-parse HEAD) \
+  -t ghcr.io/ankurtrapasiya/open-webui:outis-mneme-$(git rev-parse --short=7 HEAD) .
 ```
+A full build takes about 30 minutes on this machine. To test a frontend-only fix fast, layer
+the new `build/` onto the last image and run the suite on that; deploy only a full build:
+```bash
+NODE_OPTIONS=--max-old-space-size=8192 npx vite build
+printf 'FROM <last image>\nCOPY build /app/build\n' > /tmp/Dockerfile.layer
+docker build -f /tmp/Dockerfile.layer -t outis-dev:try . && scripts/outis-regression.sh outis-dev:try
+```
+Rerun only some checks: `scripts/outis-regression.sh <image> -g "NF-9|BR-11" --repeat-each 3`.
 
 ### 7. Deploy
 
