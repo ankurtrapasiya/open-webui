@@ -417,7 +417,12 @@ import json, tempfile
 from open_webui.retrieval.loaders.main import Loader
 f = tempfile.NamedTemporaryFile('w', suffix='.bib', delete=False)
 f.write('@article{k, title={Outis bib}}\\n'); f.close()
-docs = Loader(engine='docling', DOCLING_SERVER_URL='http://127.0.0.1:9').load('references.bib', 'application/octet-stream', f.name)
+# v0.12.0: Loader takes one config dict ('rag.*' keys); unset keys read as None
+class Config(dict):
+    def __missing__(self, key):
+        return None
+config = Config({'rag.content_extraction_engine': 'docling', 'rag.docling_server_url': 'http://127.0.0.1:9'})
+docs = Loader(config).load('references.bib', 'application/octet-stream', f.name)
 print(json.dumps({'text': docs[0].page_content}))
 `);
 	expect(out.text).toContain('Outis bib');

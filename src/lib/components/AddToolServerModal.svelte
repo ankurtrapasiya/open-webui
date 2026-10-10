@@ -630,10 +630,10 @@
 										content={type === 'mcp' && oauthAuthTypes.includes(auth_type)
 											? edit
 												? $i18n.t(
-														'Identifies this connection in Open WebUI, separately from the OAuth client ID.'
+														'Identifies this connection in Outis, separately from the OAuth client ID.'
 													)
 												: $i18n.t(
-														'Generated from the name, or enter your own. Identifies this connection in Open WebUI, separately from the OAuth client ID.'
+														'Generated from the name, or enter your own. Identifies this connection in Outis, separately from the OAuth client ID.'
 													)
 											: ''}
 									>

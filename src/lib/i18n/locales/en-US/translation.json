@@ -3539,7 +3539,7 @@
 	"This folder is empty": "",
 	"This is a default user permission and will remain enabled.": "",
 	"This is an experimental feature, it may not function as expected and is subject to change at any time.": "",
-	"This knowledge base retrieves from a connected source. Open WebUI can query it, but cannot upload, sync, edit, delete, reset, or reindex its source data.": "This knowledge base retrieves from a connected source. Outis can query it, but cannot upload, sync, edit, delete, reset, or reindex its source data.",
+	"This knowledge base retrieves from a connected source. Open WebUI can query it, but cannot upload, sync, edit, delete, reset, or reindex its source data.": "",
 	"This model is not publicly available. Please select another model.": "",
 	"This note has unsaved changes.": "",
 	"This option controls how long the model will stay loaded into memory following the request (default: 5m)": "",
