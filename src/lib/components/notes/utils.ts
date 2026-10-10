@@ -4,6 +4,7 @@ import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
 import { createNewNote } from '$lib/apis/notes';
+import { safeImageUrl } from '$lib/utils/safeImageUrl';
 
 // TipTap's static serialisation (`editor.getHTML()`, which is what
 // `note.data.content.html` holds) renders a math node from its schema, not
@@ -69,6 +70,14 @@ export const downloadPdf = async (note) => {
 
 		contentNode.innerHTML = html;
 		renderMathPlaceholders(contentNode);
+
+		for (const img of contentNode.querySelectorAll('img[src^="data://"]')) {
+			const fileId = img.getAttribute('src').replace('data://', '');
+			const file = (note.data?.files ?? []).find((f) => f.id === fileId);
+			if (file) {
+				img.setAttribute('src', safeImageUrl(file.url || ''));
+			}
+		}
 
 		node.appendChild(contentNode);
 

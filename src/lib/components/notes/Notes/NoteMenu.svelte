@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LockClosed from '$lib/components/icons/LockClosed.svelte';
 	import { getContext } from 'svelte';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
@@ -17,12 +18,13 @@
 	import Bold from '$lib/components/icons/Bold.svelte';
 	import Folder from '$lib/components/icons/Folder.svelte';
 
-	const i18n = getContext('i18n');
+	const i18n = getContext<typeof import('$lib/i18n').default>('i18n');
 
 	export let show = false;
 	export let className = 'max-w-[11.25rem]';
 
 	export let onDownload = (type) => {};
+	export let onAccess: (() => void) | null = null;
 	export let onDelete = () => {};
 	export let onPin = null;
 	export let isPinned = false;
@@ -38,6 +40,7 @@
 </script>
 
 <Dropdown
+	closeOnSelect
 	bind:show
 	align="end"
 	sideOffset={6}
@@ -49,6 +52,17 @@
 
 	<div slot="content">
 		<DropdownMenu className="min-w-[11.25rem]">
+			{#if onAccess}
+				<button
+					type="button"
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => onAccess?.()}
+				>
+					<LockClosed className="size-3.5" />
+					<div class="flex items-center">{$i18n.t('Access')}</div>
+				</button>
+			{/if}
+
 			{#if showAutoFormat}
 				<Tooltip
 					className="w-full"
@@ -56,8 +70,10 @@
 						'Format Markdown as you type and paste. Turn off to keep Markdown characters and paste plain text. Existing formatting is preserved.'
 					)}
 				>
+					<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
 					<div
 						class="select-none flex h-[1.6875rem] items-center gap-2 rounded-xl px-2 text-[0.8125rem] hover:bg-gray-50/60 dark:hover:bg-gray-800/60"
+						on:click={(e) => e.preventDefault()}
 					>
 						<Bold className="size-3.5 shrink-0" strokeWidth="2" />
 						<span class="flex-1">{$i18n.t('Formatting')}</span>
@@ -108,7 +124,6 @@
 					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
 					on:click={() => {
 						onUploadFiles();
-						show = false;
 					}}
 				>
 					<CloudArrowUp className="size-3.5" strokeWidth="2" />
@@ -170,7 +185,6 @@
 					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
 					on:click={() => {
 						onPin();
-						show = false;
 					}}
 				>
 					{#if isPinned}

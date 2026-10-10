@@ -101,14 +101,18 @@
 	$: pendingToolTokens = tokens.filter(
 		(t) => t?.attributes?.type === 'tool_calls' && t?.attributes?.status === 'pending'
 	);
-	$: hasActiveToolCalls = tokens.some(
-		(t) =>
-			t?.attributes?.type === 'tool_calls' &&
-			t?.attributes?.status !== 'rejected' &&
-			t?.attributes?.status !== 'failed' &&
-			t?.attributes?.status !== 'incomplete' &&
-			t?.attributes?.done !== 'true'
-	);
+	$: hasActiveDetails = tokens.some((token) => {
+		const attributes = token?.attributes;
+		if (attributes?.type === 'tool_calls') {
+			return (
+				attributes.status !== 'rejected' &&
+				attributes.status !== 'failed' &&
+				attributes.status !== 'incomplete' &&
+				attributes.done !== 'true'
+			);
+		}
+		return !messageDone && attributes?.done && attributes.done !== 'true';
+	});
 	$: hasRejected = tokens.some(
 		(t) => t?.attributes?.type === 'tool_calls' && t?.attributes?.status === 'rejected'
 	);
@@ -185,7 +189,7 @@
 		return detail;
 	})();
 
-	$: prefixText = hasActiveToolCalls ? $i18n.t('Exploring') : $i18n.t('Explored');
+	$: prefixText = hasActiveDetails ? $i18n.t('Exploring') : $i18n.t('Explored');
 </script>
 
 <div {id} class="w-full min-w-0">
@@ -210,7 +214,7 @@
 		>
 			<div class="flex items-center gap-1.5 min-w-0">
 				<!-- Status icon -->
-				{#if hasActiveToolCalls}
+				{#if hasActiveDetails}
 					<div>
 						<Spinner className="size-4" />
 					</div>
@@ -234,7 +238,7 @@
 
 				<!-- Summary text -->
 				<div class="flex-1 line-clamp-1">
-					<span class="text-gray-600 dark:text-gray-300 {hasActiveToolCalls ? 'shimmer' : ''}"
+					<span class="text-gray-600 dark:text-gray-300 {hasActiveDetails ? 'shimmer' : ''}"
 						>{prefixText}</span
 					>
 					{#if summaryText}

@@ -1,3 +1,5 @@
+import { encode } from 'html-entities';
+
 export type OutputContentPart = {
 	type?: string;
 	text?: unknown;
@@ -122,20 +124,6 @@ function stringifyAttribute(value: unknown): string {
 	}
 }
 
-// Fork: tool-call attributes are read back with an HTML-entity decode (ToolCallDisplay,
-// ConsecutiveDetailsGroup), written for the backend's <details> path, which escapes them with
-// html.escape. Escape the same way here, or any "&quot;", "&#39;" or "&gt" inside a tool's
-// embed is decoded into a real character, its JSON breaks and the embed silently disappears
-// (found 2026-10-07: KaTeX's own code holds "n&&gt.has(r)").
-function escapeAttribute(value: string): string {
-	return value
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#x27;');
-}
-
 function isDoneStatus(status?: string): boolean {
 	return status === 'completed' || status === 'failed' || status === 'incomplete';
 }
@@ -242,9 +230,10 @@ function buildToolCallToken(item: OutputItem, toolOutputByCallId: Record<string,
 			name,
 			done: isDone ? 'true' : 'false',
 			status,
-			arguments: escapeAttribute(stringifyAttribute(item.arguments ?? '')),
-			files: escapeAttribute(stringifyAttribute(resultItem?.files)),
-			embeds: escapeAttribute(stringifyAttribute(resultItem?.embeds))
+			// ToolCallDisplay HTML-decodes these, like legacy <details> attributes.
+			arguments: encode(stringifyAttribute(item.arguments ?? '')),
+			files: encode(stringifyAttribute(resultItem?.files)),
+			embeds: encode(stringifyAttribute(resultItem?.embeds))
 		}
 	};
 }
@@ -445,6 +434,16 @@ export function buildOutputDisplayItems(output: OutputItem[] = []): OutputDispla
 	});
 
 	flushDetails();
+
+	// Providers can reuse item ids across tool-call rounds.
+	const seenIds = new Set<string>();
+	displayItems.forEach((displayItem, index) => {
+		if (seenIds.has(displayItem.id)) {
+			displayItem.id = `${displayItem.id}-${index}`;
+		}
+		seenIds.add(displayItem.id);
+	});
+
 	return displayItems;
 }
 
@@ -700,7 +699,7 @@ export function replaceOutputMessageText(
 		const part = nextContent[partIndex];
 		nextContent[partIndex] = {
 			...part,
-			text: (part.text as string).replace(oldContent, newContent)
+			text: (part.text as string).replace(oldContent, () => newContent)
 		};
 
 		return {
@@ -710,4 +709,24 @@ export function replaceOutputMessageText(
 	});
 
 	return replaced ? nextOutput : output;
+}
+
+export function setOutputText(output: OutputItem[], text: string): OutputItem[] {
+	if (text === getOutputText(output)) {
+		return output;
+	}
+
+	const lastMessage = output.filter((item) => item?.type === 'message').at(-1);
+	if (!lastMessage) {
+		return [
+			...output,
+			{ type: 'message', role: 'assistant', content: [{ type: 'output_text', text }] }
+		];
+	}
+
+	return output.map((item) =>
+		item?.type === 'message'
+			? { ...item, content: item === lastMessage ? [{ type: 'output_text', text }] : [] }
+			: item
+	);
 }
