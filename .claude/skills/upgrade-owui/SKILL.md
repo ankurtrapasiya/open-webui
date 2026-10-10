@@ -131,6 +131,14 @@ resolution), commit, push, repeat. **Never** skip, loosen, or delete a check to 
 **ASK** if a check itself looks wrong. After two failed fix attempts on the same check, stop
 and report what was tried.
 
+**CI did not start** (no run for the branch after a minute; `gh workflow run` says "Actions has
+been disabled for this repository", seen at v0.12.0): build the same tag locally and go on; the
+local suite in step 7 is the gate. Tell the user CI is blocked so they can check the GitHub
+side.
+```bash
+docker build --build-arg BUILD_HASH=$(git rev-parse HEAD) -t ghcr.io/ankurtrapasiya/open-webui:outis-mneme-$(git rev-parse --short=7 HEAD) .
+```
+
 ### 7. Deploy
 
 ```bash
