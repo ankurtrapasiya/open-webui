@@ -2,7 +2,7 @@
 
 This repository is a fork of [Open WebUI](https://github.com/open-webui/open-webui), branch
 `theme/outis-mneme`. It adds features upstream does not have (listed below) and takes every
-new upstream release by rebasing onto it. This file is fork-only, so it never conflicts with
+new upstream release by merging it in. This file is fork-only, so it never conflicts with
 upstream's `README.md`.
 
 The live instance runs from `~/GithubProjects/outis-mneme` (docker compose, port 3001).
@@ -12,7 +12,7 @@ The live instance runs from `~/GithubProjects/outis-mneme` (docker compose, port
 **A new image reaches the live instance only through the regression gate.**
 
 ```
-rebase onto the new upstream tag → push
+merge the new upstream tag → push
   → GitHub builds the image and runs the regression suite on it (red = a fork feature broke)
   → outis-mneme/scripts/deploy_owui.sh <short-sha>
        1. runs the suite again locally, in a throwaway container   ── any failure → STOP,
@@ -23,30 +23,26 @@ rebase onto the new upstream tag → push
 
 Never edit the image tag in `docker-compose.yml` by hand, and never skip, loosen or delete a
 failing check to get a deploy through. A red check means the feature is broken: fix the
-feature (or the rebase), then deploy.
+feature (or the merge), then deploy.
 
 ## Upgrading to a new upstream release
 
-```bash
-cd ~/GithubProjects/open-webui
-git fetch upstream --tags
-git branch backup/theme-pre-vX.Y.Z                  # the way back
-git rebase vX.Y.Z                                   # resolve conflicts, keep fork behaviour
-NODE_OPTIONS=--max-old-space-size=8192 npx vite build   # compiles? (default heap runs out)
-git push --force-with-lease origin theme/outis-mneme
-gh run watch -R ankurtrapasiya/open-webui           # image build + regression job must be green
-~/GithubProjects/outis-mneme/scripts/deploy_owui.sh <short-sha>
+Tell Claude Code "upgrade to new version". The full procedure, the conflict rules and the traps
+met in past releases are in [`.claude/skills/upgrade-owui/SKILL.md`](.claude/skills/upgrade-owui/SKILL.md).
+In short:
+
+```
+backup branch → merge the release tag on upgrade/vX.Y.Z (merge, not rebase: each file resolved once)
+  → scripts/outis-merge-locales.py     (translation files)
+  → resolve code conflicts by hand     (upstream's structure, fork's behaviour)
+  → scripts/outis-lost-lines.py        (every fork line that vanished, each one explained)
+  → vite build → push → CI image + regression suite
+  → outis-mneme/scripts/deploy_owui.sh <short-sha> → outis-owui/test.sh
+  → fast-forward theme/outis-mneme
 ```
 
 `<short-sha>` is the first 7 characters of the pushed commit (`git rev-parse --short=7 HEAD`);
 the image tag is `ghcr.io/ankurtrapasiya/open-webui:outis-mneme-<short-sha>`.
-
-Things that went wrong in past rebases:
-
-- Upstream moves English UI text into i18n keys. The Outis rebrand then has to move into
-  `src/lib/i18n/locales/en-US/translation.json` values.
-- Locale JSON conflicts: keep upstream's lines, add only the keys the fork commit adds.
-- A commit and its later revert can both be dropped instead of replayed.
 
 ## The regression suite
 

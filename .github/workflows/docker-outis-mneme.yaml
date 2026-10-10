@@ -17,6 +17,8 @@ on:
     branches:
       - theme/outis-mneme
       - feature/note-folders
+      # an upstream upgrade gets its image and regression run before theme/outis-mneme moves
+      - 'upgrade/**'
 
 concurrency:
   group: outis-mneme-${{ github.ref }}
@@ -79,7 +81,7 @@ jobs:
         with:
           images: ${{ env.FULL_IMAGE_NAME }}
           tags: |
-            type=raw,value=outis-mneme
+            type=raw,value=outis-mneme,enable=${{ github.ref == 'refs/heads/theme/outis-mneme' }}
             type=sha,prefix=outis-mneme-,format=short
           flavor: |
             latest=false
@@ -158,7 +160,7 @@ jobs:
         with:
           images: ${{ env.FULL_IMAGE_NAME }}
           tags: |
-            type=raw,value=outis-mneme
+            type=raw,value=outis-mneme,enable=${{ github.ref == 'refs/heads/theme/outis-mneme' }}
             type=sha,prefix=outis-mneme-,format=short
           flavor: |
             latest=false

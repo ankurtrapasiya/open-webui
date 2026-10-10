@@ -3,15 +3,15 @@
 ## Objective
 
 This fork (branch `theme/outis-mneme`) carries features that upstream Open WebUI does not have.
-The owner takes every upstream release by rebasing onto it. A rebase can silently drop or
+The owner takes every upstream release by merging it in. An upgrade can silently drop or
 break a fork feature: a conflict resolved the wrong way, an upstream refactor that moves the
 code the feature hooks into, a string moved to a new i18n key.
 
-This suite answers one question after every rebase: **does every fork feature still work?**
-It runs against the image CI built from the rebased branch, before that image replaces the
+This suite answers one question after every upgrade: **does every fork feature still work?**
+It runs against the image CI built from the upgraded branch, before that image replaces the
 live one. A red run blocks the deploy.
 
-Success looks like this: after a rebase, one command runs in under 10 minutes and either
+Success looks like this: after an upgrade, one command runs in under 10 minutes and either
 passes, or names the broken feature and the acceptance criterion it broke.
 
 ## Capability map
@@ -143,7 +143,7 @@ summarised in Open Questions.
 ## Boundaries
 
 - **Always:** run the full suite before switching the live container to a new image; keep
-  specs and tests in the fork so they move with it on every rebase; add a criterion to the
+  specs and tests in the fork so they move with it on every upgrade; add a criterion to the
   spec before adding its test.
 - **Ask first:** changing application code to make something testable (e.g. extracting the
   chat-PDF page slicer); adding any dependency beyond `@playwright/test`; deleting or
