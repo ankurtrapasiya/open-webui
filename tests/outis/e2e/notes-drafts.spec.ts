@@ -78,3 +78,33 @@ test('ND-9 a click outside the dialog keeps the user on the note with the draft 
 	await expect(editor).toContainText('EDITED');
 	expect((await api.getNote(note.id)).data.content.md).toBe('original');
 });
+
+test('ND-12 an image pasted into a draft survives Save and a reload', async ({ page, api }) => {
+	const note = await api.note({ title: 'ND-12 note', md: 'original' });
+	await page.goto(`/notes/${note.id}`);
+	const editor = page.locator(`#note-${note.id}`);
+	await editor.click();
+	await page.keyboard.press('End');
+	await editor.evaluate((el) => {
+		// a 1x1 PNG
+		const b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
+		const dt = new DataTransfer();
+		dt.items.add(new File([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))], 'pasted.png', { type: 'image/png' }));
+		el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+	});
+	await expect(editor.locator('img')).toHaveCount(1);
+	// The upload stores the note's file list at once; its server echo must not wipe the draft.
+	await page.waitForTimeout(1500);
+	await expect(editor.locator('img')).toHaveCount(1);
+
+	await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+	await expect.poll(async () => (await api.getNote(note.id)).data.content.html).toContain('data://');
+	const stored = await api.getNote(note.id);
+	const fileId = stored.data.content.html.match(/data:\/\/([\w-]+)/)[1];
+	expect((stored.data.files ?? []).map((f: any) => f.id)).toContain(fileId);
+
+	await page.reload();
+	const img = page.locator(`#note-${note.id} img`);
+	await expect(img).toHaveCount(1);
+	await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(0);
+});

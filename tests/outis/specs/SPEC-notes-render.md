@@ -72,6 +72,10 @@ Browser:
 - **NR-11** Download → PDF document: with `window.open` wrapped so the popup's `print()` is
   captured, the captured HTML has `html.outis-light`, the note title as `<h1>`, `.katex`
   elements, and a `@page` rule.
+- **NR-20** The same Download → PDF document from the notes list menu (note not open) also
+  prints, from the stored note: captured HTML has `html.outis-light`, the title as `<h1>`, and
+  rendered `.katex` math, also for a markdown-only note (no stored HTML; printed blank before). (Before 2026-10-11 this path was upstream's html2canvas screenshot:
+  one raster image, no selectable text.)
 - **NR-12** Download → PDF with the popup blocked (`window.open` returns `null`) shows the
   toast "Could not open the print window. Check your popup blocker."
 

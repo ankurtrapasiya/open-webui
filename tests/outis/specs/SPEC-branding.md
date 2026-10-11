@@ -28,10 +28,10 @@ Browser:
 
 Inside the image and the source:
 
-- **BR-7 [KNOWN BUG]** `static/static/site.webmanifest` names the app `Outis`. Today it still
-  says "Open WebUI" (a leftover; the live manifest is `/manifest.json`, covered by BR-2).
-- **BR-8 [KNOWN BUG]** The community-sharing setting description refers to the Open WebUI
-  community, which is what it means. Today it says "Outis community".
+- **BR-7** `static/static/site.webmanifest` (a leftover; the live manifest is `/manifest.json`,
+  covered by BR-2) names the app `Outis`. (Fixed 2026-10-11.)
+- **BR-8** The community-sharing setting description refers to the Open WebUI community, which
+  is what it means, not the "Outis community". (Fixed 2026-10-11.)
 - **BR-9** The page shell served at `/` is titled `<title>Outis</title>` (seen before the app
   loads).
 - **BR-10** The built app contains the rebranded `settings.*` descriptions: STT model, TTS

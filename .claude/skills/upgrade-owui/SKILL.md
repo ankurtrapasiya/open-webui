@@ -147,7 +147,8 @@ A full build takes about 30 minutes on this machine. To test a frontend-only fix
 the new `build/` onto the last image and run the suite on that; deploy only a full build:
 ```bash
 NODE_OPTIONS=--max-old-space-size=8192 npx vite build
-printf 'FROM <last image>\nCOPY build /app/build\n' > /tmp/Dockerfile.layer
+# rm first: COPY merges, and the old hashed chunks would stay (bundle-scanning checks see them)
+printf 'FROM <last image>\nRUN rm -rf /app/build\nCOPY build /app/build\n' > /tmp/Dockerfile.layer
 docker build -f /tmp/Dockerfile.layer -t outis-dev:try . && scripts/outis-regression.sh outis-dev:try
 ```
 Rerun only some checks: `scripts/outis-regression.sh <image> -g "NF-9|BR-11" --repeat-each 3`.

@@ -60,14 +60,12 @@ test('BR-6 the page title and the sign-in page say Outis', async ({ page, browse
 	await anon.close();
 });
 
-test('BR-7 [KNOWN BUG] the leftover static web manifest is named Outis', async ({ api }) => {
-	test.fail(true, 'static/static/site.webmanifest still says "Open WebUI"; the live manifest is /manifest.json (BR-2)');
+test('BR-7 the leftover static web manifest is named Outis', async ({ api }) => {
 	const m = await (await api.raw('GET', '/static/site.webmanifest')).json();
 	expect(m.name).toBe('Outis');
 });
 
-test('BR-8 [KNOWN BUG] community sharing is described as the Open WebUI community', async () => {
-	test.fail(true, 'the rebrand changed it to "Outis community", but it means the upstream community');
+test('BR-8 community sharing is described as the Open WebUI community', async () => {
 	expect(bundleContains('share chats with the Outis community')).toBe(false);
 });
 

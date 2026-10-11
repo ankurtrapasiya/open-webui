@@ -2654,7 +2654,7 @@
 	"settings.admin.general.channels.description": "Allow users to use channels for shared conversations.",
 	"settings.admin.general.channels.label": "Channels",
 	"settings.admin.general.checkForUpdates.label": "Check for updates",
-	"settings.admin.general.communitySharing.description": "Allow users to share chats with the Outis community.",
+	"settings.admin.general.communitySharing.description": "Allow users to share chats with the Open WebUI community.",
 	"settings.admin.general.communitySharing.label": "Community Sharing",
 	"settings.admin.general.events.events.label": "Events",
 	"settings.admin.general.events.webhooks.description": "Send product events as JSON to external services. Chat destinations receive readable messages.",

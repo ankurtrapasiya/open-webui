@@ -122,6 +122,32 @@ test('NR-11 Download as PDF prints the live note in the light theme', async ({ p
 	expect(html).toContain('@page');
 });
 
+test('NR-20 Download as PDF from the notes list prints too, with math rendered from the stored note', async ({ page, api }) => {
+	// Markdown only, no stored HTML: the shape the API, the chat tool and bulk imports create.
+	const title = `NR-20 listed note ${Date.now()}`;
+	await api.note({ title, md: 'Listed $x^2$ here' });
+	await page.goto('/notes');
+	await page.evaluate(() => {
+		const open = window.open.bind(window);
+		window.open = (...args: any[]) => {
+			const w = open(...args);
+			if (w) w.print = () => ((window as any).__printed = w.document.documentElement.outerHTML);
+			return w;
+		};
+	});
+	const row = page.getByRole('button', { name: 'Open note' }).filter({ hasText: title });
+	await row.hover();
+	await row.locator('button[aria-label="Note Menu"]').click();
+	await page.getByText('Download', { exact: true }).click();
+	await page.getByText('PDF document (.pdf)', { exact: true }).click();
+
+	await expect.poll(() => page.evaluate(() => (window as any).__printed ?? null), { timeout: 20_000 }).not.toBeNull();
+	const html: string = await page.evaluate(() => (window as any).__printed);
+	expect(html).toMatch(/<html[^>]*class="[^"]*outis-light/);
+	expect(html).toContain(`${title}</h1>`);
+	expect(html).toContain('class="katex"');
+});
+
 test('NR-12 a blocked print window says so', async ({ page, api }) => {
 	await openNote(page, api, 'Blocked print', 'NR-12');
 	await page.evaluate(() => (window.open = () => null));
@@ -144,22 +170,17 @@ test('NR-14 a ```mermaid block draws its diagram under the code, and saving keep
 	await expect(editor.locator('.mermaid-diagram svg')).toContainText('NR14 root');
 	await expect(editor.locator('pre code.language-mermaid')).toContainText('R[NR14 root]');
 
-	// Editing the code redraws the diagram. The caret goes after "Beta]" through the DOM selection:
-	// click + End sometimes left it inside "Beta", which typed a broken diagram (seen 2026-10-03).
-	await editor.locator('pre code.language-mermaid').getByText('Beta').click();
-	await page.evaluate(() => {
-		const code = document.querySelector('pre code.language-mermaid')!;
-		const walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
-		let node: Node | null;
-		while ((node = walker.nextNode())) {
-			const at = node.textContent!.indexOf('Beta]');
-			if (at < 0) continue;
-			const range = document.createRange();
-			range.setStart(node, at + 'Beta]'.length);
-			getSelection()!.removeAllRanges();
-			getSelection()!.addRange(range);
-			return;
-		}
+	// Editing the code redraws the diagram. The caret goes after "Beta]" through the editor's own
+	// state (TipTap puts the editor on its root element). Setting the DOM selection instead raced
+	// ProseMirror's selectionchange sync: under load Enter landed inside "Beta" (NR-14 flake).
+	await editor.evaluate((el: any) => {
+		let pos = -1;
+		el.editor.state.doc.descendants((node: any, at: number) => {
+			const i = node.isText ? node.text.indexOf('Beta]') : -1;
+			if (pos < 0 && i >= 0) pos = at + i + 'Beta]'.length;
+		});
+		if (pos < 0) throw new Error('"Beta]" not found in the note');
+		el.editor.chain().focus().setTextSelection(pos).run();
 	});
 	await page.keyboard.press('Enter');
 	await page.keyboard.type('  R --> G[Gamma]');

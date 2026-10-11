@@ -33,7 +33,7 @@
 		updateNoteById
 	} from '$lib/apis/notes';
 	import { capitalizeFirstLetter, copyToClipboard, formatNumber, getTimeRange } from '$lib/utils';
-	import { downloadPdf, createNoteHandler } from './utils';
+	import { openPrintWindow, printNote, storedNoteHtml, createNoteHandler } from './utils';
 
 	import EllipsisHorizontal from '../icons/EllipsisHorizontal.svelte';
 	import GarbageBin from '../icons/GarbageBin.svelte';
@@ -177,13 +177,23 @@
 	let allItemsLoaded = false;
 
 	const downloadHandler = async (type) => {
+		// The print window must open before the fetch below is awaited (popup blockers).
+		const printWindow = type === 'pdf' ? openPrintWindow() : null;
+		if (type === 'pdf' && !printWindow) {
+			toast.error($i18n.t('Could not open the print window. Check your popup blocker.'));
+			return;
+		}
+
 		// Fetch the full note since the list response may not contain full content
 		const note = await getNoteById(localStorage.token, selectedNote.id).catch((error) => {
 			toast.error(`${error}`);
 			return null;
 		});
 
-		if (!note) return;
+		if (!note) {
+			printWindow?.close();
+			return;
+		}
 
 		if (type === 'txt') {
 			const blob = new Blob([note.data.content.md], { type: 'text/plain' });
@@ -192,11 +202,7 @@
 			const blob = new Blob([note.data.content.md], { type: 'text/markdown' });
 			saveAs(blob, `${note.title}.md`);
 		} else if (type === 'pdf') {
-			try {
-				await downloadPdf(note);
-			} catch (error) {
-				toast.error(`${error}`);
-			}
+			printNote(printWindow, note.title, storedNoteHtml(note));
 		}
 	};
 

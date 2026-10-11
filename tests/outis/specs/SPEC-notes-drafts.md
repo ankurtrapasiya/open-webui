@@ -36,6 +36,10 @@ note's own save echo, a chat editing the note) counts as saved.
 - **ND-10** Toggling Formatting in the note menu (which remounts the editor) keeps the
   unsaved body text on screen.
 - **ND-11** Previous/next note (`notes-navigation`) with unsaved changes also asks first.
+- **ND-12** An image pasted into a draft note (upload saves the file list at once) is still in
+  the editor 1.5 s later, is stored as `data://<file id>` in the HTML with that id in
+  `data.files` after Save, and still renders (`naturalWidth > 0`) after a reload. (Upstream
+  v0.12.0 fixed pasted-image loss on its live-save path, which drafts bypass.)
 
 ## Test hooks
 

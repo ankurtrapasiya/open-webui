@@ -5,6 +5,7 @@ import 'katex/dist/katex.min.css';
 
 import { createNewNote } from '$lib/apis/notes';
 import { safeImageUrl } from '$lib/utils/safeImageUrl';
+import { editorMarked } from '$lib/utils/marked/editor-marked';
 
 // TipTap's static serialisation (`editor.getHTML()`, which is what
 // `note.data.content.html` holds) renders a math node from its schema, not
@@ -34,121 +35,104 @@ const renderMathPlaceholders = (root: HTMLElement) => {
 		});
 };
 
-export const downloadPdf = async (note) => {
-	const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-		import('jspdf'),
-		import('html2canvas-pro')
-	]);
+// Opened synchronously from the click, before anything is awaited, so it stays
+// inside the click's user-gesture chain and popup blockers leave it alone.
+export const openPrintWindow = () => window.open('', '_blank');
 
-	// Define a fixed virtual screen size
-	const virtualWidth = 1024; // Fixed width (adjust as needed)
-	const virtualHeight = 1400; // Fixed height (adjust as needed)
+// Notes become PDFs by printing them (Save as PDF is one of the destinations the
+// browser's own print dialog offers): real, selectable text, real KaTeX, the
+// app's own styling. Upstream's downloadPdf() screenshotted the note instead, so
+// the whole page was one raster image with no text layer at all.
+//
+// Printed into a blank popup window, not the app itself: the app's html/body sit
+// inside the shell's `h-screen` scroll container, and a browser paginating a
+// print job does not reach across a scroll container's clipped edge -- content
+// past the first page is cut off (a `position: fixed` escape does not fix it in
+// Chromium either). A popup's own document has no such ancestor.
+//
+// Every stylesheet the app uses is cloned into the popup's head rather than
+// re-derived (Tailwind, katex.min.css, the outis theme, code-highlighting
+// colours), so printing inherits the theme's next change instead of drifting
+// from it. The theme is forced to the light palette: paper is white, and the
+// dark palette would print as mostly invisible or as wasted ink.
+export const printNote = (printWindow: Window, title: string, bodyHtml: string) => {
+	const styleTags = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+		.map((el) => el.outerHTML)
+		.join('\n');
+	const safeTitle = title.replace(/</g, '&lt;');
 
-	// STEP 1. Get a DOM node to render
-	const html = DOMPurify.sanitize(note.data?.content?.html ?? '');
-	const isDarkMode = document.documentElement.classList.contains('dark');
+	printWindow.document.write(`<!doctype html>
+<html class="light outis-light">
+<head>
+<meta charset="utf-8">
+<title>${safeTitle}</title>
+${styleTags}
+<style>
+	@page { margin: 1.5cm; }
+	body {
+		max-width: 47rem;
+		margin: 0 auto;
+		padding: 1rem;
+	}
+	pre, table, .tiptap-mathematics-render {
+		break-inside: avoid;
+	}
+</style>
+</head>
+<body class="tiptap ProseMirror">
+<h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">${safeTitle}</h1>
+${bodyHtml}
+</body>
+</html>`);
+	printWindow.document.close();
 
-	let node;
-	if (html instanceof HTMLElement) {
-		node = html;
-	} else {
-		const virtualWidth = 800; // px, fixed width for cloned element
+	printWindow.onafterprint = () => printWindow.close();
 
-		// Clone and style
-		node = document.createElement('div');
+	// Every cloned <link rel="stylesheet"> re-fetches in the popup's own document
+	// even when cached, and KaTeX's glyphs are @font-face fonts that load
+	// asynchronously too -- printing a beat early produces wrong metrics and
+	// stray boxes. `load` doesn't fire on <style>, so this waits on the links,
+	// then on the fonts.
+	const links = Array.from(printWindow.document.querySelectorAll('link[rel="stylesheet"]'));
+	Promise.all(
+		links.map(
+			(link) =>
+				new Promise((resolve) => {
+					if ((link as HTMLLinkElement).sheet) resolve(null);
+					else {
+						link.addEventListener('load', () => resolve(null), { once: true });
+						link.addEventListener('error', () => resolve(null), { once: true });
+					}
+				})
+		)
+	)
+		.then(() => printWindow.document.fonts?.ready)
+		.then(() => {
+			printWindow.focus();
+			printWindow.print();
+		});
+};
 
-		// title node
-		const titleNode = document.createElement('div');
-		titleNode.textContent = note.title;
-		titleNode.style.fontSize = '24px';
-		titleNode.style.fontWeight = 'medium';
-		titleNode.style.paddingBottom = '20px';
-		titleNode.style.color = isDarkMode ? 'white' : 'black';
-		node.appendChild(titleNode);
-
-		const contentNode = document.createElement('div');
-
-		contentNode.innerHTML = html;
-		renderMathPlaceholders(contentNode);
-
-		for (const img of contentNode.querySelectorAll('img[src^="data://"]')) {
-			const fileId = img.getAttribute('src').replace('data://', '');
-			const file = (note.data?.files ?? []).find((f) => f.id === fileId);
-			if (file) {
-				img.setAttribute('src', safeImageUrl(file.url || ''));
-			}
+// A note that is not open (the notes list menu) only has what is stored: its HTML,
+// or for a markdown-only note (API, chat tool, bulk imports) its markdown, parsed
+// the way the editor parses it on open. Math placeholders are rendered and pasted
+// images resolved before printing. Code is not syntax-highlighted here; open the
+// note and print from the editor for that.
+export const storedNoteHtml = (note) => {
+	const content = note.data?.content ?? {};
+	const el = document.createElement('div');
+	el.innerHTML = DOMPurify.sanitize(
+		content.html || (content.md ? (editorMarked.parse(content.md) as string) : '')
+	);
+	renderMathPlaceholders(el);
+	for (const img of el.querySelectorAll('img[src^="data://"]')) {
+		const fileId = img.getAttribute('src').replace('data://', '');
+		const file = (note.data?.files ?? []).find((f) => f.id === fileId);
+		if (file) {
+			img.setAttribute('src', safeImageUrl(file.url || ''));
 		}
-
-		node.appendChild(contentNode);
-
-		node.classList.add('text-black');
-		node.classList.add('dark:text-white');
-		node.style.width = `${virtualWidth}px`;
-		node.style.position = 'absolute';
-		node.style.left = '-9999px';
-		node.style.height = 'auto';
-		node.style.padding = '40px 40px';
-
-		document.body.appendChild(node);
 	}
-
-	// KaTeX's glyphs are drawn with @font-face fonts; rasterising before they
-	// finish loading is what produces the wrong metrics and stray boxes that
-	// "formula formatting is off" usually turns out to be.
-	await document.fonts.ready;
-
-	// Render to canvas with predefined width
-	const canvas = await html2canvas(node, {
-		useCORS: true,
-		backgroundColor: isDarkMode ? '#000' : '#fff',
-		scale: 2, // Keep at 1x to avoid unexpected enlargements
-		width: virtualWidth, // Set fixed virtual screen width
-		windowWidth: virtualWidth, // Ensure consistent rendering
-		windowHeight: virtualHeight
-	});
-
-	// Remove hidden node if needed
-	if (!(html instanceof HTMLElement)) {
-		document.body.removeChild(node);
-	}
-
-	const imgData = canvas.toDataURL('image/jpeg', 0.7);
-
-	// A4 page settings
-	const pdf = new jsPDF('p', 'mm', 'a4');
-	const imgWidth = 210; // A4 width in mm
-	const pageWidthMM = 210; // A4 width in mm
-	const pageHeight = 297; // A4 height in mm
-	const pageHeightMM = 297; // A4 height in mm
-
-	if (isDarkMode) {
-		pdf.setFillColor(0, 0, 0);
-		pdf.rect(0, 0, pageWidthMM, pageHeightMM, 'F'); // black bg
-	}
-
-	// Maintain aspect ratio
-	const imgHeight = (canvas.height * imgWidth) / canvas.width;
-	let heightLeft = imgHeight;
-	let position = 0;
-
-	pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-	heightLeft -= pageHeight;
-
-	// Handle additional pages
-	while (heightLeft > 0) {
-		position -= pageHeight;
-		pdf.addPage();
-
-		if (isDarkMode) {
-			pdf.setFillColor(0, 0, 0);
-			pdf.rect(0, 0, pageWidthMM, pageHeightMM, 'F'); // black bg
-		}
-
-		pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-		heightLeft -= pageHeight;
-	}
-
-	pdf.save(`${note.title}.pdf`);
+	return el.innerHTML;
 };
 
 export const createNoteHandler = async (
