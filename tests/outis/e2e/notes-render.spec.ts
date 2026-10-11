@@ -182,9 +182,16 @@ test('NR-14 a ```mermaid block draws its diagram under the code, and saving keep
 		if (pos < 0) throw new Error('"Beta]" not found in the note');
 		el.editor.chain().focus().setTextSelection(pos).run();
 	});
+	// TipTap's focus() lands on the next animation frame; a key pressed before then goes to the
+	// page. On a loaded first run that lost the Enter, so the new line joined "B[Beta]" and the
+	// diagram could not parse (NR-14 flake, 2026-10-11).
+	await expect(editor).toBeFocused();
 	await page.keyboard.press('Enter');
 	await page.keyboard.type('  R --> G[Gamma]');
-	await expect(editor.locator('pre code.language-mermaid')).toContainText('B[Beta]\n  R --> G[Gamma]');
+	// textContent, not toContainText: that normalises whitespace, so a lost Enter still matched.
+	await expect
+		.poll(() => editor.locator('pre code.language-mermaid').textContent())
+		.toContain('B[Beta]\n  R --> G[Gamma]');
 	await expect(editor.locator('.mermaid-diagram svg')).toContainText('Gamma');
 
 	await page.keyboard.press('Control+s');
