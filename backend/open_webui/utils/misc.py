@@ -506,6 +506,14 @@ def convert_output_to_messages(
             # Ensure arguments is always a JSON string
             if not isinstance(arguments, str):
                 arguments = JSONCodec.dumps(arguments)
+            else:
+                # A call cut off by the provider's token cap is stored with a
+                # half-written argument string. Replaying it verbatim makes
+                # llama.cpp's chat template fail on every later turn.
+                try:
+                    JSONCodec.loads(arguments)
+                except ValueError:
+                    arguments = JSONCodec.dumps({'truncated_arguments': arguments})
             pending_tool_calls.append(
                 {
                     'id': item.get('call_id', ''),
