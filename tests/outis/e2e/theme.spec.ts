@@ -357,10 +357,13 @@ test('TH-17 focus: the keyboard ring is the accent, the composer has none unless
 			return a && a.tagName === 'BUTTON' ? getComputedStyle(a).outlineColor : '';
 		});
 	}
-	expect(
-		outline,
-		await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 300) ?? '')
-	).toBe(T['outis-dark'].accent);
+	// Poll: a button with a `transition` class (v0.13.3's Open Sidebar) fades its ring in.
+	await expect
+		.poll(
+			() => page.evaluate(() => getComputedStyle(document.activeElement as HTMLElement).outlineColor),
+			{ message: await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 300) ?? '') }
+		)
+		.toBe(T['outis-dark'].accent);
 
 	// The composer shows no ring...
 	await page.locator('#chat-input').click();

@@ -313,7 +313,7 @@ test.afterAll(async ({ api }) => {
 
 test('CB-11 all eight suggestions show without scrolling the list', async ({ page, api }) => {
 	await composerWithSuggestions(page, api);
-	const list = page.locator('[role="list"]:has([role="listitem"] button)');
+	const list = page.locator('[role="list"][aria-labelledby="suggestions-heading"]');
 	for (let i = 1; i <= 8; i++) await expect(page.getByText(`Suggestion ${i}`, { exact: true })).toBeVisible();
 	// Poll: the chips slide up 6px as they fade in, which briefly adds to scrollHeight.
 	await expect.poll(() => list.evaluate((e) => e.scrollHeight <= e.clientHeight)).toBe(true);
@@ -355,7 +355,7 @@ test('CB-15 a long suggestion pool shows 20 at random and typing searches all of
 		}))
 	);
 	await page.goto('/?model=fake-model');
-	const chips = page.locator('[role="listitem"] button');
+	const chips = page.locator('[role="list"][aria-labelledby="suggestions-heading"] [role="listitem"] button');
 	await expect(chips).toHaveCount(20);
 	const first = await chips.allTextContents();
 	let reshuffled = false;
