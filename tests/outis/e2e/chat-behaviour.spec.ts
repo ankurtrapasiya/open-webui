@@ -201,12 +201,18 @@ test('CB-8 the same text from two different documents is sent for each, numbered
 
 // --- Skills persist across messages ---------------------------------------------------------
 
+// v0.13.3 shows the composer's selected-tools/skills badges only with this setting on (default off);
+// the checks below read the selection from those badges.
+test.beforeAll(async ({ api }) => {
+	await api.updateUiSettings({ showInputSelections: true });
+});
+
 async function newChatWithSkill(page: Page, api: any) {
 	await api.skill('regression-skill', 'Regression Skill', 'Always answer briefly.');
 	await page.goto('/?model=fake-model');
-	await page.locator('button[aria-label="Integrations"]').click();
-	await page.getByRole('button', { name: /^Skills/ }).click();
-	await page.getByRole('button', { name: /Regression Skill/ }).click();
+	await page.locator('#input-menu-button').click(); // v0.13.3: Integrations moved into the + menu
+	await page.getByRole('menuitem', { name: /^Skills/ }).click();
+	await page.locator('[role^="menuitem"]').filter({ hasText: 'Regression Skill' }).click();
 	await page.keyboard.press('Escape');
 	await expect(page.locator('button[aria-label="Available Skills"]')).toHaveText('1');
 }
@@ -241,9 +247,9 @@ test('CB-10 a new chat starts with no skills selected', async ({ page, api }) =>
 
 async function newChatWithTool(page: Page) {
 	await page.goto('/?model=fake-model');
-	await page.locator('button[aria-label="Integrations"]').click();
-	await page.getByRole('button', { name: /^Tools/ }).click();
-	await page.getByRole('button', { name: /regression_figures/ }).click();
+	await page.locator('#input-menu-button').click(); // v0.13.3: Integrations moved into the + menu
+	await page.getByRole('menuitem', { name: /^Tools/ }).click();
+	await page.locator('[role^="menuitem"]').filter({ hasText: 'regression_figures' }).click();
 	await page.keyboard.press('Escape');
 	await expect(page.locator('button[aria-label="Available Tools"]')).toHaveText('1');
 }
@@ -307,7 +313,7 @@ test.afterAll(async ({ api }) => {
 
 test('CB-11 all eight suggestions show without scrolling the list', async ({ page, api }) => {
 	await composerWithSuggestions(page, api);
-	const list = page.locator('[role="list"]:has(button[role="listitem"])');
+	const list = page.locator('[role="list"]:has([role="listitem"] button)');
 	for (let i = 1; i <= 8; i++) await expect(page.getByText(`Suggestion ${i}`, { exact: true })).toBeVisible();
 	// Poll: the chips slide up 6px as they fade in, which briefly adds to scrollHeight.
 	await expect.poll(() => list.evaluate((e) => e.scrollHeight <= e.clientHeight)).toBe(true);
@@ -349,7 +355,7 @@ test('CB-15 a long suggestion pool shows 20 at random and typing searches all of
 		}))
 	);
 	await page.goto('/?model=fake-model');
-	const chips = page.locator('button[role="listitem"]');
+	const chips = page.locator('[role="listitem"] button');
 	await expect(chips).toHaveCount(20);
 	const first = await chips.allTextContents();
 	let reshuffled = false;

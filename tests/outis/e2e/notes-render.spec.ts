@@ -93,7 +93,7 @@ test('NR-10 editing and saving a note with math keeps the $ source in markdown',
 
 // --- Print to PDF ---
 
-const noteMenu = (page: Page) => page.locator('span[aria-haspopup]:has(> div.p-1)');
+const noteMenu = (page: Page) => page.locator('button[aria-label="Note Menu"]').first();
 
 async function choosePdf(page: Page) {
 	await noteMenu(page).click();
@@ -135,7 +135,7 @@ test('NR-20 Download as PDF from the notes list prints too, with math rendered f
 			return w;
 		};
 	});
-	const row = page.getByRole('button', { name: 'Open note' }).filter({ hasText: title });
+	const row = page.locator('div.group[role="presentation"]').filter({ hasText: title });
 	await row.hover();
 	await row.locator('button[aria-label="Note Menu"]').click();
 	await page.getByText('Download', { exact: true }).click();

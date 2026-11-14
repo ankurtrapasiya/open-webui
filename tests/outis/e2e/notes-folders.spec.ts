@@ -100,7 +100,7 @@ test('NF-9 move a note into a nested folder, then delete that folder from the fo
 	const note = await api.note({ title: 'NF-9 note' });
 	await page.goto('/notes');
 
-	const row = page.getByRole('button', { name: 'Open note' }).filter({ hasText: 'NF-9 note' });
+	const row = page.locator('div.group[role="presentation"]').filter({ hasText: 'NF-9 note' });
 	await row.hover();
 	await row.locator('button[aria-label="Note Menu"]').click();
 	await page.getByText('Move to folder', { exact: true }).click();

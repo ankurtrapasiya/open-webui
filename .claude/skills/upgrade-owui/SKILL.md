@@ -207,3 +207,15 @@ If the new release migrated the database, also restore the backup `deploy_owui.s
   got upstream's own `encode` (fork `escapeAttribute` dropped); `get_headers_and_cookies` moved to
   `utils/headers.py` (OpenRouter `X-Title: Outis` re-applied); `routers/audio.py` became a package;
   fa-IR locale writes U+200C as `‌` (script keeps escapes).
+- **v0.13.3**: 1297 upstream commits, 92 conflicted files (57 locales). Notes became multi-page
+  with live collaborative autosave: the fork's draft mode was dropped (user's call, SPEC-notes-drafts
+  retired) and the note editor's id became `note-<id>-<page id>` (tests use `[id^="note-<id>-"]`).
+  The collaboration provider seeds empty docs with plain `marked`; swap in `editorMarked` in
+  `RichTextInput/Collaboration.ts` or note math renders as `$` text (NR-1..13 all go red).
+  Theming moved to `utils/theme.ts` `setTheme()` (Outis themes live there now). Tool-call parsing
+  moved to `utils/tool_calling.parse_arguments` (CR-19 repair re-applied). Integrations menu folded
+  into the "+" menu (`#input-menu-button`, items are `menuitem`); selected tool/skill badges are
+  opt-in (`showInputSelections`). Once any skill exists the server preloads hidden
+  `list_available_skills` / `view_skill` tool history, which made the fake model answer "Tool
+  result received." -- `support/fake-openai.ts` now drops those. Failures caused by that are
+  order-dependent: a check passing alone but failing in the suite means look for leftover state.

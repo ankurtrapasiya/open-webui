@@ -326,7 +326,7 @@ test('TH-16 the confirm button is the accent with readable text, also in high co
 	await useTheme(page, 'outis-dark');
 	await page.addInitScript(() => localStorage.setItem('sidebar', 'true'));
 	await page.goto(`/c/${chat.id}`);
-	const row = page.locator(`a#sidebar-chat-item[href="/c/${chat.id}"]`).locator('xpath=..');
+	const row = page.locator(`#sidebar-chat-item:has(a[href="/c/${chat.id}"])`).locator('xpath=..');
 	await row.hover();
 	await row.locator('button[aria-label="Chat Menu"]').click();
 	await page.getByRole('menuitem', { name: 'Delete' }).or(page.getByText('Delete', { exact: true })).last().click();
@@ -357,7 +357,10 @@ test('TH-17 focus: the keyboard ring is the accent, the composer has none unless
 			return a && a.tagName === 'BUTTON' ? getComputedStyle(a).outlineColor : '';
 		});
 	}
-	expect(outline).toBe(T['outis-dark'].accent);
+	expect(
+		outline,
+		await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 300) ?? '')
+	).toBe(T['outis-dark'].accent);
 
 	// The composer shows no ring...
 	await page.locator('#chat-input').click();

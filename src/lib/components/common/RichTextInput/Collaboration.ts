@@ -1,5 +1,6 @@
 import * as Y from 'yjs';
-import { marked } from 'marked';
+// Fork: the notes editor's own LaTeX-aware parser, so math in stored markdown seeds as math nodes.
+import { editorMarked } from '$lib/utils/marked/editor-marked';
 import {
 	ySyncPlugin,
 	ySyncPluginKey,
@@ -315,7 +316,7 @@ export class SocketIOCollaborationProvider {
 										data.content
 											? data.content.json ||
 													data.content.html ||
-													marked.parse(data.content.md ?? '', { async: false })
+													editorMarked.parse(data.content.md ?? '', { async: false }) as string
 											: this.initialContent
 									);
 									return;

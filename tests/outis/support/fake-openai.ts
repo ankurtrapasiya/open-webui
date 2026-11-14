@@ -27,7 +27,20 @@ const text = (content: unknown): string =>
 type Call = { name: string; arguments: string };
 
 function reply(body: any): { content?: string; toolCalls?: Call[] } {
-	const messages: Msg[] = body.messages ?? [];
+	// v0.13.3 preloads skills as hidden tool history before the model runs: `list_available_skills`
+	// once any skill exists, and `view_skill` for an explicitly selected one. That is the server's
+	// doing, not a call this fake made, so drop it.
+	const PRELOADED = new Set(['list_available_skills', 'view_skill']);
+	const preloaded = new Set(
+		(body.messages ?? []).flatMap((m: any) =>
+			(m.tool_calls ?? []).filter((c: any) => PRELOADED.has(c.function?.name)).map((c: any) => c.id)
+		)
+	);
+	const messages: Msg[] = (body.messages ?? []).filter(
+		(m: any) =>
+			!(m.role === 'tool' && preloaded.has(m.tool_call_id)) &&
+			!(m.role === 'assistant' && m.tool_calls?.length && m.tool_calls.every((c: any) => preloaded.has(c.id)) && !m.content)
+	);
 	const last = messages[messages.length - 1];
 	if (last?.role === 'tool') return { content: 'Tool result received.' };
 	const lastUser = [...messages].reverse().find((m) => m.role === 'user');

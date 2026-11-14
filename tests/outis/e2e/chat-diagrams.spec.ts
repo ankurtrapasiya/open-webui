@@ -128,7 +128,7 @@ test('CD-9 the chat PDF shrinks a wide diagram to the page (sidebar chat menu)',
 	const chat = await openChat(page, api, 'CD-9 sidebar', `P:\n\n${svg(1300)}\n\nE`);
 	await expect(diagram(page)).toHaveCount(1);
 	await expectPdfFitsDiagram(page, async () => {
-		const row = page.locator(`a#sidebar-chat-item[href="/c/${chat.id}"]`).locator('xpath=..');
+		const row = page.locator(`#sidebar-chat-item:has(a[href="/c/${chat.id}"])`).locator('xpath=..');
 		await row.hover();
 		await row.locator('button[aria-label="Chat Menu"]').click();
 	});
