@@ -80,7 +80,7 @@
 						<Switch bind:state={autoFormat} ariaLabel={$i18n.t('Formatting')} />
 					</div>
 				</Tooltip>
-				<hr />
+				<hr class="border-gray-100 dark:border-gray-800" />
 			{/if}
 			<DropdownSub contentClass="select-none z-50">
 				<button
@@ -176,6 +176,7 @@
 					<div class="flex items-center">{$i18n.t('Move to folder')}</div>
 				</button>
 			{/if}
+			<slot name="actions" close={() => (show = false)} />
 
 			{#if onPin}
 				<button

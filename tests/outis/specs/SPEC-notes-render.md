@@ -50,6 +50,10 @@ Browser:
   code visible and gets no toggle. A block created empty starts unfolded, so typing a new diagram
   is not hidden at its first good render. (Asked 2026-10-03, to match the chat, where the filter
   puts the source in a closed `<details>`.)
+- **NR-21** A ` ```mermaid ` block in a note has both upstream's Copy button (v0.13.3) and the
+  fork's drawing: the block shows a `Copy` button and a `.mermaid-diagram svg`. (Added at the
+  v0.13.3 merge: upstream's `CopyableCodeBlock` replaced the code-block node view the fork's
+  `MermaidCodeBlock` also replaces; the merge layers the button on the fork's view.)
 - **NR-15** A non-mermaid code block gets no `.mermaid-diagram` drawing.
 - **NR-16** A 1600x1200 image in a note fills at least 90% of the editor width and is taller
   than 400px. (Found 2026-10-01: note images were capped at `max-h-72`, 288px, so a rendered

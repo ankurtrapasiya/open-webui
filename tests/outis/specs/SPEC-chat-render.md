@@ -76,7 +76,7 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   (`{"text": "costs \$5"}}`) still runs: the embed shows `costs \$5`, the backslash kept.
   Anything after the object other than closing brackets still fails as before. (Found
   2026-10-07: Qwen3 235B sent both defects on four retries in a row and every one was rejected.
-  `parse_tool_call_arguments` in `utils/middleware.py`.)
+  `_repair_json_object` in `utils/tool_calling.py`, called by `parse_arguments`; moved from `utils/middleware.py` at v0.13.3.)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).

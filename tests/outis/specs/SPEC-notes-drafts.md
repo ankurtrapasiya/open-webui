@@ -1,4 +1,9 @@
-# Spec: notes-drafts
+# Spec: notes-drafts (RETIRED at v0.13.3)
+
+**Retired 2026-11-14** with the user's approval. Open WebUI v0.13.3 rebuilt notes around
+multi-page tabs saved live through collaboration (every keystroke persists, with presence);
+save-on-demand drafts cannot sit on that path without re-implementing page saving. The fork now
+uses upstream's autosave. `notes-drafts.spec.ts` was deleted; the criteria below are history.
 
 Fork commit: b231eb2cd (edit notes as drafts: save on demand, ask before leaving). During
 the v0.11.4 rebase it was merged with upstream's `{#key autoFormat}` editor wrapper and

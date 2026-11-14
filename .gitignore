@@ -316,3 +316,7 @@ cypress/screenshots
 tests/outis/node_modules/
 tests/outis/test-results/
 tests/outis/playwright-report/
+/evals/
+
+# Local temporary fixtures and screenshots
+/tmp/

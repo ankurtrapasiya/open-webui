@@ -4,7 +4,7 @@ import { test, expect } from '../support/fixtures';
 async function openNote(page: Page, api: any, md: string, title: string) {
 	const note = await api.note({ title, md });
 	await page.goto(`/notes/${note.id}`);
-	const editor = page.locator(`#note-${note.id}`);
+	const editor = page.locator(`[id^="note-${note.id}-"]`);
 	await expect(editor).toBeVisible();
 	return { note, editor };
 }
@@ -57,7 +57,7 @@ test("NR-6 the chat's math support does not change how notes parse math", async 
 		document.body.appendChild(a);
 		a.click();
 	}, note.id);
-	await expect(page.locator(`#note-${note.id} [data-type="inline-math"]`)).toHaveAttribute('data-latex', 'x^2');
+	await expect(page.locator(`[id^="note-${note.id}-"] [data-type="inline-math"]`)).toHaveAttribute('data-latex', 'x^2');
 });
 
 // --- Notes written by the chat, and round trips ---
@@ -76,7 +76,7 @@ test('NR-8 a note stored as {json: null, html: "", md} (how the chat writes it) 
 test('NR-9 a note stored with only md, no json key, opens with its text', async ({ page, api }) => {
 	const note = await api.rawNote({ title: 'NR-9', data: { content: { md: 'NR9 body with no json key' } } });
 	await page.goto(`/notes/${note.id}`);
-	await expect(page.locator(`#note-${note.id}`)).toContainText('NR9 body with no json key');
+	await expect(page.locator(`[id^="note-${note.id}-"]`)).toContainText('NR9 body with no json key');
 });
 
 test('NR-10 editing and saving a note with math keeps the $ source in markdown', async ({ page, api }) => {
@@ -269,6 +269,12 @@ test('NR-19 a Kroki drawing folds its source behind a "Diagram source" toggle; m
 		await expect(plant).toBeHidden();
 		expect((await api.getNote(note.id)).data.content.md).toContain('NR19a -> NR19b');
 	});
+});
+
+test('NR-21 a mermaid block in a note has a Copy button and still draws its diagram', async ({ page, api }) => {
+	const { editor } = await openNote(page, api, '```mermaid\ngraph TD\n  A[NR21] --> B[Done]\n```', 'NR-21');
+	await expect(editor.locator('.mermaid-diagram svg')).toBeVisible();
+	await expect(editor.getByRole('button', { name: 'Copy', exact: true })).toBeVisible();
 });
 
 test('NR-15 an ordinary code block gets no diagram', async ({ page, api }) => {

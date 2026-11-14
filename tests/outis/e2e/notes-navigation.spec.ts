@@ -97,7 +97,7 @@ test('NN-7 Alt+Down steps from the page, but not while typing in the editor', as
 	await expect(position(page)).toHaveText('2 / 3');
 
 	// Typing in the editor: Alt+Down must not navigate.
-	await page.locator(`#note-${b.id}`).click();
+	await page.locator(`[id^="note-${b.id}-"]`).click();
 	await page.keyboard.press('Alt+ArrowDown');
 	await expect(position(page)).toHaveText('2 / 3');
 	await expect(page).toHaveURL(new RegExp(`/notes/${b.id}$`));
@@ -132,7 +132,7 @@ test('NN-9 a single note shows no stepper', async ({ page, api }) => {
 	const only = await api.note({ title: 'NN9-only' });
 	await useNameSort(page);
 	await page.goto(`/notes/${only.id}`);
-	await expect(page.locator(`#note-${only.id}`)).toBeVisible();
+	await expect(page.locator(`[id^="note-${only.id}-"]`)).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Next note' })).toHaveCount(0);
 	await expect(position(page)).toHaveCount(0);
 });

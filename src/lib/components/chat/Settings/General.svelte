@@ -8,6 +8,7 @@
 	const dispatch = createEventDispatcher();
 
 	import { config, models, settings, theme, user } from '$lib/stores';
+	import { setTheme } from '$lib/utils/theme';
 
 	const i18n: any = getContext('i18n');
 
@@ -21,8 +22,8 @@
 	export let getModels: Function;
 
 	// General
-	let themes = ['dark', 'light', 'oled-dark', 'outis-dark', 'outis-light'];
-	let selectedTheme = 'outis-dark';
+	let selectedTheme = 'system';
+	$: selectedTheme = $theme;
 
 	// The face the Outis themes render in. Stored separately from the theme
 	// because it is orthogonal to it -- either theme can wear any of these --
@@ -147,9 +148,7 @@
 	};
 
 	onMount(async () => {
-		selectedTheme = localStorage.theme ?? 'outis-dark';
 		selectedFont = localStorage.outisFont ?? 'ibm-plex-mono';
-
 		languages = await getLanguages();
 
 		if (!$config?.features?.enable_easter_eggs) {
@@ -161,110 +160,6 @@
 		params = { ...params, ...$settings.params };
 		params.stop = $settings?.params?.stop ? ($settings?.params?.stop ?? []).join(',') : null;
 	});
-
-	const applyTheme = (_theme: string) => {
-		let themeToApply =
-			_theme === 'oled-dark'
-				? 'dark'
-				: _theme === 'her'
-					? 'light'
-					: _theme === 'outis-dark'
-						? 'dark outis-dark'
-						: _theme === 'outis-light'
-							? 'light outis-light'
-							: _theme;
-
-		if (_theme === 'system') {
-			themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-		}
-
-		if (themeToApply === 'dark' && !_theme.includes('oled')) {
-			document.documentElement.style.setProperty('--color-gray-800', '#333');
-			document.documentElement.style.setProperty('--color-gray-850', '#262626');
-			document.documentElement.style.setProperty('--color-gray-900', '#171717');
-			document.documentElement.style.setProperty('--color-gray-950', '#0d0d0d');
-		}
-
-		themes
-			.filter((e) => e !== themeToApply)
-			.forEach((e) => {
-				e.split(' ').forEach((e) => {
-					document.documentElement.classList.remove(e);
-				});
-			});
-
-		themeToApply.split(' ').forEach((e) => {
-			document.documentElement.classList.add(e);
-		});
-
-		const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-		if (metaThemeColor) {
-			if (_theme.includes('system')) {
-				const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-					? 'dark'
-					: 'light';
-				console.log('Setting system meta theme color: ' + systemTheme);
-				metaThemeColor.setAttribute('content', systemTheme === 'light' ? '#ffffff' : '#171717');
-			} else {
-				console.log('Setting meta theme color: ' + _theme);
-				metaThemeColor.setAttribute(
-					'content',
-					_theme === 'dark'
-						? '#171717'
-						: _theme === 'oled-dark'
-							? '#000000'
-							: _theme === 'her'
-								? '#983724'
-								: _theme === 'outis-dark'
-									? '#151311'
-									: _theme === 'outis-light'
-										? '#fbf9f5'
-										: '#ffffff'
-				);
-			}
-		}
-
-		if (typeof window !== 'undefined' && window.applyTheme) {
-			window.applyTheme();
-		}
-
-		if (_theme.includes('oled')) {
-			document.documentElement.style.setProperty('--color-gray-800', '#101010');
-			document.documentElement.style.setProperty('--color-gray-850', '#050505');
-			document.documentElement.style.setProperty('--color-gray-900', '#000000');
-			document.documentElement.style.setProperty('--color-gray-950', '#000000');
-			document.documentElement.classList.add('dark');
-		}
-
-		if (_theme === 'outis-dark') {
-			// Explicit setProperty (not just the html.outis-dark CSS rule) because inline
-			// style always beats a class selector — without this, switching from
-			// Dark/OLED Dark would leave their inline overrides in place.
-			document.documentElement.style.setProperty('--color-gray-800', '#2b2825');
-			document.documentElement.style.setProperty('--color-gray-850', '#211f1c');
-			document.documentElement.style.setProperty('--color-gray-900', '#1a1816');
-			document.documentElement.style.setProperty('--color-gray-950', '#151311');
-			document.documentElement.classList.add('dark', 'outis-dark');
-		}
-
-		if (_theme === 'outis-light') {
-			// Mirror of the block above: the dark themes leave these four set as
-			// inline style, which outranks any class selector, so they have to be
-			// cleared rather than overridden for the light palette to apply.
-			['--color-gray-800', '--color-gray-850', '--color-gray-900', '--color-gray-950'].forEach(
-				(p) => document.documentElement.style.removeProperty(p)
-			);
-			document.documentElement.classList.add('light', 'outis-light');
-		}
-
-		console.log(_theme);
-	};
-
-	const themeChangeHandler = (_theme: string) => {
-		theme.set(_theme);
-		localStorage.setItem('theme', _theme);
-		applyTheme(_theme);
-	};
 
 	const fontChangeHandler = (_font: string) => {
 		if (_font === 'ibm-plex-mono') {
@@ -297,7 +192,7 @@
 					bind:value={selectedTheme}
 					ariaLabel={$i18n.t('settings.personal.general.theme.label')}
 					placeholder={$i18n.t('Select a theme')}
-					on:change={() => themeChangeHandler(selectedTheme)}
+					on:change={() => setTheme(selectedTheme)}
 				>
 					<option value="system">⚙️ {$i18n.t('System')}</option>
 					<option value="dark">🌑 {$i18n.t('Dark')}</option>
@@ -383,10 +278,12 @@
 				title={$i18n.t('settings.personal.general.sections.advancedParameters.title')}
 			>
 				<UserSettingRow
+					let:labelId
 					description={$i18n.t('settings.personal.general.modelParameters.description')}
 				>
 					<span slot="label">{$i18n.t('settings.personal.general.modelParameters.label')}</span>
 					<button
+						id={`${labelId}-control`}
 						class={actionButtonClass}
 						type="button"
 						aria-expanded={showAdvanced}

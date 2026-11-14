@@ -8,6 +8,39 @@ type NoteItem = {
 	access_grants?: object[];
 };
 
+export type NoteContent = { json: any; html: string; md: string };
+export type NotePage = {
+	id: string;
+	parent_id?: string | null;
+	inherit_note_title?: boolean;
+	title: string;
+	content: NoteContent;
+	versions: NoteContent[];
+	revision: number;
+	generation: number;
+};
+export type NotePageOperation = {
+	action: 'create' | 'rename' | 'duplicate' | 'reorder' | 'move' | 'delete';
+	revision: number;
+	page_id?: string;
+	new_id?: string;
+	parent_id?: string | null;
+	before_id?: string | null;
+	title?: string;
+	order?: string[];
+};
+
+export const updateNotePages = async (token: string, id: string, operation: NotePageOperation) => {
+	const response = await fetch(`${WEBUI_API_BASE_URL}/notes/${id}/pages/update`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` },
+		body: JSON.stringify(operation)
+	});
+	const result = await response.json();
+	if (!response.ok) throw new Error(result.detail || 'Failed to update pages');
+	return result;
+};
+
 export const createNewNote = async (token: string, note: NoteItem) => {
 	let error = null;
 
@@ -99,7 +132,8 @@ export const searchNotes = async (
 	sortKey: string | null = null,
 	page: number | null = null,
 	direction: string | null = null,
-	folder: string | null = null
+	folder: string | null = null,
+	signal?: AbortSignal
 ) => {
 	let error = null;
 	const searchParams = new URLSearchParams();
@@ -134,6 +168,7 @@ export const searchNotes = async (
 
 	const res = await fetch(`${WEBUI_API_BASE_URL}/notes/search?${searchParams.toString()}`, {
 		method: 'GET',
+		signal,
 		headers: {
 			Accept: 'application/json',
 			'Content-Type': 'application/json',
@@ -148,6 +183,7 @@ export const searchNotes = async (
 			return json;
 		})
 		.catch((err) => {
+			if (signal?.aborted) return null;
 			error = err.detail;
 			console.error(err);
 			return null;
@@ -380,7 +416,11 @@ export const createNoteChatById = async (token: string, id: string) => {
 	return res;
 };
 
-export const updateNoteById = async (token: string, id: string, note: NoteItem) => {
+export const updateNoteById = async (
+	token: string,
+	id: string,
+	note: Omit<NoteItem, 'access_grants'> & { page_id?: string }
+) => {
 	let error = null;
 
 	const res = await fetch(`${WEBUI_API_BASE_URL}/notes/${id}/update`, {
@@ -391,7 +431,8 @@ export const updateNoteById = async (token: string, id: string, note: NoteItem) 
 			authorization: `Bearer ${token}`
 		},
 		body: JSON.stringify({
-			...note
+			...note,
+			access_grants: undefined
 		})
 	})
 		.then(async (res) => {
