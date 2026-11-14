@@ -17,6 +17,12 @@ because the app auto-focuses it after load (history below); TH-30 and TH-31 guar
 - Themes are `<html>` classes: Outis-Dark = `dark outis-dark`, Outis-Light =
   `light outis-light`. Stored in `localStorage.theme`. A fresh browser gets `outis-dark`.
   A stored `outis-mneme` (old name) is rewritten to `outis-dark` before first paint.
+- Palette variants (2026-11-14, `src/outis-variants.css`) layer a palette on a base theme:
+  Outis Spark = `dark outis-dark outis-spark` (value `outis-dark-spark`, DGX Spark skin: green
+  accent, gold maths/labels), Outis FT = `light outis-light outis-ft` (value `outis-light-ft`,
+  Financial Times paper). Every per-theme test (TH-3, 14, 15, 18, 21, 22, 29, 30) runs on them.
+- **TH-32** Spark -> FT leaves no Spark/dark class and FT's own grays; FT -> Outis-Dark leaves
+  no FT class and the blue accent.
 - Font, text sizes, corner radii, spacing and icon strokes are exactly stock Dark's. Only
   colour (backgrounds, text, borders, accent, focus ring, maths/key-term colours) differs.
 

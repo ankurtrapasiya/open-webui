@@ -1,0 +1,170 @@
+/*
+ * Outis palette variants (2026-11-14, user's call). Each one is a colour layer
+ * on top of an Outis base theme, so every rule in outis-theme-shared.css and the
+ * base file still applies and only the palette changes:
+ *
+ *   'outis-dark-spark' = dark  outis-dark  outis-spark
+ *       NVIDIA DGX Spark: green-black ground, NVIDIA green accent, champagne-gold
+ *       labels and maths (after joeynyc/hermes-skins skins/dgx-spark.yaml).
+ *       Note: the accent is green, so success shares its hue (bright #a4e100).
+ *   'outis-light-ft' = light outis-light outis-ft
+ *       Financial Times paper: #fff1e0 ground, #33302e ink, #005b7f accent
+ *       (colorpalettegenerator.ai "financial-times"). The palette's "primary"
+ *       #fff1e0 is used as the page, not as a button fill: cream on white fails
+ *       contrast, and it is the FT's own paper colour.
+ *
+ * Selectors double the class (html.outis-dark.outis-spark) so they outrank the
+ * base files regardless of import order. Registered in app.html, utils/theme.ts
+ * and Settings/General.svelte.
+ */
+
+/* ------------------------------ Outis Spark ------------------------------ */
+html.outis-dark.outis-spark {
+	--color-gray-50: #e3edd0;
+	--color-gray-100: #d5e2c0;
+	--color-gray-200: #c7d6b0;
+	--color-gray-300: #a9b596;
+	--color-gray-400: #8a977a;
+	--color-gray-500: #66755a;
+	--color-gray-600: #4b5a3c;
+	--color-gray-700: #33421f;
+	--color-gray-800: #24360f;
+	--color-gray-850: #1a2a0d;
+	--color-gray-900: #12200a;
+	--color-gray-950: #0f1a06;
+
+	--color-blue-50: #effad0;
+	--color-blue-100: #ddf59e;
+	--color-blue-200: #c2ec5c;
+	--color-blue-300: #a4e100;
+	--color-blue-400: #92d400;
+	--color-blue-500: #76b900;
+	--color-blue-600: #5e9400;
+	--color-blue-700: #4c7a00;
+	--color-blue-800: #3a5f00;
+	--color-blue-900: #2a4500;
+	--color-blue-950: #1a2c00;
+
+	--color-red-500: #ff5252;
+	--color-red-600: #ff5252;
+	--color-yellow-500: #ffb300;
+	--color-yellow-600: #ffb300;
+	--color-green-400: #a4e100;
+	--color-green-500: #a4e100;
+	--color-green-600: #a4e100;
+
+	--outis-input-bg: #1a2a0d;
+	--outis-input-fg: #e3edd0;
+	--outis-code-bg: #1a2a0d;
+	--outis-code-border: #33421f;
+	--outis-math: #cba35e;
+	--outis-math-card: #1a2a0d;
+	--outis-key: #cba35e;
+}
+html.outis-dark.outis-spark body {
+	background: #12200a;
+	color: #d5e2c0;
+}
+html.outis-dark.outis-spark .editor-selection,
+html.outis-dark.outis-spark ::selection {
+	background: rgba(118, 185, 0, 0.22);
+}
+html.outis-dark.outis-spark :is(.markdown-prose, .markdown-prose-sm, .markdown-prose-xs, .input-prose, .input-prose-sm) {
+	--tw-prose-invert-headings: #e3edd0;
+	--tw-prose-invert-bold: #dce6c8;
+	--tw-prose-invert-body: #cdd8ba;
+	--tw-prose-invert-kbd: #dce6c8;
+	--tw-prose-invert-lead: #a9b596;
+	--tw-prose-invert-quotes: #a9b596;
+	--tw-prose-invert-captions: #a9b596;
+	--tw-prose-invert-counters: #cba35e;
+	--tw-prose-invert-bullets: #cba35e;
+	--tw-prose-invert-hr: #33421f;
+	--tw-prose-invert-quote-borders: #5a6b3c;
+	--tw-prose-invert-th-borders: #33421f;
+	--tw-prose-invert-td-borders: #24360f;
+}
+html.outis-dark.outis-spark .outis-diagram {
+	--outis-diagram-fill: #1a2a0d;
+	--outis-diagram-text: #cdd8ba;
+}
+
+/* -------------------------------- Outis FT -------------------------------- */
+html.outis-light.outis-ft {
+	--color-gray-50: #f5ebdd;
+	--color-gray-100: #efe3d2;
+	--color-gray-200: #e5d9c7;
+	--color-gray-300: #d1c7b7;
+	--color-gray-400: #b5ada2;
+	--color-gray-500: #8c8781;
+	--color-gray-600: #66615c;
+	--color-gray-700: #4d4945;
+	--color-gray-800: #403c39;
+	--color-gray-850: #3a3633;
+	--color-gray-900: #33302e;
+	--color-gray-950: #1f1d1b;
+	--color-white: #fff1e0;
+
+	--color-blue-50: #e6f2f7;
+	--color-blue-100: #cce5ef;
+	--color-blue-200: #99cbdf;
+	--color-blue-300: #66b1cf;
+	--color-blue-400: #0077b6;
+	--color-blue-500: #005b7f;
+	--color-blue-600: #004d6b;
+	--color-blue-700: #003f58;
+	--color-blue-800: #003245;
+	--color-blue-900: #002533;
+	--color-blue-950: #001822;
+
+	--color-red-500: #d7263d;
+	--color-red-600: #d7263d;
+	--color-yellow-500: #ffb400;
+	--color-yellow-600: #8a6100;
+	--color-yellow-700: #8a6100;
+	/* #3d9970 is the palette's success, but only 3.2:1 on the paper; text uses the AA step. */
+	--color-green-400: #3d9970;
+	--color-green-500: #2f7a59;
+	--color-green-600: #2f7a59;
+	--color-green-700: #2f7a59;
+
+	--outis-input-bg: #ffffff;
+	--outis-input-fg: #33302e;
+	--outis-code-bg: #f5ebdd;
+	--outis-code-border: #d1c7b7;
+	--outis-rail: #e5d9c7;
+	--outis-math: #0077b6;
+	--outis-math-card: #f5ebdd;
+	--outis-key: #005b7f;
+}
+html.outis-light.outis-ft body {
+	background: #fff1e0;
+	color: #33302e;
+}
+html.outis-light.outis-ft .editor-selection,
+html.outis-light.outis-ft ::selection {
+	background: rgba(0, 91, 127, 0.18);
+}
+html.outis-light.outis-ft :is(.markdown-prose, .markdown-prose-sm, .markdown-prose-xs, .input-prose, .input-prose-sm) {
+	--tw-prose-headings: #33302e;
+	--tw-prose-bold: #33302e;
+	--tw-prose-body: #33302e;
+	--tw-prose-kbd: #33302e;
+	--tw-prose-lead: #66615c;
+	--tw-prose-quotes: #66615c;
+	--tw-prose-captions: #66615c;
+	--tw-prose-counters: #66615c;
+	--tw-prose-bullets: #a09c97;
+	--tw-prose-links: #005b7f;
+	--tw-prose-hr: #d1c7b7;
+	--tw-prose-quote-borders: #d1c7b7;
+	--tw-prose-th-borders: #d1c7b7;
+	--tw-prose-td-borders: #e5d9c7;
+}
+html.outis-light.outis-ft .outis-diagram {
+	--outis-diagram-ground: #fff1e0;
+	--outis-diagram-fill: #f5ebdd;
+	--outis-diagram-border: #d1c7b7;
+	--outis-diagram-text: #33302e;
+	--outis-diagram-deep: #efe3d2;
+}

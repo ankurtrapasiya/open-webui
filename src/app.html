@@ -110,6 +110,21 @@
 					);
 					document.documentElement.classList.add('light', 'outis-light');
 					metaThemeColorTag.setAttribute('content', '#fbf9f5');
+				} else if (localStorage.theme === 'outis-dark-spark') {
+					// Outis Spark: outis-dark plus the outis-spark palette layer (outis-variants.css).
+					document.documentElement.style.setProperty('--color-gray-800', '#24360f');
+					document.documentElement.style.setProperty('--color-gray-850', '#1a2a0d');
+					document.documentElement.style.setProperty('--color-gray-900', '#12200a');
+					document.documentElement.style.setProperty('--color-gray-950', '#0f1a06');
+					document.documentElement.classList.add('dark', 'outis-dark', 'outis-spark');
+					metaThemeColorTag.setAttribute('content', '#12200a');
+				} else if (localStorage.theme === 'outis-light-ft') {
+					// Outis FT: outis-light plus the outis-ft palette layer (outis-variants.css).
+					['--color-gray-800', '--color-gray-850', '--color-gray-900', '--color-gray-950'].forEach(
+						(p) => document.documentElement.style.removeProperty(p)
+					);
+					document.documentElement.classList.add('light', 'outis-light', 'outis-ft');
+					metaThemeColorTag.setAttribute('content', '#fff1e0');
 				} else if (localStorage.theme === 'light') {
 					document.documentElement.classList.add('light');
 					metaThemeColorTag.setAttribute('content', '#ffffff');
@@ -270,6 +285,10 @@
 
 		html.outis-light #splash-screen {
 			background: #fbf9f5;
+		}
+
+		html.outis-ft #splash-screen {
+			background: #fff1e0;
 		}
 
 		#logo-her {

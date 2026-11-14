@@ -60,6 +60,7 @@
 	import '../outis-theme-shared.css';
 	import '../outis-dark-theme.css';
 	import '../outis-light-theme.css';
+	import '../outis-variants.css';
 	import 'tippy.js/dist/tippy.css';
 
 	import { executeToolServer, getBackendConfig, getModels, getVersion } from '$lib/apis';

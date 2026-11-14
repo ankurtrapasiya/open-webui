@@ -31,6 +31,33 @@ const T = {
 		success: 'rgb(43, 116, 64)',
 		codeBg: 'rgb(243, 240, 234)',
 		selection: 'rgba(34, 102, 164, 0.18)'
+	},
+	// Palette variants (src/outis-variants.css): Spark = DGX Spark skin, FT = Financial Times paper.
+	'outis-dark-spark': {
+		classes: ['dark', 'outis-dark', 'outis-spark'],
+		themeColor: '#12200a',
+		bg: 'rgb(18, 32, 10)',
+		text: 'rgb(213, 226, 192)',
+		white: 'rgb(227, 237, 208)',
+		onAccent: 'rgb(15, 26, 6)',
+		accent: 'rgb(118, 185, 0)',
+		filled: 'rgb(118, 185, 0)',
+		success: 'rgb(164, 225, 0)',
+		codeBg: 'rgb(26, 42, 13)',
+		selection: 'rgba(118, 185, 0, 0.22)'
+	},
+	'outis-light-ft': {
+		classes: ['light', 'outis-light', 'outis-ft'],
+		themeColor: '#fff1e0',
+		bg: 'rgb(255, 241, 224)',
+		text: 'rgb(51, 48, 46)',
+		white: 'rgb(255, 241, 224)',
+		onAccent: 'rgb(255, 241, 224)',
+		accent: 'rgb(0, 91, 127)',
+		filled: 'rgb(0, 77, 107)',
+		success: 'rgb(47, 122, 89)',
+		codeBg: 'rgb(245, 235, 221)',
+		selection: 'rgba(0, 91, 127, 0.18)'
 	}
 } as const;
 type Theme = keyof typeof T;
@@ -133,6 +160,8 @@ test('TH-3 the theme switcher offers both Outis themes and applies them', async 
 	const select = page.getByRole('combobox', { name: 'Theme' });
 	await expect(select.locator('option[value="outis-dark"]')).toHaveCount(1);
 	await expect(select.locator('option[value="outis-light"]')).toHaveCount(1);
+	await expect(select.locator('option[value="outis-dark-spark"]')).toHaveCount(1);
+	await expect(select.locator('option[value="outis-light-ft"]')).toHaveCount(1);
 	for (const theme of THEMES) {
 		await chooseTheme(page, theme);
 		for (const c of T[theme].classes) await expect(page.locator('html')).toHaveClass(new RegExp(`\\b${c}\\b`));
@@ -195,6 +224,17 @@ async function styleSnapshot(page: Page, api: any, theme: string) {
 		};
 	});
 }
+
+test('TH-32 switching from Outis Spark to Outis FT leaves no Spark class or dark grays', async ({ page }) => {
+	await useTheme(page, 'dark');
+	await page.goto('/?settings=general');
+	for (const t of ['outis-dark-spark', 'outis-light-ft']) await chooseTheme(page, t);
+	await expect(page.locator('html')).not.toHaveClass(/\b(outis-spark|outis-dark|dark)\b/);
+	expect(await rootVar(page, '--color-gray-900')).toBe('#33302e');
+	await chooseTheme(page, 'outis-dark');
+	await expect(page.locator('html')).not.toHaveClass(/\b(outis-ft|outis-light)\b/);
+	expect(await rootVar(page, '--color-blue-500')).toBe('#84b9e6');
+});
 
 test('TH-30 Outis-Dark and Outis-Light use the stock font, sizes, corners and icon strokes', async ({ page, api }) => {
 	const stock = await styleSnapshot(page, api, 'dark');
@@ -459,7 +499,9 @@ test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async
 test('TH-29 reading ladder and measure: body text in its contrast band, text as wide as code', async ({ page, api }) => {
 	const want = {
 		'outis-dark': { body: 'rgb(215, 210, 203)', heading: 'rgb(231, 226, 220)', band: [11, 14] },
-		'outis-light': { body: 'rgb(51, 48, 43)', heading: 'rgb(29, 26, 22)', band: [12, 17] }
+		'outis-light': { body: 'rgb(51, 48, 43)', heading: 'rgb(29, 26, 22)', band: [12, 17] },
+		'outis-dark-spark': { body: 'rgb(205, 216, 186)', heading: 'rgb(227, 237, 208)', band: [10, 13] },
+		'outis-light-ft': { body: 'rgb(51, 48, 46)', heading: 'rgb(51, 48, 46)', band: [11, 13] }
 	};
 	for (const theme of THEMES) {
 		await richChat(page, api, theme);

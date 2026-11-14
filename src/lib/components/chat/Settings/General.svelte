@@ -172,6 +172,8 @@
 					<option value="oled-dark">🌃 {$i18n.t('OLED Dark')}</option>
 					<option value="outis-dark">🟢 Outis-Dark</option>
 					<option value="outis-light">🟩 Outis-Light</option>
+					<option value="outis-dark-spark">🟢 Outis Spark</option>
+					<option value="outis-light-ft">📰 Outis FT</option>
 					<option value="light">☀️ {$i18n.t('Light')}</option>
 					{#if $config?.features?.enable_easter_eggs}
 						<option value="her">🌷 Her</option>
