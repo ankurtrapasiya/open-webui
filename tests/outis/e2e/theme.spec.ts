@@ -361,7 +361,7 @@ test('TH-17 focus: the keyboard ring is the accent, the composer has none unless
 	await expect
 		.poll(
 			() => page.evaluate(() => getComputedStyle(document.activeElement as HTMLElement).outlineColor),
-			{ message: await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 300) ?? '') }
+			{ message: await page.evaluate(() => { const a = document.activeElement as HTMLElement; return `fv=${a.matches(':focus-visible')} ${a.outerHTML.slice(0, 200)}`; }) }
 		)
 		.toBe(T['outis-dark'].accent);
 

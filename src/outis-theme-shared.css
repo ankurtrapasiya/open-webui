@@ -207,6 +207,10 @@ html:is(.outis-dark, .outis-light) .focus-ring:focus-visible,
 html:is(.outis-dark, .outis-light).high-contrast
 	:is(input, textarea, [contenteditable='true'], .ProseMirror):focus-visible {
 	outline-color: var(--color-blue-500);
+	/* v0.13.3 gave the collapsed-sidebar rail buttons Tailwind's `transition`, which includes
+	   outline-color: the ring faded in from the text colour (TH-17 caught it mid-fade). A focus
+	   ring should be there the moment focus lands, so it does not animate. */
+	transition-property: color, background-color, border-color, opacity, box-shadow, transform;
 }
 
 /* v0.11.1 added a blanket keyboard-a11y focus ring to app.css:
