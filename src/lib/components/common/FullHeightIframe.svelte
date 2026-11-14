@@ -86,11 +86,12 @@
 	})();<\/script>`;
 
 	// Fork: tell the embed the app's theme and font, so tool UIs can match Outis light/dark
-	// (data-outis-theme on <html>, --outis-font) instead of guessing from the OS setting.
+	// (data-outis-theme on <html>, --outis-font = the app font) instead of guessing from the OS setting.
 	// Later theme switches arrive as {type: 'outis:theme'} messages.
 	const outisTheme = () => ({
 		theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-		font: getComputedStyle(document.documentElement).getPropertyValue('--outis-font').trim()
+		// The app's own face (stock since 2026-11-14), so tool UIs match it.
+		font: getComputedStyle(document.body).fontFamily
 	});
 
 	const withOutisTheme = (html: string) => {

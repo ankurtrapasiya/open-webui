@@ -18,18 +18,18 @@ html.outis-dark {
 	   bright for reading before sleep, and 950 sits at #151311 rather than
 	   near-black so the bright glyphs halate less. Contrast on 950:
 	   50 14.0 / 100 11.7 / 200 9.2 / 300 6.9 / 400 4.9 / 500 3.2:1. */
-	--color-gray-50: #e4dfd8;
-	--color-gray-100: #d2cdc6;
-	--color-gray-200: #bcb6af;
-	--color-gray-300: #a39d96;
-	--color-gray-400: #88827b;
-	--color-gray-500: #69645d;
-	--color-gray-600: #514c47;
-	--color-gray-700: #3c3934;
-	--color-gray-800: #2b2825;
-	--color-gray-850: #211f1c;
-	--color-gray-900: #1a1816;
-	--color-gray-950: #151311;
+	--color-gray-50: #e7e2dc;
+	--color-gray-100: #d9d3cd;
+	--color-gray-200: #c2bdb7;
+	--color-gray-300: #a9a49e;
+	--color-gray-400: #8a8580;
+	--color-gray-500: #67625d;
+	--color-gray-600: #4b4742;
+	--color-gray-700: #36322e;
+	--color-gray-800: #282521;
+	--color-gray-850: #211d1a;
+	--color-gray-900: #1a1713;
+	--color-gray-950: #14110e;
 
 	/* Accent — blue is the interactive/focus/link colour throughout the app;
 	   green is already used for "positive" states. Both map to one green
@@ -40,43 +40,32 @@ html.outis-dark {
 	   links outshone the answer being read. Now an even OKLCH ramp at H158,
 	   chroma ≤ 0.11; 500 is Lc 67 (10:1), below body text and still well
 	   above the 4.5:1 floor on every surface. */
-	--color-blue-50: #e5fcee;
-	--color-blue-100: #d0f6df;
-	--color-blue-200: #b8edcd;
-	--color-blue-300: #9ee3bb;
-	--color-blue-400: #8edbaf;
-	--color-blue-500: #7ad0a0;
-	--color-blue-600: #56ad7e;
-	--color-blue-700: #3b8960;
-	--color-blue-800: #266645;
-	--color-blue-900: #17452d;
-	--color-blue-950: #0b2819;
+	--color-blue-50: #e1f1ff;
+	--color-blue-100: #cee6fc;
+	--color-blue-200: #b7d9f7;
+	--color-blue-300: #a2cdf2;
+	--color-blue-400: #93c4ed;
+	--color-blue-500: #84b9e6;
+	--color-blue-600: #558cb9;
+	--color-blue-700: #3b6e97;
+	--color-blue-800: #265173;
+	--color-blue-900: #15364f;
+	--color-blue-950: #0a2133;
 
-	--color-green-50: var(--color-blue-50);
-	--color-green-100: var(--color-blue-100);
-	--color-green-200: var(--color-blue-200);
-	--color-green-300: var(--color-blue-300);
-	--color-green-400: var(--color-blue-400);
-	--color-green-500: var(--color-blue-500);
-	--color-green-600: var(--color-blue-600);
-	--color-green-700: var(--color-blue-700);
-	--color-green-800: var(--color-blue-800);
-	--color-green-900: var(--color-blue-900);
-	--color-green-950: var(--color-blue-950);
 
 	/* Danger / warning keep their own hue, just tuned to the reference palette */
-	--color-red-500: #ff4e4e;
-	--color-red-600: #e63e3e;
-	--color-yellow-500: #f5c542;
-	--color-yellow-600: #d9a82a;
+	--color-red-500: #f69b94;
+	--color-red-600: #f69b94;
+	--color-yellow-500: #edbf71;
+	--color-yellow-600: #edbf71;
 
 	/* Consumed by the autofill rules in outis-theme-shared.css. */
-	--outis-input-bg: #151311;
-	--outis-input-fg: #e4dfd8;
+	--outis-input-bg: #211d1a;
+	--outis-input-fg: #e7e2dc;
 
 	/* Code-block surface. The fill is the same near-black one step up from the
 	   page; the hairline is what says "block". */
-	--outis-code-bg: #1a1816;
+	--outis-code-bg: #211d1a;
 	/* Texting Bubbles surface: the card step with the border step as its edge. */
 	--outis-bubble-bg: var(--color-gray-850);
 	--outis-bubble-border: var(--color-gray-800);
@@ -84,10 +73,13 @@ html.outis-dark {
 	--outis-rail-node: var(--color-gray-500);
 	/* Maths: the whole formula in one colour, set apart from the warm-gray prose (11.5:1
 	   page, 10.3:1 card). See outis-theme-shared.css. */
+	--color-green-500: #8bcd99;
+	--color-green-400: #8bcd99;
+	--color-green-600: #8bcd99;
 	--outis-math: #f0c674;
-	--outis-math-card: #201e1a;
+	--outis-math-card: #211d1a;
 	--outis-code-node: #79c0ff;
-	--outis-code-border: #2b2825;
+	--outis-code-border: #36322e;
 }
 
 /* Finding 3 (OUTIS_DARK_CONSISTENCY_SPEC.md): literal `text-white`/
@@ -202,8 +194,8 @@ html.outis-dark [class~='bg-blue-500'][class~='text-white'] {
    one exception to the token system found during testing. Override it
    directly rather than relying on custom-property cascade. */
 html.outis-dark body {
-	background: #151311;
-	color: #e4dfd8;
+	background: #1a1713;
+	color: #d9d3cd;
 }
 
 /* app.css's `.editor-selection { background: rgba(180, 213, 255, 0.5) }` is
@@ -211,12 +203,12 @@ html.outis-dark body {
    text-selection highlight in every RichTextInput (chat compose, channel
    compose, Notes) rendered in the stock blue, unrelated to the theme.
    Reported live via screenshot ("select all" text). Reuses the exact
-   rgba(122, 208, 160, 0.22) accentSoft value already used for CodeMirror's
+   rgba(132, 185, 230, 0.18) accentSoft value already used for CodeMirror's
    own selection highlight (codemirror-outis-dark-theme.ts), so the two
    selection highlights read as one consistent color rather than two
    different green tints. */
 html.outis-dark .editor-selection {
-	background: rgba(122, 208, 160, 0.22);
+	background: rgba(132, 185, 230, 0.18);
 }
 
 /* `.editor-selection` above only ever applies once the editor has *lost*
@@ -233,7 +225,7 @@ html.outis-dark .editor-selection {
    three selection surfaces in the app -- native text selection, the
    editor's blur-preserved selection, and code blocks -- read as one color. */
 html.outis-dark ::selection {
-	background: rgba(122, 208, 160, 0.22);
+	background: rgba(132, 185, 230, 0.18);
 }
 
 /* ---------------------------------------------------------------------
@@ -277,7 +269,7 @@ html.outis-dark .input-prose-sm {
 	--tw-prose-invert-hr: #3c3934;
 	--tw-prose-invert-quote-borders: #3c3934;
 	--tw-prose-invert-th-borders: #3c3934;
-	--tw-prose-invert-td-borders: #2b2825;
+	--tw-prose-invert-td-borders: #36322e;
 }
 
 /* Light glyphs on a dark ground look bolder than the same weight in ink
@@ -299,8 +291,6 @@ html.outis-dark .input-prose :not(pre) > code,
 html.outis-dark .input-prose-sm :not(pre) > code {
 	color: var(--color-gray-100);
 	background: var(--color-gray-850);
-	padding: 0.1em 0.35em;
-	font-size: 0.95em;
 }
 
 /* ---------------------------------------------------------------------

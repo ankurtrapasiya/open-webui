@@ -2,8 +2,8 @@ import { theme } from '$lib/stores';
 
 // Fork: the Outis themes ride on top of light/dark: 'outis-dark' is `dark` + `outis-dark`,
 // 'outis-light' is `light` + `outis-light`, with their own gray palette and browser bar colour.
-const OUTIS_DARK_GRAYS = ['#2b2825', '#211f1c', '#1a1816', '#151311'];
-const OUTIS_META: Record<string, string> = { 'outis-dark': '#151311', 'outis-light': '#fbf9f5' };
+const OUTIS_DARK_GRAYS = ['#282521', '#211d1a', '#1a1713', '#14110e'];
+const OUTIS_META: Record<string, string> = { 'outis-dark': '#1a1713', 'outis-light': '#fbf9f5' };
 
 export function setTheme(value: string): void {
 	localStorage.setItem('theme', value);

@@ -78,13 +78,6 @@
 					localStorage.theme = 'outis-dark';
 				}
 
-				// The face is a separate preference from the theme: it only means
-				// anything under an Outis theme (the CSS rules are scoped to those
-				// classes), but it is stamped unconditionally and before first paint
-				// so switching into one never flashes the previous font.
-				if (localStorage?.outisFont) {
-					document.documentElement.setAttribute('data-outis-font', localStorage.outisFont);
-				}
 
 				if (localStorage.theme === 'system') {
 					document.documentElement.classList.add(prefersDarkTheme ? 'dark' : 'light');
@@ -100,12 +93,12 @@
 					// Explicit setProperty (not just the html.outis-dark CSS rule) because
 					// inline style always beats a class selector — without this, switching
 					// from Dark/OLED Dark would leave their inline overrides in place.
-					document.documentElement.style.setProperty('--color-gray-800', '#2b2825');
-					document.documentElement.style.setProperty('--color-gray-850', '#211f1c');
-					document.documentElement.style.setProperty('--color-gray-900', '#1a1816');
-					document.documentElement.style.setProperty('--color-gray-950', '#151311');
+					document.documentElement.style.setProperty('--color-gray-800', '#282521');
+					document.documentElement.style.setProperty('--color-gray-850', '#211d1a');
+					document.documentElement.style.setProperty('--color-gray-900', '#1a1713');
+					document.documentElement.style.setProperty('--color-gray-950', '#14110e');
 					document.documentElement.classList.add('dark', 'outis-dark');
-					metaThemeColorTag.setAttribute('content', '#151311');
+					metaThemeColorTag.setAttribute('content', '#1a1713');
 				} else if (localStorage.theme === 'outis-light') {
 					// The dark themes set these four INLINE, and inline style beats any
 					// class selector -- so switching away from Dark/OLED Dark/Outis-Dark

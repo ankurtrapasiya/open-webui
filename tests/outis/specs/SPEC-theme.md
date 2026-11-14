@@ -2,19 +2,23 @@
 
 Fork commits: ~30 theme commits (fb1066519 … 4a475f9a3). Design docs: `OUTIS_READING_SPEC.md` (colour, from 2026-10-04),
 `OUTIS_DARK_THEME_SPEC.md`, `OUTIS_LIGHT_THEME_SPEC.md`, `OUTIS_DARK_CONSISTENCY_SPEC.md`.
-Where those docs and the CSS disagree, the CSS is the truth (e.g. prose scale is 0.85, the
-default font is IBM Plex Mono).
+Where those docs and the CSS disagree, the CSS is the truth.
+
+**2026-11-14: the Outis themes became colour-only.** The user asked for "the same font and the
+same element styles" as stock Dark, with only colours different. The monospace faces, the font
+picker, `--outis-prose-scale`, square corners and square icon caps were removed. TH-5..TH-13
+are retired. Same day the palette moved to a calm blue accent with green kept for success
+(research and contrast figures: `docs/outis-theme-colour-research.md`); TH-25 now expects emerald
+to resolve to the success green, not the accent; TH-17 starts tabbing from the composer
+because the app auto-focuses it after load (history below); TH-30 and TH-31 guard the new rule.
 
 ## Behaviour
 
 - Themes are `<html>` classes: Outis-Dark = `dark outis-dark`, Outis-Light =
   `light outis-light`. Stored in `localStorage.theme`. A fresh browser gets `outis-dark`.
   A stored `outis-mneme` (old name) is rewritten to `outis-dark` before first paint.
-- Font: `localStorage.outisFont` → `data-outis-font` on `<html>`; IBM Plex Mono is the
-  default and removes the key. Seven faces. The font picker shows only under Outis themes.
-- One ratio, `--outis-prose-scale` (0.85; 0.74 Azeret Mono; 0.69 Martian Mono), drives every
-  text size: Tailwind `--text-*`, prose, composer, code blocks, CodeMirror, sidebar.
-- All corner radii are 0. Icons have square caps and mitred joins.
+- Font, text sizes, corner radii, spacing and icon strokes are exactly stock Dark's. Only
+  colour (backgrounds, text, borders, accent, focus ring, maths/key-term colours) differs.
 
 Every browser test runs twice, once per Outis theme, unless it says otherwise. Values below are
 dark / light.
@@ -24,14 +28,16 @@ dark / light.
 Boot and switching:
 
 - **TH-1** Fresh browser: `<html>` has `dark outis-dark`, `localStorage.theme ===
-  'outis-dark'`, meta theme-color `#151311`, no `data-outis-font`.
+  'outis-dark'`, meta theme-color `#1a1713`.
 - **TH-2** Stored `outis-mneme` boots as `outis-dark` and rewrites the stored value.
 - **TH-3** Settings → General lists Outis-Dark and Outis-Light; choosing each applies its
-  classes and theme-color (`#151311` / `#fbf9f5`).
+  classes and theme-color (`#1a1713` / `#fbf9f5`).
 - **TH-4** Outis-Dark → Outis-Light → OLED Dark → Outis-Light leaves no inline
-  `--color-gray-800/850/900/950` on `<html>`, and computed `--color-gray-900` is `#1b1916`.
+  `--color-gray-800/850/900/950` on `<html>`, and computed `--color-gray-900` is `#2e2b26`.
 - **TH-5** The Font picker is present under Outis themes and absent under Dark, OLED Dark and
   Light.
+
+Retired 2026-11-14 (colour-only themes) -- kept as history:
 
 Typography:
 
@@ -53,12 +59,21 @@ Shape:
   on screen in a test; their rule is covered by the same radius tokens.)
 - **TH-13** `svg` stroke caps `square`, joins `miter`.
 
+Style is stock (since 2026-11-14):
+
+- **TH-30** On one chat page, each Outis theme matches stock Dark exactly on: body /
+  `font-sans` / `font-mono` families; reply p, h1-h3, composer, CodeMirror, sidebar chat row,
+  `text-sm`, `text-xs` sizes; `rounded-lg/xl/2xl/full` and the code block wrapper's radius;
+  icon stroke caps and joins. (Stock Dark itself must be rounded and not monospace.)
+- **TH-31** No Font picker in Settings -> General under an Outis theme; a leftover
+  `localStorage.outisFont` has no effect.
+
 Surfaces and colour:
 
-- **TH-14** Body background / text: `rgb(21, 19, 17)` / `rgb(228, 223, 216)` in dark;
+- **TH-14** Body background / text: `rgb(26, 23, 19)` / `rgb(217, 211, 205)` in dark;
   `rgb(251, 249, 245)` / `rgb(54, 50, 45)` in light.
 - **TH-15** Primary filled buttons (the settings Save button) use the accent at rest: dark
-  `rgb(122, 208, 160)`, light `rgb(0, 110, 67)`, text contrast ≥ 4.5:1. The lighter hover green
+  `rgb(132, 185, 230)`, light `rgb(26, 88, 143)`, text contrast ≥ 4.5:1. The lighter hover green
   appears only on hover. (First run found the dark hover colour applied at rest because one
   selector lacked `:hover`; fixed 2026-09-25.)
 - **TH-16** Confirm dialog button (delete a chat): accent background, text contrast ≥ 4.5:1,
@@ -66,11 +81,11 @@ Surfaces and colour:
 - **TH-17** Focus: Tab to a button → outline colour is the accent, not stock blue. Focusing
   the composer shows no outline on `#chat-input-container` or the editor; with
   `html.high-contrast` the editor outline returns.
-- **TH-18** Text selection colour: `rgba(122, 208, 160, 0.22)` in dark,
-  `rgba(0, 131, 80, 0.14)` in light.
+- **TH-18** Text selection colour: `rgba(132, 185, 230, 0.18)` in dark,
+  `rgba(34, 102, 164, 0.18)` in light.
 - **TH-19** Text on an accent badge (`bg-blue-500 text-white`, as the calendar's today badge
-  uses) is `rgb(21, 19, 17)` in dark.
-- **TH-20** `dark:text-white` renders as gray-50 `rgb(228, 223, 216)`, not pure white.
+  uses) is `rgb(26, 23, 19)` in dark.
+- **TH-20** `dark:text-white` renders as gray-50 `rgb(217, 211, 205)`, not pure white.
 
 Code blocks:
 

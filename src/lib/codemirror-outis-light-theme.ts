@@ -42,28 +42,21 @@ const muted = '#1f2328';
 const gutterFg = '#8c959f';
 const mutedLight = '#e3dfd8'; // --color-gray-200 -- borders only
 const comment = '#6e7781';
-const accent = '#008350'; // --color-blue-500 -- editor chrome only, never syntax
+const accent = '#2266a4'; // --color-blue-500 -- editor chrome only, never syntax
 const green = '#cf222e';
 const cyan = '#8250df';
 const violet = '#0550ae';
 const amber = '#0a3069';
 const typeColor = '#953800';
-const accentSoft = 'rgba(0, 131, 80, 0.14)'; // selection
-const accentFaint = 'rgba(0, 131, 80, 0.05)'; // active line
+const accentSoft = 'rgba(34, 102, 164, 0.18)'; // selection
+const accentFaint = 'rgba(34, 102, 164, 0.05)'; // active line
 const danger = '#82071e';
 
 export const outisLightEditorTheme = /*@__PURE__*/ EditorView.theme(
 	{
-		// @codemirror/view's own baseTheme hardcodes .cm-editor { font-size: 14px },
-		// unrelated to anything in this theme -- but the reading area is 12px
-		// (OUTIS_DARK_CONSISTENCY_SPEC.md Finding 1), so code would read visibly
-		// larger than the text around it. Takes the reading area's own
-		// expression rather than a copy of its result, so code and prose stay
-		// the same size whatever --outis-prose-scale is set to.
 		'&': {
 			color: text,
-			backgroundColor: bg,
-			fontSize: 'calc(0.9375rem * var(--outis-prose-scale))'
+			backgroundColor: bg
 		},
 		'.cm-content': { caretColor: accent },
 		'.cm-cursor, .cm-dropCursor': { borderLeftColor: accent },

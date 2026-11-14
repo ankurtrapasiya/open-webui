@@ -5,25 +5,32 @@ import { test, expect } from '../support/fixtures';
 
 // Palette values from src/outis-dark-theme.css and src/outis-light-theme.css.
 const T = {
+	// 2026-11-14 palette (docs/outis-theme-colour-research.md): calm blue accent, green kept for success.
 	'outis-dark': {
 		classes: ['dark', 'outis-dark'],
-		themeColor: '#151311',
-		bg: 'rgb(21, 19, 17)',
-		text: 'rgb(228, 223, 216)',
-		accent: 'rgb(122, 208, 160)',
-		filled: 'rgb(122, 208, 160)', // dark:bg-white controls
-		codeBg: 'rgb(26, 24, 22)',
-		selection: 'rgba(122, 208, 160, 0.22)'
+		themeColor: '#1a1713',
+		bg: 'rgb(26, 23, 19)',
+		text: 'rgb(217, 211, 205)',
+		white: 'rgb(231, 226, 220)', // dark:text-white -> gray-50
+		onAccent: 'rgb(20, 17, 14)', // text on accent fills -> gray-950
+		accent: 'rgb(132, 185, 230)',
+		filled: 'rgb(132, 185, 230)', // dark:bg-white controls
+		success: 'rgb(139, 205, 153)',
+		codeBg: 'rgb(33, 29, 26)',
+		selection: 'rgba(132, 185, 230, 0.18)'
 	},
 	'outis-light': {
 		classes: ['light', 'outis-light'],
 		themeColor: '#fbf9f5',
 		bg: 'rgb(251, 249, 245)',
 		text: 'rgb(54, 50, 45)',
-		accent: 'rgb(0, 131, 80)',
-		filled: 'rgb(0, 110, 67)', // bg-black / bg-gray-900 controls
+		white: 'rgb(251, 249, 245)',
+		onAccent: 'rgb(251, 249, 245)',
+		accent: 'rgb(34, 102, 164)',
+		filled: 'rgb(26, 88, 143)', // bg-black / bg-gray-900 controls -> blue-600
+		success: 'rgb(43, 116, 64)',
 		codeBg: 'rgb(243, 240, 234)',
-		selection: 'rgba(0, 131, 80, 0.14)'
+		selection: 'rgba(34, 102, 164, 0.18)'
 	}
 } as const;
 type Theme = keyof typeof T;
@@ -95,14 +102,13 @@ const contrast = (a: string, b: string) => {
 
 // --- Boot and switching -------------------------------------------------------------------
 
-test('TH-1 a fresh browser boots in Outis-Dark with the default font', async ({ page }) => {
+test('TH-1 a fresh browser boots in Outis-Dark', async ({ page }) => {
 	await page.goto('/');
 	const html = page.locator('html');
 	await expect(html).toHaveClass(/\bdark\b/);
 	await expect(html).toHaveClass(/\boutis-dark\b/);
 	expect(await page.evaluate(() => localStorage.theme)).toBe('outis-dark');
-	expect(await page.locator('meta[name="theme-color"]').first().getAttribute('content')).toBe('#151311');
-	expect(await html.getAttribute('data-outis-font')).toBeNull();
+	expect(await page.locator('meta[name="theme-color"]').first().getAttribute('content')).toBe(T['outis-dark'].themeColor);
 });
 
 test('TH-2 the old theme name outis-mneme boots as Outis-Dark and is rewritten', async ({ page }) => {
@@ -142,124 +148,69 @@ test('TH-4 switching through other themes leaves no dark palette on Outis-Light'
 		['800', '850', '900', '950'].map((n) => document.documentElement.style.getPropertyValue(`--color-gray-${n}`))
 	);
 	expect(inline).toEqual(['', '', '', '']);
-	expect(await rootVar(page, '--color-gray-900')).toBe('#1b1916');
+	expect(await rootVar(page, '--color-gray-900')).toBe('#2e2b26');
 });
 
-test('TH-5 the Font picker exists only under the Outis themes', async ({ page }) => {
+// --- Style is stock: the Outis themes differ from Dark only in colour (user's call, 2026-11-14) ---
+
+// Everything that is "style, not colour", read from one chat page: faces, sizes, corners, strokes.
+async function styleSnapshot(page: Page, api: any, theme: string) {
+	await richChat(page, api, theme);
+	await page.locator('#sidebar-chat-item').first().waitFor({ state: 'attached' }).catch(() => {});
+	return page.evaluate(() => {
+		const pick = (sel: string, prop: string) => {
+			const e = document.querySelector(sel);
+			return e ? getComputedStyle(e).getPropertyValue(prop).trim() : 'missing';
+		};
+		const probe = (cls: string, prop: string) => {
+			const el = document.createElement('div');
+			el.className = cls;
+			el.textContent = 'probe';
+			document.body.appendChild(el);
+			const v = getComputedStyle(el).getPropertyValue(prop).trim();
+			el.remove();
+			return v;
+		};
+		const svg = document.querySelector('button svg');
+		return {
+			bodyFont: pick('body', 'font-family'),
+			sansFont: probe('font-sans', 'font-family'),
+			monoFont: probe('font-mono', 'font-family'),
+			replySize: pick('.markdown-prose p', 'font-size'),
+			h1: pick('.markdown-prose h1', 'font-size'),
+			h2: pick('.markdown-prose h2', 'font-size'),
+			h3: pick('.markdown-prose h3', 'font-size'),
+			composer: pick('.input-prose', 'font-size'),
+			editor: pick('div[class*="language-"] .cm-editor', 'font-size'),
+			sidebarRow: pick('#sidebar-chat-item', 'font-size'),
+			textSm: probe('text-sm', 'font-size'),
+			textXs: probe('text-xs', 'font-size'),
+			roundedLg: probe('rounded-lg', 'border-top-left-radius'),
+			roundedXl: probe('rounded-xl', 'border-top-left-radius'),
+			rounded2xl: probe('rounded-2xl', 'border-top-left-radius'),
+			roundedFull: probe('rounded-full', 'border-top-left-radius'),
+			codeBlock: pick('div:has(> div[class*="language-"])', 'border-top-left-radius'),
+			strokeCap: svg ? getComputedStyle(svg).strokeLinecap : 'missing',
+			strokeJoin: svg ? getComputedStyle(svg).strokeLinejoin : 'missing'
+		};
+	});
+}
+
+test('TH-30 Outis-Dark and Outis-Light use the stock font, sizes, corners and icon strokes', async ({ page, api }) => {
+	const stock = await styleSnapshot(page, api, 'dark');
+	// Sanity: the stock theme really is rounded and not monospace, so equality below means something.
+	expect(stock.roundedXl).not.toBe('0px');
+	expect(stock.bodyFont).not.toMatch(/IBM Plex Mono/);
+	for (const theme of THEMES) expect(await styleSnapshot(page, api, theme), theme).toEqual(stock);
+});
+
+test('TH-31 the font picker is gone; an old saved face is ignored', async ({ page }) => {
+	await page.addInitScript(() => localStorage.setItem('outisFont', 'jetbrains-mono'));
 	await useTheme(page, 'outis-dark');
 	await page.goto('/?settings=general');
-	const font = page.getByRole('combobox', { name: 'Font' });
-	for (const [theme, shown] of [
-		['outis-dark', 1],
-		['outis-light', 1],
-		['dark', 0],
-		['oled-dark', 0],
-		['light', 0]
-	] as const) {
-		await chooseTheme(page, theme);
-		await expect(font, theme).toHaveCount(shown);
-	}
-});
-
-// --- Typography ---------------------------------------------------------------------------
-
-test('TH-6 IBM Plex Mono is the default face, including font-sans elements', async ({ page, api }) => {
-	await richChat(page, api, 'outis-dark');
-	expect(await css(page, 'body', 'font-family')).toMatch(/^"?IBM Plex Mono/);
-	expect(await probe(page, 'font-sans', 'font-family')).toMatch(/^"?IBM Plex Mono/);
-});
-
-test('TH-7 choosing JetBrains Mono applies it, and after a reload it is set before the app starts', async ({ page }) => {
-	await page.addInitScript(() => {
-		if (!sessionStorage.th7) {
-			sessionStorage.th7 = '1';
-			localStorage.setItem('theme', 'outis-dark');
-			localStorage.removeItem('outisFont');
-		}
-		document.addEventListener('DOMContentLoaded', () => {
-			(window as any).__fontAtLoad = document.documentElement.getAttribute('data-outis-font');
-		});
-	});
-	await page.goto('/?settings=general');
-	await page.getByRole('combobox', { name: 'Font' }).selectOption('jetbrains-mono');
-	await expect(page.locator('html')).toHaveAttribute('data-outis-font', 'jetbrains-mono');
-	expect(await css(page, 'body', 'font-family')).toMatch(/^"?JetBrains Mono/);
-
-	await page.goto('/');
-	expect(await page.evaluate(() => (window as any).__fontAtLoad)).toBe('jetbrains-mono');
-	expect(await css(page, 'body', 'font-family')).toMatch(/^"?JetBrains Mono/);
-});
-
-test('TH-8 the narrow faces carry their own size ratio', async ({ page }) => {
-	for (const [font, scale] of [
-		['martian-mono', '0.69'],
-		['azeret-mono', '0.74'],
-		['', '0.85']
-	]) {
-		await useTheme(page, 'outis-dark', font || undefined);
-		await page.goto('/');
-		expect(parseFloat(await rootVar(page, '--outis-prose-scale')), font || 'default').toBe(parseFloat(scale));
-	}
-});
-
-test('TH-9 one ratio: composer, reply, code block and editor text are the same size and move together', async ({ page, api }) => {
-	const sizes = async () =>
-		Promise.all([
-			px(page, '.markdown-prose p'),
-			px(page, '.input-prose'),
-			px(page, 'div[class*="language-"]'),
-			px(page, 'div[class*="language-"] .cm-editor')
-		]);
-	await richChat(page, api, 'outis-dark');
-	const base = await sizes();
-	expect(new Set(base).size, `sizes ${base}`).toBe(1);
-
-	await richChat(page, api, 'outis-dark', 'martian-mono');
-	const narrow = await sizes();
-	expect(new Set(narrow).size, `sizes ${narrow}`).toBe(1);
-	expect(narrow[0] / base[0]).toBeCloseTo(0.69 / 0.85, 2);
-});
-
-test('TH-10 the heading ladder is proportional to the body text', async ({ page, api }) => {
-	await richChat(page, api, 'outis-dark');
-	const body = await px(page, '.markdown-prose p');
-	const [h1, h2, h3] = await Promise.all(['h1', 'h2', 'h3'].map((h) => px(page, `.markdown-prose ${h}`)));
-	expect(h1 / body).toBeCloseTo(1.18, 2);
-	expect(h2 / body).toBeCloseTo(1.09, 2);
-	expect(h3 / body).toBeCloseTo(1.0, 2);
-	const sm = parseFloat(await probe(page, 'text-sm', 'font-size'));
-	const xs = parseFloat(await probe(page, 'text-xs', 'font-size'));
-	expect(h1).toBeGreaterThan(h2);
-	expect(h2).toBeGreaterThan(h3);
-	expect(body).toBeGreaterThan(sm);
-	expect(sm).toBeGreaterThan(xs);
-});
-
-test('TH-11 follow-ups and the 0.9375rem text match the reply size', async ({ page, api }) => {
-	await richChat(page, api, 'outis-dark');
-	const body = await px(page, '.markdown-prose p');
-	expect(parseFloat(await probe(page, 'text-[0.9375rem]', 'font-size'))).toBeCloseTo(body, 1);
-	await expect(page.getByText('A follow-up question')).toBeVisible();
-	expect(await page.getByText('A follow-up question').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))).toBeCloseTo(body, 1);
-});
-
-// --- Shape --------------------------------------------------------------------------------
-
-test('TH-12 corners are square everywhere', async ({ page, api }) => {
-	await richChat(page, api, 'outis-dark');
-	for (const cls of ['rounded-full', 'rounded-lg', 'rounded-xl', 'rounded-2xl', 'rounded-3xl']) {
-		expect(await probe(page, cls, 'border-top-left-radius'), cls).toBe('0px');
-	}
-	expect(await css(page, 'div:has(> div[class*="language-"])', 'border-top-left-radius')).toBe('0px');
-	await page.goto('/?settings=general');
-	expect(await css(page, '[role="dialog"] > div', 'border-top-left-radius').catch(() => '0px')).toBe('0px');
-});
-
-test('TH-13 icons have square caps and mitred joins', async ({ page }) => {
-	await page.goto('/');
-	const svg = page.locator('button svg').first();
-	expect(await svg.evaluate((e) => getComputedStyle(e).strokeLinecap)).toBe('square');
-	expect(await svg.evaluate((e) => getComputedStyle(e).strokeLinejoin)).toBe('miter');
+	await expect(page.getByRole('combobox', { name: 'Font' })).toHaveCount(0);
+	expect(await page.locator('html').getAttribute('data-outis-font')).toBeNull();
+	expect(await css(page, 'body', 'font-family')).not.toMatch(/JetBrains Mono|IBM Plex Mono/);
 });
 
 // --- Surfaces and colour ------------------------------------------------------------------
@@ -346,6 +297,9 @@ test('TH-16 the confirm button is the accent with readable text, also in high co
 test('TH-17 focus: the keyboard ring is the accent, the composer has none unless high contrast', async ({ page }) => {
 	await useTheme(page, 'outis-dark');
 	await page.goto('/');
+	// The app focuses the composer once it has loaded; tabbing before that loses focus to it
+	// mid-check. Start from the composer so the Tabs below land on real buttons and stay there.
+	await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe('chat-input');
 
 	// Keyboard focus on a button shows the accent ring.
 	let outline = '';
@@ -380,13 +334,13 @@ test('TH-17 focus: the keyboard ring is the accent, the composer has none unless
 test('TH-19 text on an accent badge is dark, not white (Outis-Dark)', async ({ page }) => {
 	await useTheme(page, 'outis-dark');
 	await page.goto('/');
-	expect(await probe(page, 'bg-blue-500 text-white', 'color')).toBe(T['outis-dark'].bg);
+	expect(await probe(page, 'bg-blue-500 text-white', 'color')).toBe(T['outis-dark'].onAccent);
 });
 
 test('TH-20 dark:text-white renders as the palette off-white (Outis-Dark)', async ({ page }) => {
 	await useTheme(page, 'outis-dark');
 	await page.goto('/');
-	expect(await probe(page, 'dark:text-white', 'color')).toBe(T['outis-dark'].text);
+	expect(await probe(page, 'dark:text-white', 'color')).toBe(T['outis-dark'].white);
 });
 
 test('TH-23 an open code editor recolours when the theme changes', async ({ page, api }) => {
@@ -420,11 +374,11 @@ test('TH-24 no stock sky-blue or blue-500 on the chat page or in settings', asyn
 	expect(await offenders(), 'settings').toEqual([]);
 });
 
-test('TH-25 emerald text classes resolve to the accent', async ({ page }) => {
+test('TH-25 emerald text classes resolve to the success green, not the accent', async ({ page }) => {
 	await useTheme(page, 'outis-dark');
 	await page.goto('/');
 	for (const cls of ['text-emerald-500', 'text-emerald-600', 'text-emerald-700']) {
-		expect(await probe(page, cls, 'color'), cls).toBe(T['outis-dark'].accent);
+		expect(await probe(page, cls, 'color'), cls).toBe(T['outis-dark'].success);
 	}
 });
 
@@ -438,7 +392,7 @@ test('TH-26 light theme: the favicon is darkened and the splash is the page colo
 test('TH-27 a formula is one colour, set apart from the prose, in both themes', async ({ page, api }) => {
 	const chat = await api.chat({ title: 'TH-27', assistant: 'Inline $x = 1$ here.\n\n$$y \\le \\sum_i (x_i + 2.5) + \\log z$$\n\nEnd.' });
 	const want = {
-		'outis-dark': { math: 'rgb(240, 198, 116)', card: 'rgb(32, 30, 26)' },
+		'outis-dark': { math: 'rgb(240, 198, 116)', card: 'rgb(33, 29, 26)' },
 		'outis-light': { math: 'rgb(122, 79, 0)', card: 'rgb(243, 240, 234)' }
 	};
 	const D = '.katex-display';
@@ -474,8 +428,8 @@ test('TH-28 Texting Bubbles reads as a study thread in both Outis themes', async
 		const chat = await api.chat({ title: 'TH-28', assistant: md });
 		const P = '#response-content-container > div > .markdown-prose';
 		const want = {
-			'outis-dark': { rail: 'rgb(60, 57, 52)', heading: 'rgb(122, 208, 160)', formula: 'rgb(240, 198, 116)' },
-			'outis-light': { rail: 'rgb(227, 223, 216)', heading: 'rgb(0, 131, 80)', formula: 'rgb(122, 79, 0)' }
+			'outis-dark': { rail: 'rgb(54, 50, 46)', heading: 'rgb(132, 185, 230)', formula: 'rgb(240, 198, 116)' },
+			'outis-light': { rail: 'rgb(230, 226, 222)', heading: 'rgb(34, 102, 164)', formula: 'rgb(122, 79, 0)' }
 		};
 		for (const theme of ['outis-dark', 'outis-light'] as const) {
 			await useTheme(page, theme);
