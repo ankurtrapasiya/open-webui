@@ -236,6 +236,20 @@ test('TH-32 switching from Outis Spark to Outis FT leaves no Spark class or dark
 	expect(await rootVar(page, '--color-blue-500')).toBe('#84b9e6');
 });
 
+test('TH-33 code blocks take the palette: accent caret and the variant syntax colours', async ({ page, api }) => {
+	const want = {
+		'outis-dark': { caret: 'rgb(132, 185, 230)', str: 'rgb(165, 214, 255)' },
+		'outis-dark-spark': { caret: 'rgb(118, 185, 0)', str: 'rgb(184, 217, 138)' },
+		'outis-light-ft': { caret: 'rgb(0, 91, 127)', str: 'rgb(39, 107, 77)' }
+	};
+	for (const [theme, w] of Object.entries(want)) {
+		await richChat(page, api, theme);
+		expect(await css(page, 'div[class*="language-"] .cm-content', 'caret-color'), theme).toBe(w.caret);
+		const str = page.locator('div[class*="language-"] .cm-content span', { hasText: '"hi"' }).last();
+		expect(await str.evaluate((e) => getComputedStyle(e).color), theme).toBe(w.str);
+	}
+});
+
 test('TH-30 Outis-Dark and Outis-Light use the stock font, sizes, corners and icon strokes', async ({ page, api }) => {
 	const stock = await styleSnapshot(page, api, 'dark');
 	// Sanity: the stock theme really is rounded and not monospace, so equality below means something.

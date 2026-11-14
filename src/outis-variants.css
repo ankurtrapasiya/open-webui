@@ -60,6 +60,23 @@ html.outis-dark.outis-spark {
 	--outis-math: #cba35e;
 	--outis-math-card: #1a2a0d;
 	--outis-key: #cba35e;
+	--outis-code-node: #c2ec5c;
+	--o-slate: var(--color-gray-200);
+
+	/* Code: syntax hues drawn from the skin (gold, bright green, amber) plus teal and sage
+	   for contrast; all 4.9-12.5:1 on the code surface. */
+	--outis-syn-text: #e3edd0;
+	--outis-syn-punct: #c7d6b0;
+	--outis-syn-comment: #8a977a;
+	--outis-syn-gutter: #66755a;
+	--outis-syn-panel: #0f1a06;
+	--outis-syn-keyword: #cba35e;
+	--outis-syn-function: #a4e100;
+	--outis-syn-type: #ffcf66;
+	--outis-syn-literal: #7fd1c7;
+	--outis-syn-string: #b8d98a;
+	--outis-syn-addition: #a4e100;
+	--outis-syn-danger: #ff5252;
 }
 html.outis-dark.outis-spark body {
 	background: #12200a;
@@ -133,9 +150,26 @@ html.outis-light.outis-ft {
 	--outis-code-bg: #f5ebdd;
 	--outis-code-border: #d1c7b7;
 	--outis-rail: #e5d9c7;
-	--outis-math: #0077b6;
+	/* The palette's info blue (#0077b6) is 4.4:1 on the paper; maths text uses one step darker. */
+	--outis-math: #00689f;
 	--outis-math-card: #f5ebdd;
 	--outis-key: #005b7f;
+	--outis-code-node: #005b7f;
+	--o-slate: var(--color-gray-700);
+
+	/* Code: the palette's hues, darkened where needed to reach 4.5:1 on the code surface. */
+	--outis-syn-text: #33302e;
+	--outis-syn-punct: #4d4945;
+	--outis-syn-comment: #66615c;
+	--outis-syn-gutter: #8c8781;
+	--outis-syn-panel: #efe3d2;
+	--outis-syn-keyword: #b31f33;
+	--outis-syn-function: #005b7f;
+	--outis-syn-type: #8a6100;
+	--outis-syn-literal: #00689f;
+	--outis-syn-string: #276b4d;
+	--outis-syn-addition: #276b4d;
+	--outis-syn-danger: #b31f33;
 }
 html.outis-light.outis-ft body {
 	background: #fff1e0;

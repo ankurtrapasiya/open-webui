@@ -316,14 +316,14 @@ html.outis-dark .input-prose-sm :not(pre) > code {
    codemirror-outis-dark-theme.ts. */
 html.outis-dark .hljs {
 	background: #161b22;
-	color: #e6edf3;
+	color: var(--outis-syn-text, #e6edf3);
 }
 
 /* Keywords */
 html.outis-dark .hljs-keyword,
 html.outis-dark .hljs-selector-tag,
 html.outis-dark .hljs-subst {
-	color: #ff7b72;
+	color: var(--outis-syn-keyword, #ff7b72);
 }
 
 /* Names: functions, types, classes, tags, selectors */
@@ -341,7 +341,7 @@ html.outis-dark .hljs-selector-id,
 html.outis-dark .hljs-selector-class,
 html.outis-dark .hljs-selector-attr,
 html.outis-dark .hljs-selector-pseudo {
-	color: #d2a8ff;
+	color: var(--outis-syn-function, #d2a8ff);
 }
 
 /* Literal values */
@@ -350,7 +350,7 @@ html.outis-dark .hljs-literal,
 html.outis-dark .hljs-symbol,
 html.outis-dark .hljs-bullet,
 html.outis-dark .hljs-formula {
-	color: #79c0ff;
+	color: var(--outis-syn-literal, #79c0ff);
 }
 
 /* Text data — the only warm hue */
@@ -359,33 +359,33 @@ html.outis-dark .hljs-regexp,
 html.outis-dark .hljs-template-tag,
 html.outis-dark .hljs-template-variable,
 html.outis-dark .hljs-code {
-	color: #a5d6ff;
+	color: var(--outis-syn-string, #a5d6ff);
 }
 
 /* Plain identifiers */
 html.outis-dark .hljs-variable,
 html.outis-dark .hljs-params {
-	color: #e6edf3;
+	color: var(--outis-syn-text, #e6edf3);
 }
 
 /* Structure */
 html.outis-dark .hljs-operator,
 html.outis-dark .hljs-punctuation {
-	color: #c9d1d9;
+	color: var(--outis-syn-punct, #c9d1d9);
 }
 
 html.outis-dark .hljs-comment,
 html.outis-dark .hljs-quote,
 html.outis-dark .hljs-doctag {
-	color: #8b949e;
+	color: var(--outis-syn-comment, #8b949e);
 	font-style: italic;
 }
 
 html.outis-dark .hljs-addition {
-	color: #7ee787;
+	color: var(--outis-syn-addition, #7ee787);
 }
 html.outis-dark .hljs-deletion {
-	color: #ffa198;
+	color: var(--outis-syn-danger, #ffa198);
 }
 html.outis-dark .hljs-emphasis {
 	font-style: italic;
@@ -427,4 +427,26 @@ html.outis-dark .outis-diagram {
 	--outis-diagram-text: #d7d2cb;
 	--outis-diagram-deep: var(--color-gray-850);
 	--outis-diagram-arrow: var(--color-gray-500);
+}
+
+/* Tool-card tokens (2026-11-14). FullHeightIframe copies these --o-* values onto every tool
+   embed's <html>, so quizzes, cards, planner, archify and visuals use the live theme's colours
+   instead of their own copies. Written as var() references, so a palette variant
+   (outis-variants.css) recolours the cards just by changing the palette. */
+html.outis-dark {
+	--o-page: var(--color-gray-900);
+	--o-surface: var(--outis-code-bg);
+	--o-line: var(--outis-code-border);
+	--o-ink: var(--outis-input-fg);
+	--o-muted: var(--color-gray-400);
+	--o-chip: var(--color-gray-800);
+	--o-accent: var(--color-blue-500);
+	--o-accent-2: var(--color-blue-400);
+	--o-blue: var(--outis-code-node);
+	--o-amber: var(--outis-math);
+	--o-red: var(--color-red-500);
+	--o-green: var(--color-green-500);
+	--o-math: var(--outis-math);
+	--o-warm: var(--outis-key);
+	--o-slate: #c6d4e1;
 }

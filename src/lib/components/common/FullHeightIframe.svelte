@@ -88,19 +88,31 @@
 	// Fork: tell the embed the app's theme and font, so tool UIs can match Outis light/dark
 	// (data-outis-theme on <html>, --outis-font = the app font) instead of guessing from the OS setting.
 	// Later theme switches arrive as {type: 'outis:theme'} messages.
-	const outisTheme = () => ({
-		theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-		// The app's own face (stock since 2026-11-14), so tool UIs match it.
-		font: getComputedStyle(document.body).fontFamily
-	});
+	// 2026-11-14: also the live theme's tool-card colours (--o-*, defined per theme in
+	// src/outis-*-theme.css), so every tool UI follows the current theme and its palette variants
+	// instead of its own copied values. Empty under non-Outis themes: the embed keeps its defaults.
+	const OUTIS_TOKENS = ['page', 'surface', 'line', 'ink', 'muted', 'chip', 'accent', 'accent-2', 'blue', 'amber', 'red', 'green', 'math', 'warm', 'slate'].map((n) => `--o-${n}`);
+	const outisTheme = () => {
+		const cs = getComputedStyle(document.documentElement);
+		return {
+			theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+			// The app's own face (stock since 2026-11-14), so tool UIs match it.
+			font: getComputedStyle(document.body).fontFamily,
+			tokens: Object.fromEntries(OUTIS_TOKENS.map((n) => [n, cs.getPropertyValue(n).trim()]))
+		};
+	};
 
 	const withOutisTheme = (html: string) => {
-		const { theme, font } = outisTheme();
+		const { theme, font, tokens } = outisTheme();
 		const tag = `<script>(() => {
 			const root = document.documentElement;
-			const apply = (t, f) => { root.dataset.outisTheme = t; if (f) root.style.setProperty('--outis-font', f); };
-			apply(${JSON.stringify(theme)}, ${JSON.stringify(font)});
-			addEventListener('message', (e) => { if (e.data && e.data.type === 'outis:theme') apply(e.data.theme, e.data.font); });
+			const apply = (t, f, k) => {
+				root.dataset.outisTheme = t;
+				if (f) root.style.setProperty('--outis-font', f);
+				for (const [n, v] of Object.entries(k || {})) v ? root.style.setProperty(n, v) : root.style.removeProperty(n);
+			};
+			apply(${JSON.stringify(theme)}, ${JSON.stringify(font)}, ${JSON.stringify(tokens)});
+			addEventListener('message', (e) => { if (e.data && e.data.type === 'outis:theme') apply(e.data.theme, e.data.font, e.data.tokens); });
 		})();<\/script>`;
 		const idx = html.indexOf('<head>');
 		return idx !== -1 ? html.slice(0, idx + 6) + tag + html.slice(idx + 6) : html + tag;

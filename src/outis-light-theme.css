@@ -271,14 +271,14 @@ html.outis-light .input-prose-sm :not(pre) > code {
    codemirror-outis-light-theme.ts. */
 html.outis-light .hljs {
 	background: #f6f8fa;
-	color: #1f2328;
+	color: var(--outis-syn-text, #1f2328);
 }
 
 /* Keywords */
 html.outis-light .hljs-keyword,
 html.outis-light .hljs-selector-tag,
 html.outis-light .hljs-subst {
-	color: #cf222e;
+	color: var(--outis-syn-keyword, #cf222e);
 }
 
 /* Names: functions, types, classes, tags, selectors */
@@ -296,7 +296,7 @@ html.outis-light .hljs-selector-id,
 html.outis-light .hljs-selector-class,
 html.outis-light .hljs-selector-attr,
 html.outis-light .hljs-selector-pseudo {
-	color: #8250df;
+	color: var(--outis-syn-function, #8250df);
 }
 
 /* Literal values */
@@ -305,7 +305,7 @@ html.outis-light .hljs-literal,
 html.outis-light .hljs-symbol,
 html.outis-light .hljs-bullet,
 html.outis-light .hljs-formula {
-	color: #0550ae;
+	color: var(--outis-syn-literal, #0550ae);
 }
 
 /* Text data — the only warm hue */
@@ -314,33 +314,33 @@ html.outis-light .hljs-regexp,
 html.outis-light .hljs-template-tag,
 html.outis-light .hljs-template-variable,
 html.outis-light .hljs-code {
-	color: #0a3069;
+	color: var(--outis-syn-string, #0a3069);
 }
 
 /* Plain identifiers */
 html.outis-light .hljs-variable,
 html.outis-light .hljs-params {
-	color: #1f2328;
+	color: var(--outis-syn-text, #1f2328);
 }
 
 /* Structure */
 html.outis-light .hljs-operator,
 html.outis-light .hljs-punctuation {
-	color: #1f2328;
+	color: var(--outis-syn-punct, #1f2328);
 }
 
 html.outis-light .hljs-comment,
 html.outis-light .hljs-quote,
 html.outis-light .hljs-doctag {
-	color: #6e7781;
+	color: var(--outis-syn-comment, #6e7781);
 	font-style: italic;
 }
 
 html.outis-light .hljs-addition {
-	color: #116329;
+	color: var(--outis-syn-addition, #116329);
 }
 html.outis-light .hljs-deletion {
-	color: #82071e;
+	color: var(--outis-syn-danger, #82071e);
 }
 html.outis-light .hljs-emphasis {
 	font-style: italic;
@@ -455,4 +455,23 @@ html.outis-light .outis-diagram {
 	--outis-diagram-b6-tint: #dfede3; /* branch 6 subtree fill */
 	--outis-diagram-b7-tint: #ddecee; /* branch 7 subtree fill */
 	--outis-diagram-b8-tint: #efe9de; /* branch 8 subtree fill */
+}
+
+/* Tool-card tokens: see the matching block at the end of outis-dark-theme.css. */
+html.outis-light {
+	--o-page: var(--color-white);
+	--o-surface: var(--outis-code-bg);
+	--o-line: var(--outis-code-border);
+	--o-ink: var(--outis-input-fg);
+	--o-muted: var(--color-gray-600);
+	--o-chip: var(--color-gray-200);
+	--o-accent: var(--color-blue-500);
+	--o-accent-2: var(--color-blue-600);
+	--o-blue: var(--outis-code-node);
+	--o-amber: var(--color-yellow-600);
+	--o-red: var(--color-red-600);
+	--o-green: var(--color-green-600);
+	--o-math: var(--outis-math);
+	--o-warm: var(--outis-key);
+	--o-slate: #2f4a63;
 }

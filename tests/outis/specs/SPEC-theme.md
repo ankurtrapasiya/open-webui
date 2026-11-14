@@ -21,6 +21,9 @@ because the app auto-focuses it after load (history below); TH-30 and TH-31 guar
   Outis Spark = `dark outis-dark outis-spark` (value `outis-dark-spark`, DGX Spark skin: green
   accent, gold maths/labels), Outis FT = `light outis-light outis-ft` (value `outis-light-ft`,
   Financial Times paper). Every per-theme test (TH-3, 14, 15, 18, 21, 22, 29, 30) runs on them.
+- **TH-33** Code blocks follow the palette: CodeMirror's caret is the theme accent and syntax
+  colours come from `--outis-syn-*` (GitHub values as fallback in the base themes; Spark and FT
+  set their own). Checked on a string token in Outis-Dark, Spark and FT.
 - **TH-32** Spark -> FT leaves no Spark/dark class and FT's own grays; FT -> Outis-Dark leaves
   no FT class and the blue accent.
 - Font, text sizes, corner radii, spacing and icon strokes are exactly stock Dark's. Only

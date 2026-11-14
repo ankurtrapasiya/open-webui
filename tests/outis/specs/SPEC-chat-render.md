@@ -80,6 +80,10 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
 - **CR-11** Every embed gets `data-outis-theme` ("dark"/"light", from the app's `dark` class)
   and `--outis-font` on its `<html>`; switching the app theme updates it live via an
   `{type: 'outis:theme'}` message, with no reload (a quiz in progress keeps its state).
+- **CR-20** Every embed also gets the live theme's tool-card colours (`--o-page`, `--o-accent`, ...
+  15 tokens, defined per theme in `src/outis-*-theme.css` and recoloured by the palette variants)
+  as inline properties on its `<html>`, updated on a theme switch. Spark -> FT -> Outis-Light
+  changes `--o-accent`/`--o-page` live.
 - **ML-1** (`math-latex.spec.ts`, skips without outis-mneme) With outis-mneme's global
   "Math as LaTeX" filter active, a chat with any model sends a system message containing the
   `[math-as-latex]` rule exactly once.

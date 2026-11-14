@@ -34,23 +34,25 @@ import { tags } from '@lezer/highlight';
 // 2026-10-01: syntax colours switched to GitHub Light (Primer) at the user's request; the role
 // names below (green = keywords, cyan = functions, violet = literals, amber = strings) are kept
 // so the tag groups read the same. Editor chrome (accent, selection) is still Outis.
+// 2026-11-14: every colour is a CSS variable with the GitHub value as fallback, so a palette variant
+// (src/outis-variants.css) recolours syntax with --outis-syn-* and the chrome with its accent.
 
 const bg = '#f6f8fa';
-const gutterBg = '#f6f8fa';
-const text = '#1f2328';
-const muted = '#1f2328';
-const gutterFg = '#8c959f';
+const gutterBg = 'var(--outis-syn-panel, #f6f8fa)';
+const text = 'var(--outis-syn-text, #1f2328)';
+const muted = 'var(--outis-syn-punct, #1f2328)';
+const gutterFg = 'var(--outis-syn-gutter, #8c959f)';
 const mutedLight = '#e3dfd8'; // --color-gray-200 -- borders only
-const comment = '#6e7781';
-const accent = '#2266a4'; // --color-blue-500 -- editor chrome only, never syntax
-const green = '#cf222e';
-const cyan = '#8250df';
-const violet = '#0550ae';
-const amber = '#0a3069';
-const typeColor = '#953800';
-const accentSoft = 'rgba(34, 102, 164, 0.18)'; // selection
-const accentFaint = 'rgba(34, 102, 164, 0.05)'; // active line
-const danger = '#82071e';
+const comment = 'var(--outis-syn-comment, #6e7781)';
+const accent = 'var(--color-blue-500)'; // editor chrome only, never syntax; follows the theme (and its variants)
+const green = 'var(--outis-syn-keyword, #cf222e)';
+const cyan = 'var(--outis-syn-function, #8250df)';
+const violet = 'var(--outis-syn-literal, #0550ae)';
+const amber = 'var(--outis-syn-string, #0a3069)';
+const typeColor = 'var(--outis-syn-type, #953800)';
+const accentSoft = 'color-mix(in srgb, var(--color-blue-500) 18%, transparent)'; // selection
+const accentFaint = 'color-mix(in srgb, var(--color-blue-500) 5%, transparent)'; // active line
+const danger = 'var(--outis-syn-danger, #82071e)';
 
 export const outisLightEditorTheme = /*@__PURE__*/ EditorView.theme(
 	{

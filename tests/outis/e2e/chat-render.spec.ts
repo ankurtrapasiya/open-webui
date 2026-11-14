@@ -169,6 +169,19 @@ test('CR-11 an embed is told the Outis theme (data-outis-theme) and follows a th
 	await expect(t).toHaveText(other);
 });
 
+test('CR-20 an embed gets the live theme\'s tool colours (--o-*) and follows a palette switch', async ({ page, api }) => {
+	const html =
+		'<!DOCTYPE html><html><head></head><body><p id="t"></p><script>setInterval(() => (document.getElementById("t").textContent = getComputedStyle(document.documentElement).getPropertyValue("--o-accent").trim() + " " + getComputedStyle(document.documentElement).getPropertyValue("--o-page").trim()), 50)</script></body></html>';
+	await page.addInitScript(() => localStorage.setItem('theme', 'outis-dark-spark'));
+	await openChat(page, api, fence('html', html), 'CR-20');
+	const t = page.frameLocator('#response-content-container iframe[title="Interactive content"]').locator('#t');
+	await expect(t).toHaveText('#76b900 #12200a');
+	await page.evaluate(() => (document.documentElement.className = 'light outis-light outis-ft'));
+	await expect(t).toHaveText('#005b7f #fff1e0');
+	await page.evaluate(() => (document.documentElement.className = 'light outis-light'));
+	await expect(t).toHaveText('#2266a4 #fbf9f5');
+});
+
 test('CR-12 a multi-line display equation with a lone "=" line renders as math, not a heading', async ({ page, api }) => {
 	const content = [
 		'Bellman equation, \\(v = r + \\gamma P v\\):',
