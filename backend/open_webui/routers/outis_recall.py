@@ -59,7 +59,7 @@ def connect(path: str) -> sqlite3.Connection:
 
 
 def grade(db: sqlite3.Connection, cid: str, rating: str, at: datetime) -> datetime:
-    """Copy of review_tool.grade(): FSRS decides the next due date; we only map the click."""
+    """Near-copy of review_tool.grade(): FSRS decides the next due date; we only map the click."""
     from fsrs import Card, Rating, Scheduler
 
     row = db.execute('SELECT * FROM card WHERE id=?', (cid,)).fetchone()
@@ -67,9 +67,11 @@ def grade(db: sqlite3.Connection, cid: str, rating: str, at: datetime) -> dateti
         raise KeyError(cid)
     card = Card.from_dict(json.loads(row['fsrs'])) if row['fsrs'] else Card(due=at)
     card, _ = Scheduler().review_card(card, Rating(RATINGS[rating]), review_datetime=at)
+    # Unlike the tool's grade(), `introduced` is left alone: a miss is due by its FSRS state, and
+    # must not use up one of Review's new-cards-per-day slots.
     db.execute(
-        'UPDATE card SET fsrs=?, due=?, introduced=COALESCE(introduced, ?) WHERE id=?',
-        (json.dumps(card.to_dict()), card.due.isoformat(), at.isoformat(), cid),
+        'UPDATE card SET fsrs=?, due=? WHERE id=?',
+        (json.dumps(card.to_dict()), card.due.isoformat(), cid),
     )
     db.execute('INSERT INTO log VALUES (?,?,?)', (cid, rating, at.isoformat()))
     db.commit()
@@ -86,7 +88,7 @@ def record(path: str, root: str, trail: list[str], label: str, result: str, at: 
     try:
         db = connect(path)
         if result == 'missed':
-            db.execute("INSERT INTO deck (name, active) VALUES (?, 1) ON CONFLICT(name) DO UPDATE SET active=1", (DECK,))
+            db.execute("INSERT OR IGNORE INTO deck (name, active) VALUES (?, 1)", (DECK,))  # a paused deck stays paused
             db.execute(
                 'INSERT INTO card (id, deck, chapter, question, answer) VALUES (?,?,?,?,?) '
                 'ON CONFLICT(id) DO UPDATE SET chapter=excluded.chapter, answer=excluded.answer',

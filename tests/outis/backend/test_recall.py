@@ -45,4 +45,10 @@ try:
 except sqlite3.OperationalError:
     pass
 assert m.card_id('My gaps', 'q') == hashlib.sha1('My gaps\nq'.encode()).hexdigest()[:16]
+# A paused "My gaps" deck stays paused after a miss; a miss does not use a new-card-per-day slot.
+sqlite3.connect(db).execute("update deck set active=0 where name='My gaps'").connection.commit()
+m.record(db, 'ML Maths', ['ML Maths', 'Calculus'], 'Taylor', 'missed', siblings=['Taylor'])
+assert sqlite3.connect(db).execute("select active from deck where name='My gaps'").fetchone()[0] == 0, 'paused deck re-activated'
+assert sqlite3.connect(db).execute("select introduced from card where answer='Taylor'").fetchone()[0] is None, 'miss consumed a new-card slot'
+assert sqlite3.connect(db).execute("select due from card where answer='Taylor'").fetchone()[0] is not None
 print('PASS test_recall')

@@ -95,3 +95,15 @@ test('GL-8 a back edge is routed as a side loop from the right edges, a self-loo
 	const fwd = L.edges.find((e) => e.from === 'a' && e.to === 'b')!;
 	expect(fwd.loop).toBeFalsy();
 });
+
+test('GL-9 rank=same members share the largest rank of the group', () => {
+	const L = lay('digraph { a -> b; a -> c; c -> d; { rank=same; b; d } }');
+	expect(L.pos.get('b')!.rank).toBe(L.pos.get('d')!.rank);
+	expect(L.pos.get('d')!.rank).toBe(2);
+});
+
+test('GL-10 vertical: true draws an LR graph as rows', () => {
+	const L = lay('digraph { rankdir=LR; a -> b -> c }', { vertical: true });
+	expect(L.horizontal).toBe(false);
+	expect(L.pos.get('b')!.y).toBeGreaterThan(L.pos.get('a')!.y);
+});

@@ -61,3 +61,9 @@ test('DP-7 cluster membership counts nodes first seen outside the block, and nes
 	expect(g.nodes.find((n) => n.id === 'b')!.cluster).toBe('cluster_1');
 	expect(g.nodes.find((n) => n.id === 'd')!.cluster).toBe('cluster_2');
 });
+
+test('DP-8 rank=same groups are captured', () => {
+	const g = parseDot('digraph { a -> b; a -> c; c -> d; { rank=same; b; d } }')!;
+	expect(g.sameRank).toEqual([['b', 'd']]);
+	expect(parseDot('digraph { a -> b }')!.sameRank).toEqual([]);
+});

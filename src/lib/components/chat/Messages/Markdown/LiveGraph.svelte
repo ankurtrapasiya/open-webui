@@ -107,6 +107,12 @@
 			sizes = measureAll();
 			L = run();
 		}
+		// Columns that still do not fit the column: fall back to rows (no sideways scroll for chains).
+		if (L.horizontal && L.width > avail) {
+			chipCap = capFor(avail, false, 0);
+			sizes = measureAll();
+			L = layoutGraph(g, { maxWidth: avail, measure: (id) => sizes.get(id) ?? { w: 120, h: 36 }, folded: live, gapX: GAP, vertical: true });
+		}
 		layout = L;
 	};
 
@@ -200,7 +206,7 @@
 							style="left: {cx + (box?.x ?? 0)}px; top: {(box?.y ?? 0) + 28 - 22}px; color: var(--o-muted, inherit); background: var(--o-page, transparent);"
 						>
 							<span>{c.label}</span>
-							<button type="button" class={small} aria-label="Fold" on:click={() => toggleCluster(c.id)}>–</button>
+							<button type="button" class={small} aria-label="Fold {c.label}" aria-expanded="true" on:click={() => toggleCluster(c.id)}>–</button>
 						</div>
 					{/if}
 				{/each}
@@ -242,17 +248,18 @@
 						data-gcluster={pseudoOf ?? undefined}
 						data-rank={p.rank}
 						data-hue={hue.get(id) ?? 1}
+						tabindex="0"
 						title={labelOf.get(id)}
 						class="absolute flex items-start gap-1.5 whitespace-pre-wrap break-words rounded-lg border px-2.5 py-1 text-sm leading-snug"
 						style="left: {p.x + cx}px; top: {p.y + 28}px; width: {p.w}px; min-height: {p.h}px; border-color: {borderFor(id)}; border-left-width: 3px; background: {fillFor(id)}; color: {textFor(id)}; transition: {reduced ? 'none' : 'left 200ms ease, top 200ms ease'}"
 					>
 						<span class="min-w-0 flex-1">{labelOf.get(id)}</span>
 						{#if pseudoOf}
-							<button type="button" class="{small} mt-0.5 w-7 shrink-0 justify-center" aria-label="Unfold" title="Unfold {labelOf.get(id)}" on:click={() => toggleCluster(pseudoOf)}>
+							<button type="button" class="{small} mt-0.5 w-7 shrink-0 justify-center" aria-label="Unfold {labelOf.get(id)}" aria-expanded="false" on:click={() => toggleCluster(pseudoOf)}>
 								<span data-badge>+{graph.clusters.find((c) => c.id === pseudoOf)?.nodes.length ?? 0}</span>
 							</button>
 						{:else if hasKids.has(id)}
-							<button type="button" class="{small} mt-0.5 w-7 shrink-0 justify-center" aria-label={folded.has(id) ? 'Unfold' : 'Fold'} on:click={() => toggle(id)}>
+							<button type="button" class="{small} mt-0.5 w-7 shrink-0 justify-center" aria-label="{folded.has(id) ? 'Unfold' : 'Fold'} {labelOf.get(id)}" aria-expanded={!folded.has(id)} on:click={() => toggle(id)}>
 								{#if folded.has(id) && (L.badges.get(id) ?? 0) > 0}
 									<span data-badge>+{L.badges.get(id)}</span>
 								{:else}

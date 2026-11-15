@@ -25,3 +25,4 @@ picture stays in the DOM (hidden) so export and **Picture** keep working.
 - Backend (`tests/outis/backend/test_recall.py`, also run inside the image by
   `outis-regression.sh`): Review's schema and id rule; missed = upsert + FSRS `again`; knew =
   `good` only on a scheduled card; unwritable db → `sqlite3.OperationalError` (HTTP 500).
+- (2026-11-15) A miss no longer re-activates a paused "My gaps" deck (INSERT OR IGNORE) and leaves `introduced` NULL, so it uses none of Review's new-cards-per-day slots; `k`/`m` ignore modifier keys (test_recall.py).

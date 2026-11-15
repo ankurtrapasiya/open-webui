@@ -20,6 +20,7 @@ export type LayoutOpts = {
 	folded?: Set<string>;
 	gapX?: number;
 	gapY?: number;
+	vertical?: boolean; // force rows even for a small LR graph (when columns would not fit)
 };
 
 const uniq = <T>(xs: T[]) => [...new Set(xs)];
@@ -46,7 +47,7 @@ function dag(graph: DotGraph, ids: string[]) {
 	return fwd;
 }
 
-function ranksOf(ids: string[], fwd: Map<string, string[]>): Map<string, number> {
+function ranksOf(ids: string[], fwd: Map<string, string[]>, same: string[][] = []): Map<string, number> {
 	const indeg = new Map(ids.map((i) => [i, 0]));
 	for (const [, vs] of fwd) for (const v of vs) indeg.set(v, indeg.get(v)! + 1);
 	const rank = new Map(ids.map((i) => [i, 0]));
@@ -58,6 +59,17 @@ function ranksOf(ids: string[], fwd: Map<string, string[]>): Map<string, number>
 			indeg.set(v, indeg.get(v)! - 1);
 			if (indeg.get(v) === 0) queue.push(v);
 		}
+	}
+	// rank=same: members take the group's largest rank, then anything below them moves down.
+	const groups = same.map((g) => g.filter((i) => rank.has(i))).filter((g) => g.length > 1);
+	for (let pass = 0; pass < 8 && groups.length; pass++) {
+		let changed = false;
+		for (const g of groups) {
+			const r = Math.max(...g.map((i) => rank.get(i)!));
+			for (const i of g) if (rank.get(i) !== r) { rank.set(i, r); changed = true; }
+		}
+		for (const [u, vs] of fwd) for (const v of vs) if (rank.get(v)! <= rank.get(u)!) { rank.set(v, rank.get(u)! + 1); changed = true; }
+		if (!changed) break;
 	}
 	return rank;
 }
@@ -137,9 +149,9 @@ export function layoutGraph(graph: DotGraph, opts: LayoutOpts): Layout {
 	const folded = opts.folded ?? new Set<string>();
 	const { hidden, badges } = hiddenBy(graph, folded);
 	const ids = graph.nodes.map((n) => n.id).filter((i) => !hidden.has(i));
-	const horizontal = (graph.rankdir === 'LR' || graph.rankdir === 'RL') && graph.nodes.length <= 8;
+	const horizontal = !opts.vertical && (graph.rankdir === 'LR' || graph.rankdir === 'RL') && graph.nodes.length <= 8;
 	const fwd = dag({ ...graph, edges: graph.edges.filter((e) => !hidden.has(e.from) && !hidden.has(e.to)) }, ids);
-	const rank = ranksOf(ids, fwd);
+	const rank = ranksOf(ids, fwd, graph.sameRank ?? []);
 	const maxRank = Math.max(0, ...rank.values());
 	const rows: string[][] = Array.from({ length: maxRank + 1 }, () => []);
 	for (const i of ids) rows[rank.get(i)!].push(i);

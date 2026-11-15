@@ -56,7 +56,7 @@
 				class="rounded-md border-l-[3px] px-2 py-0.5 {depth === 1 ? 'font-medium' : ''} {depth >= 2 ? 'border-y border-r' : 'border'}"
 				style="border-color: {resultColor}; background: {depth <= 1 ? fill : 'transparent'}; color: var(--o-ink, inherit);"
 				on:keydown={(e) => {
-					if (mode !== 'recall' || !leaf || result) return;
+					if (mode !== 'recall' || !leaf || result || e.ctrlKey || e.metaKey || e.altKey) return;
 					if (e.key === 'k') onRecord(node, 'knew');
 					else if (e.key === 'm') onRecord(node, 'missed');
 				}}>{node.label}</span

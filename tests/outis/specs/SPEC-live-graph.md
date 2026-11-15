@@ -19,3 +19,6 @@ Design: outis-owui `docs/superpowers/specs/2026-11-15-live-graph-design.md`. A G
 - **LG-6** Chip borders resolve to `--outis-diagram-bN-border` in Dark and Spark (tokens added to
   those themes; CD-7 and RM-7 updated accordingly); FT root chip uses `--outis-diagram-root-border`.
 - **LG-7** `data-horizontal="true"` for LR with ≤ 8 nodes, `"false"` above.
+- **DP-8** `rank=same` groups are captured (`sameRank`); **GL-9** members take the group's largest rank; **GL-10** `vertical: true` forces rows.
+- **LG-12** Chips are focusable (`tabindex=0`); fold buttons are named "Fold <label>" / "Unfold <label>" with `aria-expanded`.
+- **LG-13** An LR chart whose columns cannot fit the column falls back to rows (no sideways scroll).

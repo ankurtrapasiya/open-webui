@@ -13,6 +13,7 @@ export type DotGraph = {
 	nodes: DotNode[];
 	edges: DotEdge[];
 	clusters: DotCluster[];
+	sameRank: string[][];
 	unsupported?: 'record' | 'html-label' | 'ports' | 'too-many-nodes' | 'no-edges';
 };
 
@@ -111,7 +112,7 @@ export function parseDot(source: string): DotGraph | null {
 	if (peek() && !isP('{')) next(); // graph name
 	if (!isP('{')) return null;
 
-	const g: DotGraph = { directed, rankdir: 'TB', nodes: [], edges: [], clusters: [] };
+	const g: DotGraph = { directed, rankdir: 'TB', nodes: [], edges: [], clusters: [], sameRank: [] };
 	const byId = new Map<string, DotNode>();
 	const flag = (u: DotGraph['unsupported']) => {
 		if (!g.unsupported) g.unsupported = u;
@@ -163,18 +164,27 @@ export function parseDot(source: string): DotGraph | null {
 
 	// Statement list inside braces; `cluster` is the innermost cluster id.
 	// Returns the endpoints when the block is used as an edge endpoint group.
+	let sameFlag = false; // set by `rank=same` inside the current brace group
 	const block = (cluster: string | undefined): string[] => {
 		const endpoints: string[] = [];
 		if (!isP('{')) return endpoints;
 		next();
+		const outerFlag = sameFlag;
+		sameFlag = false;
 		while (p < toks.length && !isP('}')) {
 			const ends = statement(cluster);
 			endpoints.push(...ends);
 			if (isP(';') || isP(',')) next();
 		}
 		if (isP('}')) next();
+		if (sameFlag) {
+			const ids = uniq(endpoints).filter((id) => byId.has(id));
+			if (ids.length > 1) g.sameRank.push(ids);
+		}
+		sameFlag = outerFlag;
 		return endpoints;
 	};
+	const uniq = (xs: string[]) => [...new Set(xs)];
 
 	// `left (-> right)+ [attrs]`: every left endpoint joins every right endpoint; a right side
 	// may be a {group}. The attribute list at the end applies to every edge of the chain.
@@ -247,6 +257,7 @@ export function parseDot(source: string): DotGraph | null {
 			next();
 			const v = next();
 			if (t.v === 'rankdir' && v) g.rankdir = norm(v.v);
+			if (t.v === 'rank' && v && /^(same|min|max|source|sink)$/i.test(v.v)) sameFlag = true;
 			if (t.v === 'label' && v && cluster) {
 				const c = g.clusters.find((x) => x.id === cluster);
 				if (c) c.label = v.v;

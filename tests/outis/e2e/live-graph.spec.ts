@@ -84,14 +84,14 @@ test('LG-2 Graph draws every node and edge, keeps the picture in the DOM; Pictur
 test('LG-3 folding hides only nodes reachable solely through the folded node, with a count badge', async ({ page, api }) => {
 	await openDot(page, api, DIAMOND);
 	await openGraph(page);
-	await chip(page, 'b').getByRole('button', { name: 'Fold' }).click();
+	await chip(page, 'b').getByRole('button', { name: /^Fold / }).click();
 	await expect(chip(page, 'd')).toBeVisible();
 	await expect(chip(page, 'b').locator('[data-badge]')).toHaveCount(0);
-	await chip(page, 'b').getByRole('button', { name: 'Unfold' }).click();
-	await chip(page, 'a').getByRole('button', { name: 'Fold' }).click();
+	await chip(page, 'b').getByRole('button', { name: /^Unfold / }).click();
+	await chip(page, 'a').getByRole('button', { name: /^Fold / }).click();
 	for (const id of ['b', 'c', 'd']) await expect(chip(page, id)).toHaveCount(0);
 	await expect(chip(page, 'a').locator('[data-badge]')).toHaveText('+3');
-	await chip(page, 'a').getByRole('button', { name: 'Unfold' }).click();
+	await chip(page, 'a').getByRole('button', { name: /^Unfold / }).click();
 	await expect(chip(page, 'd')).toBeVisible();
 });
 
@@ -101,7 +101,7 @@ test('LG-4 a cluster has a header chip that folds its members', async ({ page, a
 	const header = graph(page).locator('[data-gcluster="cluster_x"]');
 	await expect(header).toContainText('Pre');
 	await expect(chip(page, 'x1')).toBeVisible();
-	await header.getByRole('button', { name: 'Fold' }).click();
+	await header.getByRole('button', { name: /^Fold / }).click();
 	await expect(chip(page, 'x1')).toHaveCount(0);
 	await expect(chip(page, 'x2')).toHaveCount(0);
 	await expect(chip(page, 'y')).toBeVisible();
@@ -109,7 +109,7 @@ test('LG-4 a cluster has a header chip that folds its members', async ({ page, a
 	const folded = graph(page).locator('[data-gcluster="cluster_x"]');
 	await expect(folded).toBeVisible();
 	await expect(graph(page).locator('svg[data-edges] path[data-edge="cluster:cluster_x→y"]')).toHaveCount(1);
-	await folded.getByRole('button', { name: 'Unfold' }).click();
+	await folded.getByRole('button', { name: /^Unfold / }).click();
 	await expect(chip(page, 'x1')).toBeVisible();
 });
 
@@ -171,9 +171,9 @@ test('LG-9 a folded node inside a cluster, then the cluster folded, does not thr
 	page.on('pageerror', (e) => errs.push(String(e)));
 	await openDot(page, api, 'digraph { subgraph cluster_x { label="X"; x1 -> x2; } x2 -> y; }');
 	await openGraph(page);
-	await chip(page, 'x1').getByRole('button', { name: 'Fold' }).click();
+	await chip(page, 'x1').getByRole('button', { name: /^Fold / }).click();
 	await expect(chip(page, 'x2')).toHaveCount(0);
-	await graph(page).locator('[data-gcluster="cluster_x"]').getByRole('button', { name: 'Fold' }).click();
+	await graph(page).locator('[data-gcluster="cluster_x"]').getByRole('button', { name: /^Fold / }).click();
 	await expect(chip(page, 'x1')).toHaveCount(0);
 	await expect(chip(page, 'y')).toBeVisible();
 	expect(errs).toEqual([]);
@@ -204,4 +204,25 @@ test('LG-11 a training loop draws its back edge as a side loop with a visible la
 		const overlap = lab.left < c.right && c.left < lab.right && lab.top < c.bottom && c.top < lab.bottom;
 		expect(overlap).toBe(false);
 	}
+});
+
+test('LG-12 chips are keyboard-focusable; fold buttons name their node and expose their state', async ({ page, api }) => {
+	await openDot(page, api, DIAMOND);
+	await openGraph(page);
+	await expect(chip(page, 'a')).toHaveAttribute('tabindex', '0');
+	const fold = chip(page, 'a').getByRole('button', { name: 'Fold a' });
+	await expect(fold).toHaveAttribute('aria-expanded', 'true');
+	await fold.focus();
+	await page.keyboard.press('Enter');
+	await expect(chip(page, 'a').getByRole('button', { name: 'Unfold a' })).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('LG-13 a long left-to-right chain that cannot fit as columns is drawn as rows, with no sideways scroll', async ({ page, api }) => {
+	await page.setViewportSize({ width: 560, height: 900 });
+	const chain = 'digraph { rankdir=LR; ' + ['load prices from CSV', 'clean and align dates', 'compute indicators', 'generate orders', 'simulate the portfolio', 'report the result'].map((l, i) => `n${i} [label="${l}"]`).join('; ') + '; n0 -> n1 -> n2 -> n3 -> n4 -> n5 }';
+	await openDot(page, api, chain);
+	await openGraph(page);
+	await expect(graph(page)).toHaveAttribute('data-horizontal', 'false');
+	const [sw, cw] = await graph(page).evaluate((e) => [e.scrollWidth, e.clientWidth]);
+	expect(sw).toBeLessThanOrEqual(cw + 1);
 });
