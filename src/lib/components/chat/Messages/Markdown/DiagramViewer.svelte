@@ -37,6 +37,10 @@
 	// Live graph: the Kroki <svg> of a Graphviz chart carries its cleaned DOT (data-outis-dot-b64).
 	let dotSource: string | null = null;
 	let graphView = false;
+	// Picture polish (2026-11-15): eased button zooms, box growth, pan limits.
+	let easing = false;
+	let reduced = false;
+	let fitHeight = 0;
 	let ro: ResizeObserver | null = null;
 
 	$: live = recall || graphView;
@@ -77,16 +81,33 @@
 		const h = fullscreen ? window.innerHeight - 72 : window.innerHeight * 0.75;
 		fit = Math.min(fullscreen ? 2 : 1, w / natW, h / natH);
 		zoom = fit;
-		height = fullscreen ? h : natH * fit;
+		fitHeight = fullscreen ? h : natH * fit;
+		height = fitHeight;
 		tx = (w - natW * fit) / 2;
 		ty = fullscreen ? (h - natH * fit) / 2 : 0;
 	};
 
-	const zoomAt = (x: number, y: number, factor: number) => {
+	// Keep at least a quarter of the scaled drawing inside the box on each axis.
+	const clampPan = () => {
+		if (!viewer || !natW) return;
+		const w = viewer.clientWidth;
+		const sw = natW * zoom, sh = natH * zoom;
+		tx = clamp(tx, -(0.75 * sw), w - 0.25 * sw);
+		ty = clamp(ty, -(0.75 * sh), height - 0.25 * sh);
+	};
+	// Zoomed in, the box grows (to 75% of the window) so less of the drawing is clipped.
+	const growBox = () => {
+		if (fullscreen || !natH) return;
+		height = zoom > fit + 0.001 ? Math.min(natH * zoom, window.innerHeight * 0.75) : fitHeight;
+	};
+	const zoomAt = (x: number, y: number, factor: number, ease = false) => {
+		easing = ease && !reduced;
 		const next = clamp(zoom * factor, Math.min(fit, 0.25), MAX);
 		tx = x - ((x - tx) * next) / zoom;
 		ty = y - ((y - ty) * next) / zoom;
 		zoom = next;
+		growBox();
+		clampPan();
 	};
 
 	const local = (e: MouseEvent) => {
@@ -98,7 +119,7 @@
 		if (!zoomable || !(active || e.ctrlKey || e.metaKey)) return;
 		e.preventDefault();
 		const [x, y] = local(e);
-		zoomAt(x, y, e.deltaY < 0 ? 1.1 : 1 / 1.1);
+		zoomAt(x, y, e.deltaY < 0 ? 1.1 : 1 / 1.1, false);
 	};
 
 	const onPointerDown = (e: PointerEvent) => {
@@ -112,8 +133,10 @@
 	};
 	const onPointerMove = (e: PointerEvent) => {
 		if (!drag) return;
+		easing = false;
 		tx = drag.tx + e.clientX - drag.x;
 		ty = drag.ty + e.clientY - drag.y;
+		clampPan();
 	};
 	const onPointerUp = () => (drag = null);
 
@@ -138,6 +161,7 @@
 	$: if (html !== undefined && viewer) refit();
 
 	onMount(() => {
+		reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 		// Listeners first, synchronously: a component destroyed during the await below would
 		// otherwise register them after onDestroy ran (leak) or on a null `viewer` (throw).
 		viewer.addEventListener('wheel', onWheel, { passive: false });
@@ -180,8 +204,9 @@
 	bind:this={viewer}
 	data-diagram-viewer
 	data-zoom={zoom.toFixed(2)}
-	class="group relative my-2 w-full overflow-hidden {zoom > fit + 0.001 ? 'cursor-grab' : ''}"
-	style="height: {height && !live ? `${height}px` : 'auto'}; touch-action: {active && zoom > fit + 0.001 ? 'none' : 'pan-y'};"
+	data-easing={easing ? 'true' : 'false'}
+	class="group relative my-2 w-full overflow-hidden rounded-lg border {zoom > fit + 0.001 ? 'cursor-grab' : ''}"
+	style="height: {height && !live ? `${height}px` : 'auto'}; touch-action: {active && zoom > fit + 0.001 ? 'none' : 'pan-y'}; background: var(--outis-code-bg, transparent); border-color: var(--outis-code-border, transparent); transition: {reduced || live ? 'none' : 'height 180ms ease'};"
 	on:pointerdown={onPointerDown}
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}
@@ -196,7 +221,7 @@
 		window.getSelection()?.removeAllRanges();
 		if (!zoomable) return;
 		const [x, y] = local(e);
-		zoomAt(x, y, 2);
+		zoomAt(x, y, 2, true);
 	}}
 >
 	<div
@@ -204,7 +229,7 @@
 		data-diagram-stage
 		class="absolute left-0 top-0 w-max origin-top-left"
 		class:hidden={live}
-		style="transform: translate({tx}px, {ty}px) scale({zoom});"
+		style="transform: translate({tx}px, {ty}px) scale({zoom}); transition: {easing ? 'transform 180ms ease' : 'none'};"
 	>
 		{@html html}
 	</div>
@@ -216,7 +241,8 @@
 	{/if}
 
 	<div
-		class="absolute right-2 top-2 flex gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"
+		data-diagram-toolbar
+		class="absolute right-2 top-2 flex items-center gap-1 transition {active ? 'opacity-100' : 'opacity-55'} group-hover:opacity-100 group-focus-within:opacity-100"
 	>
 		{#if dotSource && !fullscreen}
 			<button type="button" class={btn} aria-label={graphView ? 'Picture' : 'Graph'} title={graphView ? 'Back to the picture' : 'Live, foldable graph'} on:click={() => (graphView = !graphView)}>
@@ -237,13 +263,14 @@
 			</button>
 		{/if}
 		{#if zoomable}
-			<button type="button" class={btn} aria-label="Zoom out" on:click={() => zoomAt(viewer.clientWidth / 2, height / 2, 1 / 1.25)}>
+			<span data-zoom-pill class="h-7 rounded-lg border border-gray-200 bg-white/90 px-1.5 text-[11px] leading-7 text-gray-500 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-400">{Math.round(zoom * 100)}%</span>
+			<button type="button" class={btn} aria-label="Zoom out" on:click={() => zoomAt(viewer.clientWidth / 2, height / 2, 1 / 1.25, true)}>
 				<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14" /></svg>
 			</button>
-			<button type="button" class={btn} aria-label="Zoom in" on:click={() => zoomAt(viewer.clientWidth / 2, height / 2, 1.25)}>
+			<button type="button" class={btn} aria-label="Zoom in" on:click={() => zoomAt(viewer.clientWidth / 2, height / 2, 1.25, true)}>
 				<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
 			</button>
-			<button type="button" class={btn} aria-label="Fit diagram" on:click={toFit}>
+			<button type="button" class={btn} aria-label="Fit diagram" on:click={() => { easing = !reduced; toFit(); }}>
 				<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
 			</button>
 		{/if}

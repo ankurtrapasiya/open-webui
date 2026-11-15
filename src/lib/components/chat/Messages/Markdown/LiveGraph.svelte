@@ -30,8 +30,9 @@
 	// fits with its gaps; never below 90px, so labels wrap rather than scroll where they can.
 	let chipCap = 160;
 	const capFor = (avail: number, horizontal: boolean, widestRow: number) => {
-		const base = avail / (horizontal ? 4 : 3);
-		const fit = widestRow > 0 ? (avail - (widestRow - 1) * GAP) / widestRow : base;
+		const room = avail - 2; // measured widths are ceil'd; keep a pixel each side so the row never overflows
+		const base = room / (horizontal ? 4 : 3);
+		const fit = widestRow > 0 ? (room - (widestRow - 1) * GAP) / widestRow : base;
 		return Math.max(90, Math.min(base, fit));
 	};
 

@@ -68,3 +68,15 @@ Browser (chat created with a 1300×300 test SVG in the assistant message):
 - **CD-15** Spark sets its own diagram root (fill #1a2a0d, text #a4e100, border #76b900), arrow and border; FT its root (#f5ebdd / #005b7f) and line colour. A theme switch recolours the full-screen view too.
 - **CD-16** Outis Dark/Light mind map root label uses the accent (blue-400 / #1a588f), not the retired mint fallback; double-click zoom leaves no text selected.
 - **CD-17** A tap on a non-zoomable diagram keeps `touch-action: pan-y`; the full-screen view (mounted on body, above the sidebar) zooms on the wheel without a prior click.
+
+## Picture polish (2026-11-15, live graph plan Task 5)
+
+- **CD-18** Panning is clamped: at least a quarter of the scaled drawing stays in the box on each axis.
+- **CD-19** The toolbar (`[data-diagram-toolbar]`) is visible at rest (opacity ≥ .5); button zooms and
+  Fit set `data-easing="true"` (180 ms transform transition); wheel and drag clear it. Reduced motion
+  disables easing.
+- **CD-20** Zoomed past fit, the box grows to `min(natural × zoom, 75% of the window)`; a
+  `[data-zoom-pill]` shows the zoom as a percentage.
+- **CD-21** The viewer sits on `--outis-code-bg` with a 1px `--outis-code-border` hairline, stock radius.
+- **CD-7** (changed) Outis Dark now defines the branch tokens, so a baked `var(--outis-diagram-b1-tint, …)`
+  resolves to the token (#1b302c) rather than its fallback.

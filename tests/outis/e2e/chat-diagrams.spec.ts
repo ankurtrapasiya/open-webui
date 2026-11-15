@@ -229,3 +229,71 @@ test('CD-17 a tap on a narrow diagram leaves touch scrolling on; full screen zoo
 	await page.mouse.wheel(0, -300);
 	await expect.poll(async () => Number(await full.getAttribute('data-zoom'))).toBeGreaterThan(z0);
 });
+
+// --- Picture viewer polish (live graph plan, Task 5) ---
+
+const probeIn = (page: Page, css: string, prop: string) =>
+	page.evaluate(([c, p]) => {
+		const el = document.createElement('div');
+		el.style.cssText = c!;
+		document.body.appendChild(el);
+		const v = getComputedStyle(el).getPropertyValue(p!);
+		el.remove();
+		return v;
+	}, [css, prop]);
+const translateX = (page: Page) =>
+	page.locator('[data-diagram-stage]').first().evaluate((e) => new DOMMatrixReadOnly(getComputedStyle(e).transform).e);
+
+test('CD-18 panning keeps at least a quarter of the drawing in the box, both ways', async ({ page, api }) => {
+	await openChat(page, api, 'CD-18', `Wide:\n\n${svg(2400)}\n\nEnd`);
+	await viewer(page).hover();
+	for (let i = 0; i < 3; i++) await viewer(page).getByRole('button', { name: 'Zoom in' }).click();
+	const zoom = await zoomOf(page);
+	const box = (await viewer(page).boundingBox())!;
+	const scaledW = 2400 * zoom;
+	await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+	await page.mouse.down();
+	await page.mouse.move(box.x + box.width / 2 - 5000, box.y + box.height / 2 - 5000, { steps: 5 });
+	await page.mouse.up();
+	expect(await translateX(page)).toBeGreaterThanOrEqual(-(0.75 * scaledW) - 1);
+	await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+	await page.mouse.down();
+	await page.mouse.move(box.x + box.width / 2 + 9000, box.y + box.height / 2 + 9000, { steps: 5 });
+	await page.mouse.up();
+	expect(await translateX(page)).toBeLessThanOrEqual(box.width - 0.25 * scaledW + 1);
+});
+
+test('CD-19 the toolbar is visible at rest; button zooms ease, wheel zooms do not', async ({ page, api }) => {
+	await openChat(page, api, 'CD-19', `Wide:\n\n${svg(2400)}\n\nEnd`);
+	await page.mouse.move(5, 5);
+	const bar = viewer(page).locator('[data-diagram-toolbar]');
+	expect(parseFloat(await bar.evaluate((e) => getComputedStyle(e).opacity))).toBeGreaterThanOrEqual(0.5);
+	await viewer(page).hover();
+	await viewer(page).getByRole('button', { name: 'Zoom in' }).click();
+	await expect(viewer(page)).toHaveAttribute('data-easing', 'true');
+	expect(await page.locator('[data-diagram-stage]').first().evaluate((e) => getComputedStyle(e).transitionDuration)).not.toBe('0s');
+	await viewer(page).click();
+	await page.mouse.wheel(0, -100);
+	await expect(viewer(page)).toHaveAttribute('data-easing', 'false');
+});
+
+test('CD-20 the box grows when zoomed in, up to three quarters of the window; the zoom pill matches', async ({ page, api }) => {
+	await openChat(page, api, 'CD-20', `Wide:\n\n${svg(2400)}\n\nEnd`);
+	const h0 = (await viewer(page).boundingBox())!.height;
+	await viewer(page).hover();
+	for (let i = 0; i < 4; i++) await viewer(page).getByRole('button', { name: 'Zoom in' }).click();
+	await expect.poll(async () => (await viewer(page).boundingBox())!.height).toBeGreaterThan(h0);
+	const h1 = (await viewer(page).boundingBox())!.height;
+	expect(h1).toBeLessThanOrEqual(0.75 * 900 + 2);
+	const pill = await viewer(page).locator('[data-zoom-pill]').textContent();
+	expect(pill!.trim()).toBe(`${Math.round((await zoomOf(page)) * 100)}%`);
+});
+
+test('CD-21 the viewer sits on the code-block surface with its hairline, in dark and FT', async ({ page, api }) => {
+	for (const theme of ['outis-dark', 'outis-light-ft']) {
+		await openChat(page, api, `CD-21 ${theme}`, `Wide:\n\n${svg(2400)}\n\nEnd`, theme);
+		expect(await viewer(page).evaluate((e) => getComputedStyle(e).backgroundColor), theme).toBe(await probeIn(page, 'background: var(--outis-code-bg)', 'background-color'));
+		expect(await viewer(page).evaluate((e) => getComputedStyle(e).borderTopColor), theme).toBe(await probeIn(page, 'color: var(--outis-code-border)', 'color'));
+		expect(await viewer(page).evaluate((e) => getComputedStyle(e).borderTopWidth), theme).toBe('1px');
+	}
+});
