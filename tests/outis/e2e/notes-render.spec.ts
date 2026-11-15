@@ -64,7 +64,8 @@ test("NR-6 the chat's math support does not change how notes parse math", async 
 
 test('NR-7 a note with math opens typeset, with no raw $ source showing', async ({ page, api }) => {
 	const { editor } = await openNote(page, api, 'Bias $E(y)$ here\n\n$$\n\\frac1n\n$$', 'NR-7');
-	expect(await editor.locator('.katex').count()).toBeGreaterThanOrEqual(2);
+	// Polled: KaTeX typesets a moment after the note opens, so a single count raced it (flaky 2026-11-15).
+	await expect.poll(() => editor.locator('.katex').count()).toBeGreaterThanOrEqual(2);
 	await expect(editor).not.toContainText('$E(y)$');
 });
 
