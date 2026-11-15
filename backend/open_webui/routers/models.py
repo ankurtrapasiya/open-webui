@@ -19,9 +19,11 @@ from fastapi import (
     status,
 )
 from fastapi.responses import RedirectResponse, StreamingResponse
+
 from open_webui.config import BYPASS_ADMIN_ACCESS_CONTROL
 from open_webui.constants import ERROR_MESSAGES
 from open_webui.env import (
+    STATIC_DIR,
     BYPASS_MODEL_ACCESS_CONTROL,
     ENABLE_PROFILE_IMAGE_URL_FORWARDING,
     PROFILE_IMAGE_ALLOWED_MIME_TYPES,
@@ -52,6 +54,7 @@ from open_webui.utils.access_control import (
     validate_access_grants,
 )
 from open_webui.utils.access_control.files import has_access_to_file
+from open_webui.utils.agents.icons import agent_icon
 from open_webui.utils.auth import get_admin_user, get_verified_user
 from open_webui.utils.chat_variables import get_chat_variables_schema
 from open_webui.utils.models import get_all_models
@@ -967,6 +970,11 @@ async def get_model_profile_image(
     user=Depends(get_verified_user),
     db: AsyncSession = Depends(get_async_session),
 ):
+    # Agent models are discovered from a terminal, never stored, so they carry a bundled provider icon.
+    agent_icon_url = agent_icon(id, STATIC_DIR)
+    if agent_icon_url:
+        return RedirectResponse(url=agent_icon_url, status_code=status.HTTP_302_FOUND)
+
     profile_image_url = None
     updated_at = None
 

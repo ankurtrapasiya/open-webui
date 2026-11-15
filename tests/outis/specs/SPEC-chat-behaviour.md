@@ -144,3 +144,8 @@ CB-1..4.
 - **CB-27** (2026-11-15, user's rule) A tool attached to any model (`meta.toolIds`) is listed in
   the + menu's Tools tab only when one of the selected models has it attached; a tool attached
   to no model is listed everywhere. (`IntegrationsMenu.svelte` `setTools`.)
+- **CB-28** (2026-11-15) A coding-agent model (`agent:<terminal>:<provider>:<model>`, discovered from
+  an Open Terminal, never a models-table row) shows its provider's logo in the model selector:
+  `/api/v1/models/model/profile/image?id=agent:...` redirects to `/static/agents/<provider>.png`
+  when that file ships (`claude-code.png` today); any other id keeps the existing lookup.
+  Pure helper `utils/agents/icons.py`, checked by `tests/outis/backend/test_agent_icons.py`.
