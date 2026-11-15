@@ -23,3 +23,16 @@ updates:
     schedule:
       interval: yearly
     target-branch: dev
+
+  # Fork (outis-mneme): keep our own workflow's actions on supported majors. One grouped PR a
+  # month against the fork branch; nothing merges or deploys by itself.
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: monthly
+    target-branch: theme/outis-mneme
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: 'CI'
