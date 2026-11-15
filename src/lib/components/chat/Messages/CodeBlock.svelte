@@ -470,13 +470,37 @@
 		}
 	};
 
+	// Fork: a Mermaid diagram bakes the live theme's colours into its SVG, so a light/dark or Outis theme switch
+	// has to draw it again (it used to need a page reload). Only a change in the theme classes counts.
+	let themeObserver = null;
+	let themeKey = '';
+	const currentThemeKey = () =>
+		[...document.documentElement.classList]
+			.filter((c) => c === 'dark' || c === 'light' || c.startsWith('outis-'))
+			.sort()
+			.join(' ');
+
 	onMount(async () => {
 		if (token) {
 			onUpdate(token, id);
 		}
+		if (lang === 'mermaid') {
+			themeKey = currentThemeKey();
+			themeObserver = new MutationObserver(async () => {
+				const key = currentThemeKey();
+				if (key === themeKey) return;
+				themeKey = key;
+				if (renderHTML && !renderError) {
+					mermaid = null; // initMermaid again: the palette is read when it runs
+					await render();
+				}
+			});
+			themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+		}
 	});
 
 	onDestroy(() => {
+		themeObserver?.disconnect();
 		highlightGeneration++;
 		if (localPyodideWorker) {
 			localPyodideWorker.terminate();

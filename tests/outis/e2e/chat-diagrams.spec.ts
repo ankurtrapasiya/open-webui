@@ -339,3 +339,17 @@ test('CD-23 a Mermaid diagram takes each Outis theme\'s own colours: actor edge 
 	}
 	expect(new Set(edges).size, 'each theme has its own colour').toBe(4);
 });
+
+test('CD-24 switching between light and dark redraws an open Mermaid diagram in the new theme, no reload', async ({ page, api }) => {
+	const mermaid = 'Flow:\n\n```mermaid\nsequenceDiagram\n  A->>B: hello\n```\n\nEnd';
+	await openChat(page, api, 'CD-24', mermaid, 'outis-dark');
+	const edge = () => page.locator('svg rect.actor').first().evaluate((e) => getComputedStyle(e).stroke);
+	await expect(page.locator('svg rect.actor').first()).toBeVisible();
+	const dark = await edge();
+	await page.evaluate(() => (document.documentElement.className = 'light outis-light'));
+	await expect.poll(edge, { message: 'the diagram is redrawn in the light theme' }).not.toBe(dark);
+	const light = await edge();
+	await page.evaluate(() => (document.documentElement.className = 'dark outis-dark'));
+	await expect.poll(edge, { message: 'and back to dark' }).toBe(dark);
+	expect(light).not.toBe(dark);
+});
