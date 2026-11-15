@@ -218,6 +218,9 @@ test('CR-13 a thousands separator written as a bare "{" (10{000{000) renders, no
 	const message = await openChat(page, api, content, 'CR-13');
 	await expect(message.locator('.katex')).toHaveCount(2);
 	await expect(message.locator('.katex-error')).toHaveCount(0);
+	// Balanced braces are not a lost separator: the formula reaches KaTeX exactly as written.
+	const balanced = await openChat(page, api, 'Fine: $x^{100} + 1{,}000$.', 'CR-13 balanced');
+	await expect(balanced.locator('.katex annotation')).toHaveText('x^{100} + 1{,}000');
 });
 
 test('CR-14 a formula with every backslash doubled ($IC \\\\times \\\\sqrt{BR}$) renders as maths', async ({ page, api }) => {
@@ -226,6 +229,10 @@ test('CR-14 a formula with every backslash doubled ($IC \\\\times \\\\sqrt{BR}$)
 	await expect(message.locator('.katex')).toHaveCount(2);
 	await expect(message.locator('.katex .sqrt')).toHaveCount(2);
 	expect(await message.innerText()).not.toMatch(/times/);
+	// A matrix line break (\\\\) next to single-backslash commands is a real line break, not a doubled backslash.
+	const matrix = await openChat(page, api, 'Rows: $\\begin{matrix} a \\\\ b \\end{matrix}$.', 'CR-14 matrix');
+	await expect(matrix.locator('.katex annotation')).toHaveText('\\begin{matrix} a \\\\ b \\end{matrix}');
+	await expect(matrix.locator('.katex-error')).toHaveCount(0);
 });
 
 test('CR-15 an svg drawn past its own viewBox is widened to fit, not clipped', async ({ page, api }) => {
@@ -255,4 +262,51 @@ test('CR-17 a fixed-size svg chart scales to the embed width (at most 1.6x)', as
 	await expect(frame.locator('text')).toHaveText('CR17');
 	// 300 * 1.6 = 480: wider than drawn, capped so text does not balloon.
 	await expect.poll(() => frame.locator('svg').evaluate((s) => Math.round(s.getBoundingClientRect().width))).toBe(480);
+});
+
+// Reading colour guide (src/outis-theme-shared.css "Reading colour guide", AlertRenderer.svelte): the global
+// "Outis reading guide" filter teaches every model this code, so the theme must keep rendering it.
+test('CR-21 callouts carry the reading-guide labels: Takeaway, Meaning, Trap, Remember, Your turn', async ({ page, api }) => {
+	const content = ['TIP', 'NOTE', 'WARNING', 'IMPORTANT', 'CAUTION'].map((t) => `> [!${t}]\n> CR21 ${t.toLowerCase()} body`).join('\n\n');
+	const message = await openChat(page, api, content, 'CR-21');
+	const labels = message.locator('.outis-alert > div:first-child span');
+	await expect(labels).toHaveText(['Takeaway', 'Meaning', 'Trap', 'Remember', 'Your turn']);
+	await expect(message.locator('.outis-alert[data-alert="CAUTION"]')).toContainText('CR21 caution body');
+});
+
+test('CR-22 bold is the key-term copper and italic the example blue in both Outis themes; a bold heading is not recoloured', async ({ page, api }) => {
+	const message = await openChat(page, api, '## Heading with **bold**\n\nA **key term**, an *example* and `42`.', 'CR-22');
+	const colours = () =>
+		message.evaluate((root) => {
+			const probe = (v: string) => {
+				const el = document.createElement('span');
+				el.style.color = `var(${v})`;
+				document.body.appendChild(el);
+				const c = getComputedStyle(el).color;
+				el.remove();
+				return c;
+			};
+			const q = (sel: string) => getComputedStyle(root.querySelector(sel) as Element).color;
+			return { strong: q('p strong'), em: q('p em'), h2: q('h2'), h2strong: q('h2 strong'), key: probe('--outis-key'), blue: probe('--outis-code-node') };
+		});
+	for (const theme of ['dark outis-dark', 'light outis-light']) {
+		await page.evaluate((t) => (document.documentElement.className = t), theme);
+		await expect.poll(async () => (await colours()).strong).toBe((await colours()).key);
+		const c = await colours();
+		expect(c.em, theme).toBe(c.blue);
+		expect(c.strong, theme).not.toBe(c.em);
+		expect(c.h2strong, theme).toBe(c.h2);
+	}
+});
+
+test('CR-23 a reply\'s embedded cards sit above its text, so they hold still while the text streams', async ({ page, api }) => {
+	const card = '<!DOCTYPE html><html><head></head><body><p id="t" style="height:120px">CR23 card</p></body></html>';
+	const chat = await api.chat({ title: 'CR-23', assistant: 'CR23 reply text under the card.', embeds: [card] });
+	await page.goto(`/c/${chat.id}`);
+	const message = page.locator('#response-content-container').last();
+	await expect(message).toContainText('CR23 reply text');
+	const embeds = page.locator('[id$="-embeds-container"]');
+	await expect(embeds.locator('iframe')).toHaveCount(1);
+	const [cardBox, textBox] = await Promise.all([embeds.boundingBox(), message.getByText('CR23 reply text').boundingBox()]);
+	expect(cardBox!.y + cardBox!.height).toBeLessThanOrEqual(textBox!.y + 1);
 });

@@ -117,14 +117,14 @@ export class Api {
 	}
 
 	// A saved chat with one question and one fixed assistant reply; no model is called.
-	async chat(opts: { title: string; user?: string; assistant: string; followUps?: string[] }) {
+	async chat(opts: { title: string; user?: string; assistant: string; followUps?: string[]; embeds?: string[] }) {
 		const u = crypto.randomUUID();
 		const a = crypto.randomUUID();
 		const ts = Math.floor(Date.now() / 1000);
 		const model = 'regression-model';
 		const messages = {
 			[u]: { id: u, parentId: null, childrenIds: [a], role: 'user', content: opts.user ?? 'Question', timestamp: ts, models: [model] },
-			[a]: { id: a, parentId: u, childrenIds: [], role: 'assistant', content: opts.assistant, model, modelIdx: 0, done: true, timestamp: ts, ...(opts.followUps ? { followUps: opts.followUps } : {}) }
+			[a]: { id: a, parentId: u, childrenIds: [], role: 'assistant', content: opts.assistant, model, modelIdx: 0, done: true, timestamp: ts, ...(opts.followUps ? { followUps: opts.followUps } : {}), ...(opts.embeds ? { embeds: opts.embeds } : {}) }
 		};
 		return this.json(
 			await this.ctx.post('/api/v1/chats/new', {

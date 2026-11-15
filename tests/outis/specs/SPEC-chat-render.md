@@ -62,12 +62,12 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   setext heading underline, so the Wolfram Tutor's Bellman system showed as raw LaTeX under a big
   heading. `joinDisplayMath` in `src/lib/utils/index.ts` joins each display block onto one line
   before lexing, skipping fenced code.)
-- **CR-13** A formula whose thousands separator lost its `,}` (`$€1{000,000$`,
+- **CR-13** (also: balanced braces such as `$x^{100} + 1{,}000$` reach KaTeX unchanged.) A formula whose thousands separator lost its `,}` (`$€1{000,000$`,
   `$$€100{000{000$$`) renders as KaTeX with no `.katex-error`. (Found 2026-10-03: mercury-2.5
   writes `10{,}000{,}000` as `10{000{000` about one reply in three; the unclosed `{` was a red
   parse error. `repairLatex` in `katex-extension.ts` puts `{,}` back, only when braces
   do not balance.)
-- **CR-14** A formula with every backslash doubled (`$IC \\times \\sqrt{BR}$`) renders as
+- **CR-14** (also: a matrix line break `\\\\` beside single-backslash commands is left alone.) A formula with every backslash doubled (`$IC \\times \\sqrt{BR}$`) renders as
   KaTeX with a real square root and no "times" text. A matrix `\\` next to single-backslash
   commands is untouched. (Found 2026-10-03: mercury-2.5 doubles backslashes as if JSON-escaping;
   KaTeX read `\\` as a line break. `repairLatex` halves them only when no single-backslash
@@ -93,6 +93,18 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   formatted text. The fake model's `ECHO` line makes it reply with fixed text.
 - **QZ-1** (`quiz-theme.spec.ts`, skips without outis-mneme) The themed QuizUI tool's body is
   `#090d0c` in dark and `#fafdfc` in light, following a live switch both ways.
+
+### Reading colour guide
+
+The global "Outis reading guide" filter (outis-owui `plugins/reading-guide/reading-guide.py`) teaches every model
+one markup code; the theme (`src/outis-theme-shared.css`, `AlertRenderer.svelte`) renders it. Both must agree.
+
+- **CR-21** The five callouts render with the guide's labels: `[!TIP]` Takeaway, `[!NOTE]` Meaning,
+  `[!WARNING]` Trap, `[!IMPORTANT]` Remember, `[!CAUTION]` Your turn; the body text follows the label.
+- **CR-22** In Outis-Dark and Outis-Light, reply `strong` is the key-term colour (`--outis-key`), `em` the
+  example blue (`--outis-code-node`), the two differ, and `strong` inside a heading keeps the heading colour.
+- **CR-23** A reply's `embeds` (tool and filter cards) render above its text: the cards' bottom edge is at or
+  above the first line of text. (Fork commit 45b22c7ed: below the text they slid down while the reply streamed.)
 
 ## Known limits
 
