@@ -275,6 +275,44 @@ test('TH-34 inline code is a code chip: code surface, hairline, code colour, 4px
 	}
 });
 
+const QUIET = {
+	'outis-dark': { chrome: 'rgb(20, 17, 14)', divider: 'rgb(54, 50, 46)' },
+	'outis-light': { chrome: 'rgb(247, 243, 239)', divider: 'rgb(215, 212, 207)' },
+	'outis-dark-spark': { chrome: 'rgb(15, 26, 6)', divider: 'rgb(51, 66, 31)' },
+	'outis-light-ft': { chrome: 'rgb(245, 235, 221)', divider: 'rgb(209, 199, 183)' }
+} as const;
+
+test('TH-35 quiet boundaries: sidebar and settings menu sit on the chrome tone with a hairline; the composer has one', async ({ page }) => {
+	for (const [theme, w] of Object.entries(QUIET)) {
+		await useTheme(page, theme);
+		await page.goto('/');
+		expect(await css(page, '#sidebar', 'background-color'), theme).toBe(w.chrome);
+		expect(await css(page, '#sidebar', 'border-right-color'), theme).toBe(w.divider);
+		expect(await css(page, '#sidebar', 'border-right-width'), theme).toBe('1px');
+		expect(await css(page, '#message-input-container', 'border-top-color'), theme).toBe(w.divider);
+		expect(T[theme as Theme].bg, `${theme}: the page differs from the chrome`).not.toBe(w.chrome);
+		await page.goto('/?settings=general');
+		expect(await css(page, '#settings-tabs-container', 'background-color'), theme).toBe(w.chrome);
+		expect(await css(page, '#settings-tabs-container', 'border-right-color'), theme).toBe(w.divider);
+	}
+});
+
+test('TH-36 Settings shows a card with an icon for each Outis theme; a card applies its theme', async ({ page }) => {
+	await useTheme(page, 'outis-dark');
+	await page.goto('/?settings=general');
+	const cards = page.locator('#outis-theme-cards [data-theme-card]');
+	await expect(cards).toHaveCount(4);
+	for (const t of THEMES) await expect(page.locator(`[data-theme-card="${t}"] svg path`).first()).toBeAttached();
+	await expect(page.locator('[data-theme-card="outis-dark"]')).toHaveAttribute('aria-checked', 'true');
+	await page.locator('[data-theme-card="outis-dark-spark"]').click();
+	for (const c of T['outis-dark-spark'].classes) await expect(page.locator('html')).toHaveClass(new RegExp(`\\b${c}\\b`));
+	await expect(page.getByRole('combobox', { name: 'Theme' })).toHaveValue('outis-dark-spark');
+	await expect(page.locator('[data-theme-card="outis-dark-spark"]')).toHaveAttribute('aria-checked', 'true');
+	await page.locator('[data-theme-card="outis-light-ft"]').click();
+	await expect(page.locator('html')).not.toHaveClass(/outis-spark/);
+	expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('outis-light-ft');
+});
+
 test('TH-30 Outis-Dark and Outis-Light use the stock font, sizes, corners and icon strokes', async ({ page, api }) => {
 	const stock = await styleSnapshot(page, api, 'dark');
 	// Sanity: the stock theme really is rounded and not monospace, so equality below means something.

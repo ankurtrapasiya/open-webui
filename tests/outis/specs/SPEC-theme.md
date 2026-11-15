@@ -27,6 +27,14 @@ because the app auto-focuses it after load (history below); TH-30 and TH-31 guar
 - **TH-34** Inline code in a reply is a code chip: `--outis-code-bg` fill, `--outis-code-border`
   hairline, `--outis-code-node` text (not the maths gold), 4px corners, 0.95em. Checked in
   Outis-Dark, Spark and FT.
+- **TH-35** Quiet boundaries (user, 2026-11-15: only the learning content should take attention, yet
+  areas must be easy to find): `#sidebar` and `#settings-tabs-container` sit on `--outis-chrome`
+  (dark: gray-950, light: gray-50; differs from the page) with a 1px `--outis-divider` hairline
+  (dark: gray-700, light: gray-300); the composer's border is the divider too. All four themes.
+- **TH-36** Settings > General shows `#outis-theme-cards`: one card per Outis theme with its own SVG
+  mark on a tile in that theme's page colour and three swatches. A card applies its theme, updates
+  the select and is `aria-checked`. Select labels: 🌘 Outis Dark, 📖 Outis Light, ⚡ Outis Spark,
+  📰 Outis FT.
 - **TH-32** Spark -> FT leaves no Spark/dark class and FT's own grays; FT -> Outis-Dark leaves
   no FT class and the blue accent.
 - Font, text sizes, corner radii, spacing and icon strokes are exactly stock Dark's. Only

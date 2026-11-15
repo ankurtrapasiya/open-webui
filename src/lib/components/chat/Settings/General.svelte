@@ -9,6 +9,7 @@
 
 	import { config, models, settings, theme, user } from '$lib/stores';
 	import { setTheme } from '$lib/utils/theme';
+	import OutisThemeCards from './OutisThemeCards.svelte';
 
 	const i18n: any = getContext('i18n');
 
@@ -170,9 +171,9 @@
 					<option value="system">⚙️ {$i18n.t('System')}</option>
 					<option value="dark">🌑 {$i18n.t('Dark')}</option>
 					<option value="oled-dark">🌃 {$i18n.t('OLED Dark')}</option>
-					<option value="outis-dark">🟢 Outis-Dark</option>
-					<option value="outis-light">🟩 Outis-Light</option>
-					<option value="outis-dark-spark">🟢 Outis Spark</option>
+					<option value="outis-dark">🌘 Outis Dark</option>
+					<option value="outis-light">📖 Outis Light</option>
+					<option value="outis-dark-spark">⚡ Outis Spark</option>
 					<option value="outis-light-ft">📰 Outis FT</option>
 					<option value="light">☀️ {$i18n.t('Light')}</option>
 					{#if $config?.features?.enable_easter_eggs}
@@ -180,6 +181,9 @@
 					{/if}
 				</SettingsSelect>
 			</UserSettingRow>
+			<div class="pb-2">
+				<OutisThemeCards bind:selectedTheme />
+			</div>
 
 
 			<UserSettingRow

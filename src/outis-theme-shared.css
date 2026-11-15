@@ -409,3 +409,28 @@ html.outis-light body .outis-alert[data-alert='CAUTION'] {
 	--alert: var(--color-gray-900);
 	background: var(--color-gray-100);
 }
+
+/* Quiet boundaries (user's request, 2026-11-15): with every surface on one colour, finding the
+   sidebar, the settings menu or the message box took effort. The chrome now sits one step darker
+   (dark themes) or warmer (light themes) than the reading page, with a hairline where it meets the
+   page, so areas are found at a glance and the page itself stays the brightest, quietest surface.
+   Stock's own dividers are near-invisible on these palettes (gray-850/30, white/[0.02]). */
+html.outis-dark {
+	--outis-chrome: var(--color-gray-950);
+	--outis-divider: var(--color-gray-700);
+}
+html.outis-light {
+	--outis-chrome: var(--color-gray-50);
+	--outis-divider: var(--color-gray-300);
+}
+html:is(.outis-dark, .outis-light) #sidebar {
+	background-color: var(--outis-chrome);
+	border-inline-end: 1px solid var(--outis-divider);
+}
+html:is(.outis-dark, .outis-light) #settings-tabs-container {
+	background-color: var(--outis-chrome);
+	border-color: var(--outis-divider);
+}
+html:is(.outis-dark, .outis-light) #message-input-container:not(.border-dashed) {
+	border-color: var(--outis-divider);
+}
