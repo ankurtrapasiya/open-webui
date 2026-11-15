@@ -307,3 +307,30 @@ test('CD-22 the "Diagram source" fold under a diagram is not shown; other folds 
 	await expect(msg.getByText('digraph G')).toHaveCount(0);
 	await expect(msg.getByText('Working')).toHaveCount(1);
 });
+
+test('CD-23 a Mermaid diagram takes the live theme\'s Outis colours: actors the surface, notes the chip, not the stock yellow', async ({ page, api }) => {
+	const mermaid = 'Flow:\n\n```mermaid\nsequenceDiagram\n  participant A\n  participant B\n  A->>B: hello\n  Note over A,B: a note\n```\n\nEnd';
+	const seen: string[] = [];
+	for (const theme of ['outis-dark', 'outis-light']) {
+		await openChat(page, api, `CD-23 ${theme}`, mermaid, theme);
+		const actor = page.locator('svg rect.actor').first();
+		await expect(actor).toBeVisible();
+		const fills = await page.evaluate(() => {
+			// The expected colour, resolved independently of the app code: a canvas pixel of the token.
+			const px = (token: string) => {
+				const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!;
+				c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+				c.fillRect(0, 0, 1, 1);
+				const [r, g, b] = c.getImageData(0, 0, 1, 1).data;
+				return `rgb(${r}, ${g}, ${b})`;
+			};
+			const fill = (sel: string) => getComputedStyle(document.querySelector(sel)!).fill;
+			return { actor: fill('svg rect.actor'), note: fill('svg rect.note'), surface: px('--o-surface'), chip: px('--o-chip') };
+		});
+		expect(fills.actor, `${theme} actor`).toBe(fills.surface);
+		expect(fills.note, `${theme} note`).toBe(fills.chip);
+		expect(fills.note, `${theme} note is not stock yellow`).not.toBe('rgb(255, 245, 173)');
+		seen.push(fills.actor);
+	}
+	expect(seen[0], 'dark and light differ').not.toBe(seen[1]);
+});

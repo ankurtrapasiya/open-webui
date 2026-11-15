@@ -1,4 +1,5 @@
 import type { ResourceComment } from '$lib/apis/comments';
+import { outisMermaidConfig } from '$lib/mermaid-outis-theme';
 import type { Writable } from 'svelte/store';
 import { v4 as uuidv4 } from 'uuid';
 import sha256 from 'js-sha256';
@@ -2172,9 +2173,12 @@ export const decodeString = (str: string) => {
 
 export const initMermaid = async () => {
 	const { default: mermaid } = await import('mermaid');
+	const isDark = document.documentElement.classList.contains('dark');
+	const outis = outisMermaidConfig(isDark); // fork: the Outis palette, null under a stock theme
 	mermaid.initialize({
 		startOnLoad: false, // Should be false when using render API
-		theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+		theme: outis?.theme ?? (isDark ? 'dark' : 'default'),
+		...(outis ? { themeVariables: outis.themeVariables } : {}),
 		securityLevel: 'loose',
 		htmlLabels: false,
 		secure: ['htmlLabels']

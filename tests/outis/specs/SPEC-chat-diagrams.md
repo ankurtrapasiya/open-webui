@@ -81,3 +81,4 @@ Browser (chat created with a 1300×300 test SVG in the assistant message):
 - **CD-7** (changed) Outis Dark now defines the branch tokens, so a baked `var(--outis-diagram-b1-tint, …)`
   resolves to the token (#1b302c) rather than its fallback.
 - **CD-22** (2026-11-15, user's request) The `<details><summary>Diagram source</summary>` fold the filter writes under a diagram is not rendered in the chat; the source stays in the stored message for the model's later turns. Other folds render as before.
+- **CD-23** (2026-11-15) A Mermaid diagram in a reply takes the live theme's Outis colours through Mermaid's `base` theme (`src/lib/mermaid-outis-theme.ts`, read by `initMermaid`): in Outis Dark and Light a sequence diagram's actor boxes are `--o-surface`, its notes `--o-chip` (never Mermaid's stock yellow `#fff5ad`), and the two themes differ. Under a stock Open WebUI theme the `--o-*` tokens are empty and Mermaid keeps its own `dark`/`default` theme.
