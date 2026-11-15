@@ -244,7 +244,11 @@ test('TH-33 code blocks take the palette: accent caret and the variant syntax co
 	};
 	for (const [theme, w] of Object.entries(want)) {
 		await richChat(page, api, theme);
-		expect(await css(page, 'div[class*="language-"] .cm-content', 'caret-color'), theme).toBe(w.caret);
+		// CodeMirror hides the native caret and draws its own .cm-cursor once the editor has focus.
+		await page.locator('div[class*="language-"] .cm-content').click();
+		await expect
+			.poll(() => css(page, 'div[class*="language-"] .cm-cursor', 'border-left-color'), { message: theme })
+			.toBe(w.caret);
 		const str = page.locator('div[class*="language-"] .cm-content span', { hasText: '"hi"' }).last();
 		expect(await str.evaluate((e) => getComputedStyle(e).color), theme).toBe(w.str);
 	}
