@@ -188,3 +188,20 @@ test('LG-10 left-to-right edge labels sit in the gap, not under the target chip'
 	]);
 	expect(lab).toBeLessThanOrEqual(b + 1);
 });
+
+test('LG-11 a training loop draws its back edge as a side loop with a visible label', async ({ page, api }) => {
+	await openDot(page, api, 'digraph { init -> compute -> update -> check; check -> done [label="yes"]; check -> compute [label="no"]; }');
+	await openGraph(page);
+	const loop = graph(page).locator('svg[data-edges] path[data-edge="check→compute"]');
+	await expect(loop).toHaveAttribute('data-loop', 'true');
+	const label = graph(page).locator('[data-elabel]', { hasText: 'no' });
+	await expect(label).toBeVisible();
+	const [lab, chips] = await Promise.all([
+		label.evaluate((e) => e.getBoundingClientRect()),
+		graph(page).locator('[data-gnode]').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()))
+	]);
+	for (const c of chips) {
+		const overlap = lab.left < c.right && c.left < lab.right && lab.top < c.bottom && c.top < lab.bottom;
+		expect(overlap).toBe(false);
+	}
+});

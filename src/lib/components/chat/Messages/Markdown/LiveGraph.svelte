@@ -136,6 +136,12 @@
 	});
 	onDestroy(() => ro?.disconnect());
 
+	const loopPath = (pts: [number, number][], bulge: number, horizontal: boolean) => {
+		const [x0, y0] = pts[0];
+		const [x1, y1] = pts[1];
+		if (horizontal) return `M${x0},${y0} C${x0},${bulge} ${x1},${bulge} ${x1},${y1}`;
+		return `M${x0},${y0} C${bulge},${y0} ${bulge},${y1} ${x1},${y1}`;
+	};
 	const path = (pts: [number, number][], horizontal: boolean) => {
 		const [x0, y0] = pts[0];
 		const [x1, y1] = pts[pts.length - 1];
@@ -208,7 +214,8 @@
 					{#each L.edges as e, ei (ei)}
 						<path
 							data-edge="{e.from}→{e.to}"
-							d={path(e.points.map(([x, y]) => [x + cx, y + 28]), L.horizontal)}
+							data-loop={e.loop ? 'true' : undefined}
+							d={e.loop ? loopPath(e.points.map(([x, y]) => [x + cx, y + 28]), (L.horizontal ? e.bulge! + 28 : e.bulge! + cx), L.horizontal) : path(e.points.map(([x, y]) => [x + cx, y + 28]), L.horizontal)}
 							fill="none"
 							stroke="color-mix(in srgb, {borderFor(e.to)} 70%, transparent)"
 							stroke-width="1.5"
@@ -218,9 +225,9 @@
 							{@const [x0, y0] = e.points[0]}
 							{@const [x1, y1] = e.points[e.points.length - 1]}
 							{@const t = Math.min(0.5, 20 / Math.max(1, y1 - y0))}
-							{@const gapW = L.horizontal ? Math.max(24, x1 - x0 - 8) : 120}
-							{@const mx = (L.horizontal ? (x0 + x1) / 2 : x0 + (x1 - x0) * t) + cx}
-							{@const my = (L.horizontal ? (y0 + y1) / 2 : y0 + 20) + 28}
+							{@const gapW = e.loop ? 96 : L.horizontal ? Math.max(24, x1 - x0 - 8) : 120}
+							{@const mx = (e.loop ? (L.horizontal ? (x0 + x1) / 2 : e.bulge! * 0.75 + Math.max(x0, x1) * 0.25 + 48) : L.horizontal ? (x0 + x1) / 2 : x0 + (x1 - x0) * t) + cx}
+							{@const my = (e.loop ? (L.horizontal ? e.bulge! * 0.75 + Math.max(y0, y1) * 0.25 + 10 : (y0 + y1) / 2) : L.horizontal ? (y0 + y1) / 2 : y0 + 20) + 28}
 							<foreignObject x={mx - gapW / 2} y={my - 10} width={gapW} height="20" style="overflow: visible;">
 								<div data-elabel title={e.label} class="mx-auto w-max max-w-full truncate rounded px-1 text-[11px]" style="background: var(--o-page, transparent); color: var(--o-muted, inherit);">{e.label}</div>
 							</foreignObject>

@@ -4,7 +4,7 @@
 import type { DotGraph } from './dot';
 
 export type Rect = { x: number; y: number; w: number; h: number; rank: number };
-export type LaidEdge = { from: string; to: string; label?: string; points: [number, number][] };
+export type LaidEdge = { from: string; to: string; label?: string; points: [number, number][]; loop?: boolean; bulge?: number };
 export type Layout = {
 	width: number;
 	height: number;
@@ -212,19 +212,37 @@ export function layoutGraph(graph: DotGraph, opts: LayoutOpts): Layout {
 		});
 		along += thick + gapY;
 	});
-	const width = horizontal ? along - gapY : Math.max(total, ...[...pos.values()].map((p) => p.x + p.w));
-	const height = horizontal ? Math.max(total, ...[...pos.values()].map((p) => p.y + p.h)) : along - gapY;
+	let width = horizontal ? along - gapY : Math.max(total, ...[...pos.values()].map((p) => p.x + p.w));
+	let height = horizontal ? Math.max(total, ...[...pos.values()].map((p) => p.y + p.h)) : along - gapY;
 
 	const edges: LaidEdge[] = [];
 	for (const e of graph.edges) {
 		const a = pos.get(e.from), b = pos.get(e.to);
 		if (!a || !b) continue;
-		const reversed = rank.get(e.from)! > rank.get(e.to)!;
-		const [s, t] = reversed ? [b, a] : [a, b];
-		const p0: [number, number] = horizontal ? [s.x + s.w, s.y + s.h / 2] : [s.x + s.w / 2, s.y + s.h];
-		const p1: [number, number] = horizontal ? [t.x, t.y + t.h / 2] : [t.x + t.w / 2, t.y];
-		const points = reversed ? [p1, p0] : [p0, p1];
-		edges.push({ from: e.from, to: e.to, label: e.label, points });
+		const backward = rank.get(e.from)! >= rank.get(e.to)!;
+		if (backward) {
+			// A back edge (or self-loop) leaves and re-enters from the outer side, bowing out past
+			// the chips it spans, so a loop reads as a loop and never hides under a forward edge.
+			if (horizontal) {
+				const p0: [number, number] = [a.x + a.w / 2, a.y + a.h];
+				const p1: [number, number] = [b.x + b.w / 2, b.y + b.h];
+				const bulge = Math.max(a.y + a.h, b.y + b.h) + 32;
+				edges.push({ from: e.from, to: e.to, label: e.label, points: [p0, p1], loop: true, bulge });
+			} else {
+				const p0: [number, number] = [a.x + a.w, a.y + a.h / 2];
+				const p1: [number, number] = [b.x + b.w, b.y + b.h / 2];
+				const bulge = Math.max(a.x + a.w, b.x + b.w) + 32;
+				edges.push({ from: e.from, to: e.to, label: e.label, points: [p0, p1], loop: true, bulge });
+			}
+			continue;
+		}
+		const p0: [number, number] = horizontal ? [a.x + a.w, a.y + a.h / 2] : [a.x + a.w / 2, a.y + a.h];
+		const p1: [number, number] = horizontal ? [b.x, b.y + b.h / 2] : [b.x + b.w / 2, b.y];
+		edges.push({ from: e.from, to: e.to, label: e.label, points: [p0, p1] });
 	}
+	// Room for the loops' bulge on the outer side.
+	const loopExtent = Math.max(0, ...edges.filter((e) => e.loop).map((e) => e.bulge! + 8));
+	if (horizontal) height = Math.max(height, loopExtent);
+	else width = Math.max(width, loopExtent);
 	return { width, height, horizontal, pos, edges, hidden, badges };
 }

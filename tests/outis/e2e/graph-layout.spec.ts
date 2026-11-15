@@ -81,3 +81,17 @@ test('GL-7 members of one cluster stay together within a row; outside-cluster hu
 	expect(h.get('z')).not.toBe(h.get('a1'));
 	expect(h.get('z')).not.toBe(h.get('b1'));
 });
+
+test('GL-8 a back edge is routed as a side loop from the right edges, a self-loop too', () => {
+	const L = lay('digraph { a -> b -> c; c -> a; b -> b }');
+	const back = L.edges.find((e) => e.from === 'c' && e.to === 'a')!;
+	expect(back.loop).toBe(true);
+	const c = L.pos.get('c')!, a = L.pos.get('a')!;
+	expect(back.points[0]).toEqual([c.x + c.w, c.y + c.h / 2]);
+	expect(back.points[back.points.length - 1]).toEqual([a.x + a.w, a.y + a.h / 2]);
+	expect(back.bulge!).toBeGreaterThan(Math.max(c.x + c.w, a.x + a.w));
+	const self = L.edges.find((e) => e.from === 'b' && e.to === 'b')!;
+	expect(self.loop).toBe(true);
+	const fwd = L.edges.find((e) => e.from === 'a' && e.to === 'b')!;
+	expect(fwd.loop).toBeFalsy();
+});
