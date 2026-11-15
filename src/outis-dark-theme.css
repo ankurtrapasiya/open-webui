@@ -427,6 +427,10 @@ html.outis-dark .outis-diagram {
 	--outis-diagram-text: #d7d2cb;
 	--outis-diagram-deep: var(--color-gray-850);
 	--outis-diagram-arrow: var(--color-gray-500);
+	/* Mind map root in the accent (the baked fallback is the retired mint green). */
+	--outis-diagram-root-fill: var(--color-gray-850);
+	--outis-diagram-root-text: var(--color-blue-400);
+	--outis-diagram-root-border: var(--color-blue-500);
 }
 
 /* Tool-card tokens (2026-11-14). FullHeightIframe copies these --o-* values onto every tool

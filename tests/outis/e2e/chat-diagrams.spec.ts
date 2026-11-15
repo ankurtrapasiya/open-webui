@@ -203,3 +203,14 @@ test('CD-15 Spark and FT give diagrams their own root colour, also in the full-s
 	await page.evaluate(() => (document.documentElement.className = 'light outis-light outis-ft'));
 	expect(await fill(dialog)).toBe('rgb(245, 235, 221)');
 });
+
+test('CD-16 the mind map root follows each theme\'s accent, not the retired mint; double-click selects no text', async ({ page, api }) => {
+	const rooted = `<div class="outis-diagram"><svg xmlns="http://www.w3.org/2000/svg" width="2400" height="300" viewBox="0 0 2400 300"><text class="cd-rt" x="10" y="40" style="fill:var(--outis-diagram-root-text, #00cf76)">Root label</text></svg></div>`;
+	const want = { 'outis-dark': 'rgb(147, 196, 237)', 'outis-light': 'rgb(26, 88, 143)' };
+	for (const [theme, colour] of Object.entries(want)) {
+		await openChat(page, api, `CD-16 ${theme}`, `Root:\n\n${rooted}\n\nEnd`, theme);
+		expect(await page.locator('.cd-rt').first().evaluate((e) => getComputedStyle(e).fill), theme).toBe(colour);
+	}
+	await viewer(page).dblclick({ position: { x: 30, y: 15 } });
+	expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('');
+});

@@ -66,3 +66,4 @@ Browser (chat created with a 1300×300 test SVG in the assistant message):
 - **CD-14** Full screen opens `dialog "Diagram"` holding the SVG; Escape closes it.
 - **CD-8/9** (changed) The PDF clone also undoes the viewer's stage transform and fixed height.
 - **CD-15** Spark sets its own diagram root (fill #1a2a0d, text #a4e100, border #76b900), arrow and border; FT its root (#f5ebdd / #005b7f) and line colour. A theme switch recolours the full-screen view too.
+- **CD-16** Outis Dark/Light mind map root label uses the accent (blue-400 / #1a588f), not the retired mint fallback; double-click zoom leaves no text selected.

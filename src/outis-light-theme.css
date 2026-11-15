@@ -426,7 +426,7 @@ html.outis-light .outis-diagram {
 	--outis-diagram-text: #36322d; /* all label text */
 	--outis-diagram-deep: #edeae5; /* sunken fill, and group bodies */
 	--outis-diagram-arrow: #b9b4ab; /* arrowheads */
-	--outis-diagram-root-fill: #e6fcee; /* mindmap root */
+	--outis-diagram-root-fill: var(--color-blue-50); /* mindmap root (was mint: 2026-11-15 the accent is blue) */
 	--outis-diagram-root-text: #1a588f; /* mindmap root label */
 	--outis-diagram-root-border: #2266a4; /* mindmap root border */
 	--outis-diagram-line: #6d6861; /* connectors */

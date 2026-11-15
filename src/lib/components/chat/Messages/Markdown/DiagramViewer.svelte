@@ -147,7 +147,13 @@
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}
 	on:pointercancel={onPointerUp}
+	on:mousedown={(e) => {
+		// A double-click zooms; without this it also selects a word and opens the chat's
+		// Ask/Explain selection menu. Single-click selection is left alone.
+		if (e.detail > 1) e.preventDefault();
+	}}
 	on:dblclick={(e) => {
+		window.getSelection()?.removeAllRanges();
 		if (!zoomable) return;
 		const [x, y] = local(e);
 		zoomAt(x, y, 2);
