@@ -35,6 +35,7 @@ passes, or names the broken feature and the acceptance criterion it broke.
 | `branding` | "Outis" everywhere the instance names itself | [SPEC-branding.md](SPEC-branding.md) |
 | `uploads` | File uploads: CSV read locally whatever the extraction engine | [SPEC-uploads.md](SPEC-uploads.md) |
 | `jargon-tips` | `[term]{tip="…"}` renders a plain meaning on hover/tap, with source or AI chip | [SPEC-jargon-tips.md](SPEC-jargon-tips.md) |
+| `visual` | Measured contrast and golden screenshots of Mermaid in all four themes | [SPEC-visual.md](SPEC-visual.md) |
 
 No module depends on another. Build order is by risk: notes → chat → theme → branding.
 

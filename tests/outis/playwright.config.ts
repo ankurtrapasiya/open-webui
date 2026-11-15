@@ -14,7 +14,13 @@ export default defineConfig({
 	retries: 0,
 	timeout: 60_000,
 	// A fresh container loads each page's code on first use, which can take several seconds.
-	expect: { timeout: 15_000 },
+	expect: {
+		timeout: 15_000,
+		// Golden screenshots (VIS-3) are only compared on the deploy machine, so one flat folder and a small tolerance
+		// for anti-aliasing. Update with scripts/outis-visual-update.sh after reading the diff.
+		toHaveScreenshot: { maxDiffPixelRatio: 0.02, animations: 'disabled' }
+	},
+	snapshotPathTemplate: '{testDir}/../visual-baselines/{arg}{ext}',
 	reporter: [['list']],
 	globalSetup: './support/global-setup.ts',
 	use: {
