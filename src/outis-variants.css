@@ -104,6 +104,12 @@ html.outis-dark.outis-spark :is(.markdown-prose, .markdown-prose-sm, .markdown-p
 html.outis-dark.outis-spark .outis-diagram {
 	--outis-diagram-fill: #1a2a0d;
 	--outis-diagram-text: #cdd8ba;
+	/* Root in the skin's green, lines in its olive; branch hues stay categorical. */
+	--outis-diagram-root-fill: #1a2a0d;
+	--outis-diagram-root-text: #a4e100;
+	--outis-diagram-root-border: #76b900;
+	--outis-diagram-arrow: #5a6b3c;
+	--outis-diagram-border: #33421f;
 }
 
 /* -------------------------------- Outis FT -------------------------------- */
@@ -201,4 +207,8 @@ html.outis-light.outis-ft .outis-diagram {
 	--outis-diagram-border: #d1c7b7;
 	--outis-diagram-text: #33302e;
 	--outis-diagram-deep: #efe3d2;
+	--outis-diagram-root-fill: #f5ebdd;
+	--outis-diagram-root-text: #005b7f;
+	--outis-diagram-root-border: #005b7f;
+	--outis-diagram-line: #8c8781;
 }

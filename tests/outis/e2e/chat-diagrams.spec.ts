@@ -191,3 +191,15 @@ test('CD-14 Full screen opens the diagram in a dialog; Escape closes it', async 
 	await page.keyboard.press('Escape');
 	await expect(dialog).toHaveCount(0);
 });
+
+test('CD-15 Spark and FT give diagrams their own root colour, also in the full-screen view after a switch', async ({ page, api }) => {
+	const rooted = `<div class="outis-diagram"><svg xmlns="http://www.w3.org/2000/svg" width="2400" height="300" viewBox="0 0 2400 300"><rect class="cd-root" width="200" height="80" style="fill:var(--outis-diagram-root-fill, #000000)"/></svg></div>`;
+	await openChat(page, api, 'CD-15', `Root:\n\n${rooted}\n\nEnd`, 'outis-dark-spark');
+	const fill = (scope: any) => scope.locator('.cd-root').first().evaluate((e: Element) => getComputedStyle(e).fill);
+	expect(await fill(page)).toBe('rgb(26, 42, 13)');
+	await viewer(page).hover();
+	await viewer(page).getByRole('button', { name: 'Full screen' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Diagram' });
+	await page.evaluate(() => (document.documentElement.className = 'light outis-light outis-ft'));
+	expect(await fill(dialog)).toBe('rgb(245, 235, 221)');
+});
