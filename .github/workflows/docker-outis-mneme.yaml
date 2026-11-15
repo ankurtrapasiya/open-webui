@@ -108,7 +108,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: digests-outis-mneme-${{ env.PLATFORM_PAIR }}
           path: /tmp/digests/*
@@ -127,7 +127,7 @@ jobs:
         run: echo "FULL_IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
 
       - name: Download digests
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: digests-outis-mneme-*
           path: /tmp/digests
