@@ -433,3 +433,27 @@ print(json.dumps({'text': docs[0].page_content}))
 `);
 	expect(out.text).toContain('Outis bib');
 });
+
+test('CB-27 a tool attached to a model is offered only on that model; unattached tools stay everywhere', async ({ page, api }) => {
+	await api.tool('regression_scoped', TOOL);
+	await api.raw('POST', '/api/v1/models/model/delete', { id: 'regression-scoped' });
+	const made = await api.raw('POST', '/api/v1/models/create', {
+		id: 'regression-scoped',
+		name: 'Regression Scoped',
+		base_model_id: 'fake-model',
+		meta: { toolIds: ['regression_scoped'] },
+		params: {}
+	});
+	expect(made.ok()).toBe(true);
+	const toolsIn = async (model: string) => {
+		await page.goto(`/?model=${model}`);
+		await page.locator('#input-menu-button').click();
+		await page.getByRole('menuitem', { name: /^Tools/ }).click();
+		await expect(page.locator('[role^="menuitem"]').filter({ hasText: 'regression_figures' })).toBeVisible();
+		return page.locator('[role^="menuitem"]').filter({ hasText: 'regression_scoped' });
+	};
+	await expect(await toolsIn('fake-model')).toHaveCount(0);
+	await expect(await toolsIn('regression-scoped')).toHaveCount(1);
+	await api.raw('POST', '/api/v1/models/model/delete', { id: 'regression-scoped' });
+	await api.raw('DELETE', '/api/v1/tools/id/regression_scoped/delete');
+});

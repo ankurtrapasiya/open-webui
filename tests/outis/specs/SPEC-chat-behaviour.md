@@ -140,3 +140,7 @@ kept in `localStorage['outis-wrap-code']` and is the starting state of every blo
 The fake server must record requests so CB-9 and the tool tests can assert what the backend
 sent. Temporary chats (`temporary:` ids) keep images inline by design; do not use them for
 CB-1..4.
+
+- **CB-27** (2026-11-15, user's rule) A tool attached to any model (`meta.toolIds`) is listed in
+  the + menu's Tools tab only when one of the selected models has it attached; a tool attached
+  to no model is listed everywhere. (`IntegrationsMenu.svelte` `setTools`.)

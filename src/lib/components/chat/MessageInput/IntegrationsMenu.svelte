@@ -14,7 +14,8 @@
 		user,
 		tools as _tools,
 		skills as _skills,
-		toolServers
+		toolServers,
+		models
 	} from '$lib/stores';
 
 	import { deleteOAuthSession } from '$lib/apis/auths';
@@ -123,7 +124,13 @@
 
 	const setTools = (toolItems: IntegrationItem[] | null, query = '') => {
 		const q = query.trim().toLowerCase();
+		// Fork: a tool attached to some model (meta.toolIds) is offered only on the models it is
+		// attached to; a tool attached to none stays available everywhere (user's rule, 2026-11-15).
+		const toolIdsOf = (m: any): string[] => m?.info?.meta?.toolIds ?? [];
+		const owned = new Set(($models ?? []).flatMap(toolIdsOf));
+		const here = new Set(($models ?? []).filter((m: any) => selectedModels.includes(m.id)).flatMap(toolIdsOf));
 		const items = (toolItems ?? [])
+			.filter((tool) => !owned.has(tool.id) || here.has(tool.id))
 			.filter(
 				(tool) =>
 					!q ||
