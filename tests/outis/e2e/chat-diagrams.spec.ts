@@ -308,29 +308,34 @@ test('CD-22 the "Diagram source" fold under a diagram is not shown; other folds 
 	await expect(msg.getByText('Working')).toHaveCount(1);
 });
 
-test('CD-23 a Mermaid diagram takes the live theme\'s Outis colours: actors the surface, notes the chip, not the stock yellow', async ({ page, api }) => {
+test('CD-23 a Mermaid diagram takes each Outis theme\'s own colours: actor edge the accent, notes the amber branch, never the stock yellow', async ({ page, api }) => {
 	const mermaid = 'Flow:\n\n```mermaid\nsequenceDiagram\n  participant A\n  participant B\n  A->>B: hello\n  Note over A,B: a note\n```\n\nEnd';
-	const seen: string[] = [];
-	for (const theme of ['outis-dark', 'outis-light']) {
+	const edges: string[] = [];
+	for (const theme of ['outis-dark', 'outis-light', 'outis-dark-spark', 'outis-light-ft']) {
 		await openChat(page, api, `CD-23 ${theme}`, mermaid, theme);
-		const actor = page.locator('svg rect.actor').first();
-		await expect(actor).toBeVisible();
-		const fills = await page.evaluate(() => {
-			// The expected colour, resolved independently of the app code: a canvas pixel of the token.
-			const px = (token: string) => {
+		await expect(page.locator('svg rect.actor').first()).toBeVisible();
+		const got = await page.evaluate(() => {
+			// The expected colours, resolved independently of the app code: a canvas pixel of the token.
+			const rgb = (value: string) => {
 				const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!;
-				c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+				c.fillStyle = value;
 				c.fillRect(0, 0, 1, 1);
 				const [r, g, b] = c.getImageData(0, 0, 1, 1).data;
 				return `rgb(${r}, ${g}, ${b})`;
 			};
-			const fill = (sel: string) => getComputedStyle(document.querySelector(sel)!).fill;
-			return { actor: fill('svg rect.actor'), note: fill('svg rect.note'), surface: px('--o-surface'), chip: px('--o-chip') };
+			const probe = document.body.appendChild(document.createElement('div'));
+			probe.className = 'outis-diagram';
+			const accent = rgb(getComputedStyle(document.documentElement).getPropertyValue('--o-accent').trim());
+			const amber = rgb(getComputedStyle(probe).getPropertyValue('--outis-diagram-b4-fill').trim());
+			probe.remove();
+			const style = (sel: string) => getComputedStyle(document.querySelector(sel)!);
+			return { actorEdge: style('svg rect.actor').stroke, actorFill: style('svg rect.actor').fill, note: style('svg rect.note').fill, accent, amber };
 		});
-		expect(fills.actor, `${theme} actor`).toBe(fills.surface);
-		expect(fills.note, `${theme} note`).toBe(fills.chip);
-		expect(fills.note, `${theme} note is not stock yellow`).not.toBe('rgb(255, 245, 173)');
-		seen.push(fills.actor);
+		expect(got.actorEdge, `${theme} actor edge is the accent`).toBe(got.accent);
+		expect(got.note, `${theme} note is the amber branch`).toBe(got.amber);
+		expect(got.note, `${theme} note is not stock yellow`).not.toBe('rgb(255, 245, 173)');
+		expect(got.actorFill, `${theme} actor is not stock lavender`).not.toBe('rgb(236, 236, 255)');
+		edges.push(got.actorEdge);
 	}
-	expect(seen[0], 'dark and light differ').not.toBe(seen[1]);
+	expect(new Set(edges).size, 'each theme has its own colour').toBe(4);
 });
