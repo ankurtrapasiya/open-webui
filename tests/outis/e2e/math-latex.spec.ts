@@ -34,3 +34,8 @@ test('ML-1 a global filter puts the LaTeX rule in the system message, once, for 
 test('ML-2 the LaTeX rule forbids backticked formulas, tables included', () => {
 	expect(readFileSync(SRC, 'utf8')).toContain('Never wrap a formula in backticks, in a table cell either');
 });
+
+// ML-3: notes read $ and $$, not \( \) or \[ \] (which the editor turns into bare brackets).
+test('ML-3 the LaTeX rule tells models to write note maths with $ and $$', () => {
+	expect(readFileSync(SRC, 'utf8')).toContain('In a NOTE (write_note, replace_note_content)');
+});
