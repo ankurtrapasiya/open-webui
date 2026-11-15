@@ -126,11 +126,13 @@
 		const q = query.trim().toLowerCase();
 		// Fork: a tool attached to some model (meta.toolIds) is offered only on the models it is
 		// attached to; a tool attached to none stays available everywhere (user's rule, 2026-11-15).
+		// Exception: meta.offered_everywhere (a tool server's config.offered_everywhere), for a tool such as web search
+		// that some models carry by default and every model should still be able to switch on.
 		const toolIdsOf = (m: any): string[] => m?.info?.meta?.toolIds ?? [];
 		const owned = new Set(($models ?? []).flatMap(toolIdsOf));
 		const here = new Set(($models ?? []).filter((m: any) => selectedModels.includes(m.id)).flatMap(toolIdsOf));
 		const items = (toolItems ?? [])
-			.filter((tool) => !owned.has(tool.id) || here.has(tool.id))
+			.filter((tool) => tool.meta?.offered_everywhere || !owned.has(tool.id) || here.has(tool.id))
 			.filter(
 				(tool) =>
 					!q ||

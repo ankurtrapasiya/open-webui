@@ -149,3 +149,4 @@ CB-1..4.
   `/api/v1/models/model/profile/image?id=agent:...` redirects to `/static/agents/<provider>.png`
   when that file ships (`claude-code.png` today); any other id keeps the existing lookup.
   Pure helper `utils/agents/icons.py`, checked by `tests/outis/backend/test_agent_icons.py`.
+\n- **CB-29** (2026-11-15, user's request) A tool server whose connection config sets `offered_everywhere: true` (API: `meta.offered_everywhere`) is listed in the + menu's Tools tab on every model, even when it is attached to some models (CB-27 would otherwise offer it only there); it is listed once on a model that carries it; unflagged tools keep the CB-27 rule. Used for web search (Parallel): the models that carry it keep it, and every other model can switch it on.\n

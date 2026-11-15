@@ -457,3 +457,32 @@ test('CB-27 a tool attached to a model is offered only on that model; unattached
 	await api.raw('POST', '/api/v1/models/model/delete', { id: 'regression-scoped' });
 	await api.raw('DELETE', '/api/v1/tools/id/regression_scoped/delete');
 });
+
+test('CB-29 a tool flagged offered_everywhere is listed on every model, even one it is attached to elsewhere', async ({ page, api }) => {
+	const flagged = { id: 'server:mcp:regression-everywhere', user_id: 'server:mcp:regression-everywhere', name: 'Regression Everywhere', meta: { description: '', offered_everywhere: true }, updated_at: 1, created_at: 1 };
+	const scoped = { id: 'server:mcp:regression-scoped', user_id: 'server:mcp:regression-scoped', name: 'Regression Owned', meta: { description: '' }, updated_at: 1, created_at: 1 };
+	await page.route('**/api/v1/tools/', async (route) => {
+		const res = await route.fetch();
+		await route.fulfill({ response: res, json: [...(await res.json()), flagged, scoped] });
+	});
+	await api.raw('POST', '/api/v1/models/model/delete', { id: 'regression-owner' });
+	const made = await api.raw('POST', '/api/v1/models/create', {
+		id: 'regression-owner',
+		name: 'Regression Owner',
+		base_model_id: 'fake-model',
+		meta: { toolIds: [flagged.id, scoped.id] },
+		params: {}
+	});
+	expect(made.ok()).toBe(true);
+	const listed = async (model: string, name: string) => {
+		await page.goto(`/?model=${model}`);
+		await page.locator('#input-menu-button').click();
+		await page.getByRole('menuitem', { name: /^Tools/ }).click();
+		await expect(page.locator('[role^="menuitem"]').filter({ hasText: 'regression_figures' })).toBeVisible();
+		return page.locator('[role^="menuitem"]').filter({ hasText: name });
+	};
+	await expect(await listed('fake-model', 'Regression Everywhere')).toHaveCount(1); // not attached here, offered anyway
+	await expect(await listed('fake-model', 'Regression Owned')).toHaveCount(0); // CB-27 still holds for an unflagged tool
+	await expect(await listed('regression-owner', 'Regression Everywhere')).toHaveCount(1); // and listed once, where attached
+	await api.raw('POST', '/api/v1/models/model/delete', { id: 'regression-owner' });
+});
