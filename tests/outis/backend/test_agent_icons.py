@@ -8,10 +8,12 @@ import os
 import pathlib
 import tempfile
 
-root = pathlib.Path(__file__).resolve().parents[3]
-# AGENT_ICONS_PY / AGENT_ICONS_STATIC let the regression script check the copies inside the image.
-path = os.environ.get('AGENT_ICONS_PY') or root / 'backend/open_webui/utils/agents/icons.py'
-static = pathlib.Path(os.environ.get('AGENT_ICONS_STATIC') or root / 'backend/open_webui/static')
+# AGENT_ICONS_PY / AGENT_ICONS_STATIC let the regression script check the copies inside the image,
+# where this file arrives on stdin and has no path of its own.
+def root():
+    return pathlib.Path(__file__).resolve().parents[3]
+path = os.environ.get('AGENT_ICONS_PY') or root() / 'backend/open_webui/utils/agents/icons.py'
+static = pathlib.Path(os.environ.get('AGENT_ICONS_STATIC') or root() / 'backend/open_webui/static')
 spec = importlib.util.spec_from_file_location('agent_icons', path)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
