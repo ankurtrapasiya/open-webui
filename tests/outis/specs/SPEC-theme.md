@@ -24,6 +24,9 @@ because the app auto-focuses it after load (history below); TH-30 and TH-31 guar
 - **TH-33** Code blocks follow the palette: CodeMirror's caret is the theme accent and syntax
   colours come from `--outis-syn-*` (GitHub values as fallback in the base themes; Spark and FT
   set their own). Checked on a string token in Outis-Dark, Spark and FT.
+- **TH-34** Inline code in a reply is a code chip: `--outis-code-bg` fill, `--outis-code-border`
+  hairline, `--outis-code-node` text (not the maths gold), 4px corners, 0.95em. Checked in
+  Outis-Dark, Spark and FT.
 - **TH-32** Spark -> FT leaves no Spark/dark class and FT's own grays; FT -> Outis-Dark leaves
   no FT class and the blue accent.
 - Font, text sizes, corner radii, spacing and icon strokes are exactly stock Dark's. Only

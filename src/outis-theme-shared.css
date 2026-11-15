@@ -359,10 +359,16 @@ html:is(.outis-dark, .outis-light) body .markdown-prose :is(h1, h2, h3, h4, h5, 
 html:is(.outis-dark, .outis-light) body .markdown-prose em {
 	color: var(--outis-code-node);
 }
+/* Inline code as a code chip (user's pick, 2026-11-15): the code surface and its hairline, text in the
+   code-identifier colour, slightly square corners, a touch larger than stock's 0.85em. Gold stays
+   maths-only, so `np.corrcoef(x, y)` no longer reads as part of a formula. */
 html:is(.outis-dark, .outis-light) body .markdown-prose :not(pre) > code {
-	color: var(--outis-math);
-	background: color-mix(in srgb, var(--outis-math) 20%, transparent);
-	padding: 0.08em 0.38em;
+	color: var(--outis-code-node);
+	background: var(--outis-code-bg);
+	border: 1px solid var(--outis-code-border);
+	border-radius: 4px;
+	font-size: 0.95em;
+	padding: 0.05em 0.35em;
 }
 /* Highlighted text: a real highlighter band in the maths amber, text keeps its own colour. */
 html:is(.outis-dark, .outis-light) body .markdown-prose mark {

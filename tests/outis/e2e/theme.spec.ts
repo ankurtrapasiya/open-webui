@@ -254,6 +254,27 @@ test('TH-33 code blocks take the palette: accent caret and the variant syntax co
 	}
 });
 
+test('TH-34 inline code is a code chip: code surface, hairline, code colour, 4px corners, 0.95em', async ({ page, api }) => {
+	const want = {
+		'outis-dark': { color: 'rgb(121, 192, 255)', bg: 'rgb(33, 29, 26)' },
+		'outis-dark-spark': { color: 'rgb(194, 236, 92)', bg: 'rgb(26, 42, 13)' },
+		'outis-light-ft': { color: 'rgb(0, 91, 127)', bg: 'rgb(245, 235, 221)' }
+	};
+	for (const [theme, w] of Object.entries(want)) {
+		await richChat(page, api, theme);
+		const code = page.locator('.markdown-prose p code').first();
+		const s = await code.evaluate((e) => {
+			const c = getComputedStyle(e), p = getComputedStyle(e.parentElement!);
+			return { color: c.color, bg: c.backgroundColor, radius: c.borderTopLeftRadius, border: c.borderTopWidth, ratio: parseFloat(c.fontSize) / parseFloat(p.fontSize) };
+		});
+		expect(s.color, theme).toBe(w.color);
+		expect(s.bg, theme).toBe(w.bg);
+		expect(s.radius, theme).toBe('4px');
+		expect(s.border, theme).toBe('1px');
+		expect(Math.abs(s.ratio - 0.95), theme).toBeLessThan(0.01);
+	}
+});
+
 test('TH-30 Outis-Dark and Outis-Light use the stock font, sizes, corners and icon strokes', async ({ page, api }) => {
 	const stock = await styleSnapshot(page, api, 'dark');
 	// Sanity: the stock theme really is rounded and not monospace, so equality below means something.
