@@ -5,6 +5,7 @@
 	import markedKatexExtension from '$lib/utils/marked/katex-extension';
 	import { disableSingleTilde } from '$lib/utils/marked/strikethrough-extension';
 	import { mentionExtension } from '$lib/utils/marked/mention-extension';
+	import { tipExtension } from '$lib/utils/marked/tip-extension';
 	import colonFenceExtension from '$lib/utils/marked/colon-fence-extension';
 	import footnoteExtension from '$lib/utils/marked/footnote-extension';
 	import citationExtension from '$lib/utils/marked/citation-extension';
@@ -25,7 +26,8 @@
 		extensions: [
 			mentionExtension({ triggerChar: '@' }),
 			mentionExtension({ triggerChar: '#' }),
-			mentionExtension({ triggerChar: '$' })
+			mentionExtension({ triggerChar: '$' }),
+			tipExtension() // Outis jargon tips: [term]{tip="plain meaning"}
 		]
 	});
 </script>

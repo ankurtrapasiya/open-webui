@@ -360,6 +360,73 @@ html:is(.outis-dark, .outis-light) body .markdown-prose :is(h1, h2, h3, h4, h5, 
 html:is(.outis-dark, .outis-light) body .markdown-prose em {
 	color: var(--outis-code-node);
 }
+/* Jargon tips (2026-11-15, spec tests/outis/specs/SPEC-jargon-tips.md): [term]{tip="…"} renders as the
+   term with a dotted underline (the same cue as a coloured term on an equation card) and a floating
+   one-line meaning on hover, focus or tap. The box floats (position: absolute), so opening it moves
+   nothing. Surfaces are the --o-* card tokens, so the box matches the equation and seed cards. A tip
+   with src="…" names its source below the meaning; one marked ai carries a small "AI" chip, so the
+   reader knows the meaning was written by the model, not taken from their notes. */
+html:is(.outis-dark, .outis-light) body .markdown-prose .o-tip {
+	position: relative;
+	cursor: help;
+	text-decoration: underline dotted var(--o-muted);
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+}
+html:is(.outis-dark, .outis-light) body .markdown-prose .o-tip:focus-visible {
+	outline: 2px solid var(--o-accent);
+	outline-offset: 2px;
+	border-radius: 3px;
+}
+html:is(.outis-dark, .outis-light) body .markdown-prose .o-tip-box {
+	display: none;
+	position: absolute;
+	left: 0;
+	bottom: calc(100% + 6px);
+	transform: translateX(var(--o-tip-shift, 0px));
+	z-index: 30;
+	width: max-content;
+	max-width: min(22rem, calc(100vw - 32px));
+	padding: 6px 10px;
+	border: 1px solid var(--o-line);
+	border-radius: 8px;
+	background: var(--o-surface);
+	color: var(--o-ink);
+	box-shadow: 0 4px 14px rgb(0 0 0 / 0.12);
+	font-size: 0.88em;
+	font-style: normal;
+	font-weight: 400;
+	line-height: 1.4;
+	text-decoration: none;
+	text-align: left;
+	white-space: normal;
+	pointer-events: none;
+}
+html:is(.outis-dark, .outis-light)
+	body
+	.markdown-prose
+	:is(.o-tip:hover, .o-tip:focus-visible, .o-tip.o-tip-open)
+	> .o-tip-box {
+	display: block;
+}
+html:is(.outis-dark, .outis-light) body .markdown-prose .o-tip-src {
+	display: block;
+	margin-top: 3px;
+	color: var(--o-muted);
+	font-size: 0.85em;
+}
+html:is(.outis-dark, .outis-light) body .markdown-prose .o-tip-ai > .o-tip-box::after {
+	content: 'AI';
+	display: inline-block;
+	margin-left: 8px;
+	padding: 0 5px;
+	border: 1px solid var(--o-line);
+	border-radius: 4px;
+	color: var(--o-muted);
+	font-size: 0.75em;
+	letter-spacing: 0.06em;
+	vertical-align: 1px;
+}
 /* Inline code as a code chip (user's pick, 2026-11-15): the code surface and its hairline, text in the
    code-identifier colour, slightly square corners, a touch larger than stock's 0.85em. Gold stays
    maths-only, so `np.corrcoef(x, y)` no longer reads as part of a formula. */

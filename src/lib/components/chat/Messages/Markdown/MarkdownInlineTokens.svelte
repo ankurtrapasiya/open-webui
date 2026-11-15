@@ -30,6 +30,7 @@
 	import TextToken from './MarkdownInlineTokens/TextToken.svelte';
 	import CodespanToken from './MarkdownInlineTokens/CodespanToken.svelte';
 	import MentionToken from './MarkdownInlineTokens/MentionToken.svelte';
+	import TipToken from './MarkdownInlineTokens/TipToken.svelte';
 	import NoteLinkToken from './MarkdownInlineTokens/NoteLinkToken.svelte';
 	import SourceToken from './SourceToken.svelte';
 
@@ -170,6 +171,8 @@
 				} catch {}
 			}}
 		></iframe>
+	{:else if token.type === 'tip'}
+		<TipToken {token} />
 	{:else if token.type === 'mention'}
 		{#if token.triggerChar === '$' && ![...($skills ?? []), ...($terminalSkills ?? [])].some((skill) => skill.id === token.id && skill.is_active)}
 			{token.raw}
