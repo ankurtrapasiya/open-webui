@@ -147,3 +147,5 @@ opentelemetry-instrumentation-logging==0.63b1
 opentelemetry-instrumentation-httpx==0.63b1
 opentelemetry-instrumentation-aiohttp-client==0.63b1
 opentelemetry-instrumentation-system-metrics==0.63b1
+
+fsrs>=6.0,<7  # fork: recall mind map grades like the Review tool

@@ -184,6 +184,7 @@ from open_webui.routers import (
     tools,
     users,
     utils,
+    outis_recall,
 )
 from open_webui.routers.retrieval import (
     get_ef,
@@ -858,6 +859,7 @@ app.include_router(evaluations.router, prefix='/api/v1/evaluations', tags=['eval
 if ENABLE_ADMIN_ANALYTICS:
     app.include_router(analytics.router, prefix='/api/v1/analytics', tags=['analytics'])
 app.include_router(utils.router, prefix='/api/v1/utils', tags=['utils'])
+app.include_router(outis_recall.router, prefix='/api/v1/outis', tags=['outis'])  # fork: recall mind map
 app.include_router(terminals.router, prefix='/api/v1/terminals', tags=['terminals'])
 app.include_router(automations.router, prefix='/api/v1/automations', tags=['automations'])
 app.include_router(calendar.router, prefix='/api/v1/calendars', tags=['calendars'])
