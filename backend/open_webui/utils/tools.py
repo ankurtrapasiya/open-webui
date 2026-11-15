@@ -933,6 +933,18 @@ async def get_builtin_tools(
     ):
         builtin_functions.append(notify)
 
+    # Fork: a model may not create persistent objects (notes, skills, automations, calendar events) unless its own
+    # settings opt in (meta.builtinTools.create = true). Upstream offers them to every model; a model once created
+    # two workspace tools nobody asked for (qf-lab, 2026-11-15), so the same rule covers the other creators.
+    # In a note chat the model edits the open note, so write_note stays there. create_tool has its own switch above.
+    CREATORS = {'write_note', 'create_skill', 'create_automation', 'create_calendar_event'}
+    if not is_builtin_tool_enabled('create', default=False):
+        builtin_functions = [
+            func
+            for func in builtin_functions
+            if func.__name__ not in CREATORS or (func.__name__ == 'write_note' and is_note_chat)
+        ]
+
     if getattr(request.state, 'internal', False) is True:
         from open_webui.utils.subagents import MUTATING_MEMORY_TOOLS
 
