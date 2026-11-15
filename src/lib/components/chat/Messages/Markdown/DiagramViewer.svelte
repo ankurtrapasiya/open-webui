@@ -59,14 +59,20 @@
 				return null;
 			}
 		};
-		if (!fullscreen && !mindmapSource) {
+		if (!fullscreen) {
 			// Base64 UTF-8 (the filter's choice: DOMPurify strips attribute values holding "</style").
-			mindmapSource = decode(svg.getAttribute('data-outis-mindmap-b64'));
-		}
-		if (!fullscreen && !dotSource) {
+			// Re-read on every measure so an edited message swaps its live view (spec decision 4).
+			const mm = decode(svg.getAttribute('data-outis-mindmap-b64'));
+			if (mm !== mindmapSource) mindmapSource = mm;
 			const src = decode(svg.getAttribute('data-outis-dot-b64'));
 			// Only charts the live layout can draw well get the button (dot.ts flags the rest).
-			if (src && parseDot(src) && !parseDot(src)!.unsupported) dotSource = src;
+			let ok: string | null = null;
+			try {
+				ok = src && !parseDot(src)?.unsupported && parseDot(src) ? src : null;
+			} catch {
+				ok = null;
+			}
+			if (ok !== dotSource) dotSource = ok;
 		}
 		const r = svg.getBoundingClientRect();
 		natW = r.width / (zoom || 1);
@@ -152,6 +158,7 @@
 	// HTMLToken sanitises and sets `html` after this component mounts, so measure whenever
 	// it changes, not only on mount.
 	const refit = async () => {
+		easing = false; // never measure mid-transition
 		await tick();
 		zoom = 1;
 		tx = ty = 0;
@@ -237,7 +244,12 @@
 		<RecallMindMap source={mindmapSource} />
 	{/if}
 	{#if graphView && dotSource}
-		<LiveGraph source={dotSource} />
+		{#key dotSource}
+			<LiveGraph source={dotSource} />
+		{/key}
+	{/if}
+	{#if graphView && !dotSource}
+		{(graphView = false), ''}
 	{/if}
 
 	<div

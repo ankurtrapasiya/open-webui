@@ -105,7 +105,11 @@ test('LG-4 a cluster has a header chip that folds its members', async ({ page, a
 	await expect(chip(page, 'x1')).toHaveCount(0);
 	await expect(chip(page, 'x2')).toHaveCount(0);
 	await expect(chip(page, 'y')).toBeVisible();
-	await header.getByRole('button', { name: 'Unfold' }).click();
+	// The folded cluster is a chip in the layout with the members' edges pointing at it.
+	const folded = graph(page).locator('[data-gcluster="cluster_x"]');
+	await expect(folded).toBeVisible();
+	await expect(graph(page).locator('svg[data-edges] path[data-edge="cluster:cluster_x→y"]')).toHaveCount(1);
+	await folded.getByRole('button', { name: 'Unfold' }).click();
 	await expect(chip(page, 'x1')).toBeVisible();
 });
 
@@ -150,4 +154,37 @@ test('LG-7 small LR charts are drawn as columns; large ones as rows', async ({ p
 	await openDot(page, api, LR9);
 	await openGraph(page);
 	await expect(graph(page)).toHaveAttribute('data-horizontal', 'false');
+});
+
+test('LG-8 two edges between the same nodes, and a cluster opened twice, render without error', async ({ page, api }) => {
+	const errs: string[] = [];
+	page.on('pageerror', (e) => errs.push(String(e)));
+	await openDot(page, api, 'digraph { a -> b [label="x"]; a -> b [label="y"]; subgraph cluster_a { c } subgraph cluster_a { d } a -> c; }');
+	await openGraph(page);
+	await expect(graph(page).locator('svg[data-edges] path[data-edge]')).toHaveCount(3);
+	await expect(graph(page).locator('[data-elabel]')).toHaveCount(2);
+	expect(errs).toEqual([]);
+});
+
+test('LG-9 a folded node inside a cluster, then the cluster folded, does not throw and hides the members', async ({ page, api }) => {
+	const errs: string[] = [];
+	page.on('pageerror', (e) => errs.push(String(e)));
+	await openDot(page, api, 'digraph { subgraph cluster_x { label="X"; x1 -> x2; } x2 -> y; }');
+	await openGraph(page);
+	await chip(page, 'x1').getByRole('button', { name: 'Fold' }).click();
+	await expect(chip(page, 'x2')).toHaveCount(0);
+	await graph(page).locator('[data-gcluster="cluster_x"]').getByRole('button', { name: 'Fold' }).click();
+	await expect(chip(page, 'x1')).toHaveCount(0);
+	await expect(chip(page, 'y')).toBeVisible();
+	expect(errs).toEqual([]);
+});
+
+test('LG-10 left-to-right edge labels sit in the gap, not under the target chip', async ({ page, api }) => {
+	await openDot(page, api, 'digraph { rankdir=LR; a -> b [label="yes"]; }');
+	await openGraph(page);
+	const [lab, b] = await Promise.all([
+		graph(page).locator('[data-elabel]').first().evaluate((e) => e.getBoundingClientRect().right),
+		chip(page, 'b').evaluate((e) => e.getBoundingClientRect().left)
+	]);
+	expect(lab).toBeLessThanOrEqual(b + 1);
 });

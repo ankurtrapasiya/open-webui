@@ -80,6 +80,7 @@ export function hiddenBy(graph: DotGraph, folded: Set<string>): { hidden: Set<st
 	const hidden = new Set(ids.filter((i) => !seen.has(i)));
 	const badges = new Map<string, number>();
 	for (const f of folded) {
+		if (!fwd.has(f)) continue; // folded earlier, since removed from the graph (e.g. its cluster folded)
 		// Count hidden nodes reachable from f.
 		const s = new Set<string>();
 		const st = [...fwd.get(f)!];
@@ -102,7 +103,8 @@ export function hueOf(graph: DotGraph): Map<string, number> {
 	for (const [, vs] of fwd) for (const v of vs) indeg.set(v, indeg.get(v)! + 1);
 	const roots = ids.filter((i) => indeg.get(i) === 0);
 	const hue = new Map<string, number>();
-	let next = 1;
+	// Clusters take the first hues; branches outside them continue after (review: no reuse).
+	let next = graph.clusters.length + 1;
 	const paint = (start: string, h: number) => {
 		const q = [start];
 		while (q.length) {
@@ -152,12 +154,16 @@ export function layoutGraph(graph: DotGraph, opts: LayoutOpts): Layout {
 		const ks = nbrs.filter((n) => index.has(n)).map((n) => index.get(n)!);
 		return ks.length ? ks.reduce((a, b) => a + b, 0) / ks.length : index.get(id)!;
 	};
+	// Members of one cluster stay together within a row (review I3): sort by cluster first.
+	const clusterIdx = new Map<string, number>();
+	graph.clusters.forEach((c, i) => c.nodes.forEach((n) => { if (!clusterIdx.has(n)) clusterIdx.set(n, i); }));
+	const ci = (id: string) => clusterIdx.get(id) ?? -1;
 	for (let sweep = 0; sweep < 4; sweep++) {
 		const down = sweep % 2 === 0;
 		const order = down ? rows.keys() : [...rows.keys()].reverse();
 		for (const r of order) {
 			const nb = down ? back : fwd;
-			rows[r].sort((a, b) => bary(a, nb.get(a)!) - bary(b, nb.get(b)!) || index.get(a)! - index.get(b)!);
+			rows[r].sort((a, b) => ci(a) - ci(b) || bary(a, nb.get(a)!) - bary(b, nb.get(b)!) || index.get(a)! - index.get(b)!);
 			reindex();
 		}
 	}

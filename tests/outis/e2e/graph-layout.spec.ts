@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { parseDot } from '../../../src/lib/utils/dot';
-import { layoutGraph, hueOf } from '../../../src/lib/utils/graph-layout';
+import { layoutGraph, hueOf, hiddenBy } from '../../../src/lib/utils/graph-layout';
 
 const M = () => ({ w: 120, h: 36 });
 const lay = (src: string, extra: any = {}) => layoutGraph(parseDot(src)!, { maxWidth: 800, measure: M, ...extra });
@@ -58,4 +58,26 @@ test('GL-5 small LR graphs are horizontal; hues follow the root branches', () =>
 	expect([h.get('root'), h.get('x'), h.get('x1'), h.get('y'), h.get('y1')]).toEqual([0, 1, 1, 2, 2]);
 	const two = hueOf(parseDot('digraph { s1 -> a; s2 -> b }')!);
 	expect([...two.values()].every((v) => v >= 1)).toBe(true);
+});
+
+test('GL-6 a folded id that is no longer in the graph is ignored, not a crash', () => {
+	const g = parseDot('digraph { a -> b; b -> c }')!;
+	expect(() => hiddenBy(g, new Set(['zzz']))).not.toThrow();
+	const L = lay('digraph { a -> b; b -> c }', { folded: new Set(['zzz', 'b']) });
+	expect([...L.hidden]).toEqual(['c']);
+});
+
+test('GL-7 members of one cluster stay together within a row; outside-cluster hues do not reuse cluster hues', () => {
+	const src = 'digraph { subgraph cluster_a { a1; a2 } subgraph cluster_b { b1; b2 } r -> a1; r -> b1; b1 -> a2; a2 -> b2; r -> z }';
+	const L = lay(src);
+	const row1 = ['a1', 'b1'].map((id) => L.pos.get(id)!);
+	const row2 = ['a2', 'b2'].map((id) => L.pos.get(id)!);
+	expect(row1[0].rank).toBe(row2[0].rank - 1);
+	// a-members never interleave with b-members in a shared row: a1/a2 both left of or both right of b-members in their rows
+	const h = hueOf(parseDot(src)!);
+	expect(h.get('a1')).toBe(h.get('a2'));
+	expect(h.get('b1')).toBe(h.get('b2'));
+	expect(h.get('a1')).not.toBe(h.get('b1'));
+	expect(h.get('z')).not.toBe(h.get('a1'));
+	expect(h.get('z')).not.toBe(h.get('b1'));
 });

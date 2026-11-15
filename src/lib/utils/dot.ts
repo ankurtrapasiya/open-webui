@@ -116,6 +116,14 @@ export function parseDot(source: string): DotGraph | null {
 	const flag = (u: DotGraph['unsupported']) => {
 		if (!g.unsupported) g.unsupported = u;
 	};
+	const clusterById = new Map<string, DotCluster>();
+	const member = (id: string, cluster: string | undefined) => {
+		// A node mentioned inside a cluster block belongs to it and to every enclosing cluster,
+		// even when it was first declared elsewhere (review I2).
+		for (let c = cluster ? clusterById.get(cluster) : undefined; c; c = c.parent ? clusterById.get(c.parent) : undefined) {
+			if (!c.nodes.includes(id)) c.nodes.push(id);
+		}
+	};
 	const ensure = (id: string, cluster: string | undefined, label?: string) => {
 		let nd = byId.get(id);
 		if (!nd) {
@@ -125,6 +133,7 @@ export function parseDot(source: string): DotGraph | null {
 			g.nodes.push(nd);
 		} else if (label !== undefined) nd.label = label;
 		if (cluster && !nd.cluster) nd.cluster = cluster;
+		if (cluster) member(id, cluster);
 		return nd;
 	};
 
@@ -211,14 +220,15 @@ export function parseDot(source: string): DotGraph | null {
 			const isCluster = /^cluster/i.test(id);
 			let c: DotCluster | undefined;
 			if (isCluster) {
-				c = { id, label: id, nodes: [] };
-				if (cluster) c.parent = cluster;
-				g.clusters.push(c);
+				c = clusterById.get(id);
+				if (!c) {
+					c = { id, label: id, nodes: [] };
+					if (cluster) c.parent = cluster;
+					g.clusters.push(c);
+					clusterById.set(id, c);
+				}
 			}
-			const before = g.nodes.length;
-			const ends = block(isCluster ? id : cluster);
-			if (c) c.nodes = g.nodes.slice(before).filter((n) => n.cluster === id).map((n) => n.id);
-			return ends;
+			return block(isCluster ? id : cluster);
 		}
 		if (t.t === 'id' && (t.v === 'node' || t.v === 'edge' || t.v === 'graph')) {
 			next();

@@ -23,7 +23,7 @@ test('DP-2 implicit nodes and {group} -> target', () => {
 test('DP-3 nested clusters', () => {
 	const g = parseDot('digraph { subgraph cluster_x { label="X"; x1; x2; subgraph cluster_y { label="Y"; y1; } } x1 -> y1; }')!;
 	expect(g.clusters.map((c: any) => [c.id, c.label, c.nodes, c.parent])).toEqual([
-		['cluster_x', 'X', ['x1', 'x2'], undefined],
+		['cluster_x', 'X', ['x1', 'x2', 'y1'], undefined], // outer clusters include inner members (review I2)
 		['cluster_y', 'Y', ['y1'], 'cluster_x']
 	]);
 	expect(g.nodes.find((n: any) => n.id === 'y1')!.cluster).toBe('cluster_y');
@@ -50,4 +50,14 @@ test('DP-6 null for no graph; undirected edges', () => {
 	expect(g.directed).toBe(false);
 	expect(edges(g)).toEqual(['a>b']);
 	expect(g.unsupported).toBeUndefined();
+});
+
+test('DP-7 cluster membership counts nodes first seen outside the block, and nested members belong to the outer cluster too', () => {
+	const g = parseDot('digraph { a -> b; subgraph cluster_1 { b; c; subgraph cluster_2 { d; } } }')!;
+	const c1 = g.clusters.find((c) => c.id === 'cluster_1')!;
+	const c2 = g.clusters.find((c) => c.id === 'cluster_2')!;
+	expect(c1.nodes.sort()).toEqual(['b', 'c', 'd']);
+	expect(c2.nodes).toEqual(['d']);
+	expect(g.nodes.find((n) => n.id === 'b')!.cluster).toBe('cluster_1');
+	expect(g.nodes.find((n) => n.id === 'd')!.cluster).toBe('cluster_2');
 });
