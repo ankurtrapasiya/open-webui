@@ -10,6 +10,8 @@
 	// the chat never gets stuck in a diagram.
 	import { onMount, onDestroy, tick } from 'svelte';
 	import RecallMindMap from './RecallMindMap.svelte';
+	import LiveGraph from './LiveGraph.svelte';
+	import { parseDot } from '$lib/utils/dot';
 
 	export let html: string;
 	export let fullscreen = false;
@@ -32,25 +34,35 @@
 	// Recall mind map: the Kroki <svg> carries its PlantUML source (data-outis-mindmap).
 	let mindmapSource: string | null = null;
 	let recall = false;
+	// Live graph: the Kroki <svg> of a Graphviz chart carries its cleaned DOT (data-outis-dot-b64).
+	let dotSource: string | null = null;
+	let graphView = false;
 	let ro: ResizeObserver | null = null;
 
-	$: zoomable = !recall && (fit < 0.999 || fullscreen);
+	$: live = recall || graphView;
+	$: zoomable = !live && (fit < 0.999 || fullscreen);
 
 	const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 	const measure = () => {
 		const svg = stage?.querySelector('svg');
 		if (!svg) return false;
+		const decode = (b64: string | null) => {
+			if (!b64) return null;
+			try {
+				return new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+			} catch {
+				return null;
+			}
+		};
 		if (!fullscreen && !mindmapSource) {
 			// Base64 UTF-8 (the filter's choice: DOMPurify strips attribute values holding "</style").
-			const b64 = svg.getAttribute('data-outis-mindmap-b64');
-			if (b64) {
-				try {
-					mindmapSource = new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
-				} catch {
-					mindmapSource = null;
-				}
-			}
+			mindmapSource = decode(svg.getAttribute('data-outis-mindmap-b64'));
+		}
+		if (!fullscreen && !dotSource) {
+			const src = decode(svg.getAttribute('data-outis-dot-b64'));
+			// Only charts the live layout can draw well get the button (dot.ts flags the rest).
+			if (src && parseDot(src) && !parseDot(src)!.unsupported) dotSource = src;
 		}
 		const r = svg.getBoundingClientRect();
 		natW = r.width / (zoom || 1);
@@ -90,7 +102,7 @@
 	};
 
 	const onPointerDown = (e: PointerEvent) => {
-		if (recall) return;
+		if (live) return;
 		if (zoomable) active = true;
 		if ((e.target as HTMLElement).closest('button')) return;
 		if (zoom > fit + 0.001) {
@@ -169,7 +181,7 @@
 	data-diagram-viewer
 	data-zoom={zoom.toFixed(2)}
 	class="group relative my-2 w-full overflow-hidden {zoom > fit + 0.001 ? 'cursor-grab' : ''}"
-	style="height: {height && !recall ? `${height}px` : 'auto'}; touch-action: {active && zoom > fit + 0.001 ? 'none' : 'pan-y'};"
+	style="height: {height && !live ? `${height}px` : 'auto'}; touch-action: {active && zoom > fit + 0.001 ? 'none' : 'pan-y'};"
 	on:pointerdown={onPointerDown}
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}
@@ -180,7 +192,7 @@
 		if (e.detail > 1) e.preventDefault();
 	}}
 	on:dblclick={(e) => {
-		if (recall) return;
+		if (live) return;
 		window.getSelection()?.removeAllRanges();
 		if (!zoomable) return;
 		const [x, y] = local(e);
@@ -191,7 +203,7 @@
 		bind:this={stage}
 		data-diagram-stage
 		class="absolute left-0 top-0 w-max origin-top-left"
-		class:hidden={recall}
+		class:hidden={live}
 		style="transform: translate({tx}px, {ty}px) scale({zoom});"
 	>
 		{@html html}
@@ -199,10 +211,22 @@
 	{#if recall && mindmapSource}
 		<RecallMindMap source={mindmapSource} />
 	{/if}
+	{#if graphView && dotSource}
+		<LiveGraph source={dotSource} />
+	{/if}
 
 	<div
 		class="absolute right-2 top-2 flex gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"
 	>
+		{#if dotSource && !fullscreen}
+			<button type="button" class={btn} aria-label={graphView ? 'Picture' : 'Graph'} title={graphView ? 'Back to the picture' : 'Live, foldable graph'} on:click={() => (graphView = !graphView)}>
+				{#if graphView}
+					<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m3 16 5-5 4 4 3-3 6 6" /></svg>
+				{:else}
+					<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5" /><circle cx="5" cy="19" r="2.5" /><circle cx="19" cy="19" r="2.5" /><path d="M12 7.5v4M12 11.5 6.5 17M12 11.5l5.5 5.5" /></svg>
+				{/if}
+			</button>
+		{/if}
 		{#if mindmapSource && !fullscreen}
 			<button type="button" class={btn} aria-label={recall ? 'Picture' : 'Recall'} title={recall ? 'Back to the picture' : 'Study this map'} on:click={() => (recall = !recall)}>
 				{#if recall}

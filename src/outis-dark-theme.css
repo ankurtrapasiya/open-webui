@@ -427,6 +427,18 @@ html.outis-dark .outis-diagram {
 	--outis-diagram-text: #d7d2cb;
 	--outis-diagram-deep: var(--color-gray-850);
 	--outis-diagram-arrow: var(--color-gray-500);
+	/* Branch hues (live graph, 2026-11-15): the light theme had these; dark pictures used the
+	   baked fallbacks. HTML chips have no fallback, so they are declared here too (filter's
+	   DIAGRAM_VARS dark values). */
+	--outis-diagram-line: #5b9065;
+	--outis-diagram-b1-fill: #23524f; --outis-diagram-b1-border: #3f8480; --outis-diagram-b1-tint: #1b302c;
+	--outis-diagram-b2-fill: #274a66; --outis-diagram-b2-border: #497fa6; --outis-diagram-b2-tint: #1c2d33;
+	--outis-diagram-b3-fill: #4a3a6d; --outis-diagram-b3-border: #7a66a8; --outis-diagram-b3-tint: #262835;
+	--outis-diagram-b4-fill: #60481c; --outis-diagram-b4-border: #9c7d3f; --outis-diagram-b4-tint: #2d2d1d;
+	--outis-diagram-b5-fill: #713845; --outis-diagram-b5-border: #a86e7c; --outis-diagram-b5-tint: #322829;
+	--outis-diagram-b6-fill: #2e5637; --outis-diagram-b6-border: #5a8f64; --outis-diagram-b6-tint: #1e3125;
+	--outis-diagram-b7-fill: #275865; --outis-diagram-b7-border: #4a8ea0; --outis-diagram-b7-tint: #1c3233;
+	--outis-diagram-b8-fill: #6d4020; --outis-diagram-b8-border: #a37348; --outis-diagram-b8-tint: #312a1e;
 	/* Mind map root in the accent (the baked fallback is the retired mint green). */
 	--outis-diagram-root-fill: var(--color-gray-850);
 	--outis-diagram-root-text: var(--color-blue-400);

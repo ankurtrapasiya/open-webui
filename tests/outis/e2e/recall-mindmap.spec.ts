@@ -173,7 +173,8 @@ test('RM-7 the tree takes the theme: Spark branch hue, FT paper; full screen off
 			return v;
 		}, [prop, css]);
 	const b1 = await probe('color', 'color: var(--outis-diagram-b1-border)');
-	expect(b1).not.toBe('rgba(0, 0, 0, 0)');
+	expect(b1).toMatch(/^rgb\(/); // a real token colour (dark themes define it since 2026-11-15)
+	expect(b1).not.toBe(await page.evaluate(() => getComputedStyle(document.body).color));
 	expect(await row(page, 'Branch').locator('[data-label]').evaluate((e) => getComputedStyle(e).borderLeftColor)).toBe(b1);
 	await openMap(page, api, SIX, 'outis-light-ft');
 	await enterRecall(page);

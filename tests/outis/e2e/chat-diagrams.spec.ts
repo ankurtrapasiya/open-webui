@@ -66,10 +66,11 @@ test('CD-6 the light theme colours the diagram through its variables', async ({ 
 	expect(await page.locator('#cd-rect').evaluate((e) => getComputedStyle(e).fill)).toBe('rgb(220, 237, 233)');
 });
 
-test('CD-7 the dark theme leaves the diagram on its built-in dark colours', async ({ page, api }) => {
+test('CD-7 the dark theme resolves the branch tint to its own token (2026-11-15: dark defines the branch hues)', async ({ page, api }) => {
 	await openChat(page, api, 'CD-7', `D:\n\n${svg()}\n\nE`, 'outis-dark');
 	await expect(diagram(page)).toHaveCount(1);
-	expect(await page.locator('#cd-rect').evaluate((e) => getComputedStyle(e).fill)).toBe('rgb(18, 52, 86)');
+	// --outis-diagram-b1-tint in outis-dark-theme.css is #1b302c, the value the picture used to carry baked in.
+	expect(await page.locator('#cd-rect').evaluate((e) => getComputedStyle(e).fill)).toBe('rgb(27, 48, 44)');
 });
 
 // Watches for the off-screen copy the PDF export makes and records how the diagram is sized in it.
