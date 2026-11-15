@@ -461,7 +461,8 @@ test('CB-27 a tool attached to a model is offered only on that model; unattached
 test('CB-29 a tool flagged offered_everywhere is listed on every model, even one it is attached to elsewhere', async ({ page, api }) => {
 	const flagged = { id: 'server:mcp:regression-everywhere', user_id: 'server:mcp:regression-everywhere', name: 'Regression Everywhere', meta: { description: '', offered_everywhere: true }, updated_at: 1, created_at: 1 };
 	const scoped = { id: 'server:mcp:regression-scoped', user_id: 'server:mcp:regression-scoped', name: 'Regression Owned', meta: { description: '' }, updated_at: 1, created_at: 1 };
-	await page.route('**/api/v1/tools/', async (route) => {
+	// the menu asks for /api/v1/tools/ with a query string, which a plain glob does not match
+	await page.route(/\/api\/v1\/tools\/?(\?.*)?$/, async (route) => {
 		const res = await route.fetch();
 		await route.fulfill({ response: res, json: [...(await res.json()), flagged, scoped] });
 	});
