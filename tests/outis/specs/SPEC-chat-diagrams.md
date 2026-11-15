@@ -80,3 +80,4 @@ Browser (chat created with a 1300×300 test SVG in the assistant message):
 - **CD-21** The viewer sits on `--outis-code-bg` with a 1px `--outis-code-border` hairline, stock radius.
 - **CD-7** (changed) Outis Dark now defines the branch tokens, so a baked `var(--outis-diagram-b1-tint, …)`
   resolves to the token (#1b302c) rather than its fallback.
+- **CD-22** (2026-11-15, user's request) The `<details><summary>Diagram source</summary>` fold the filter writes under a diagram is not rendered in the chat; the source stays in the stored message for the model's later turns. Other folds render as before.

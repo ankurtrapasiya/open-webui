@@ -297,3 +297,13 @@ test('CD-21 the viewer sits on the code-block surface with its hairline, in dark
 		expect(await viewer(page).evaluate((e) => getComputedStyle(e).borderTopWidth), theme).toBe('1px');
 	}
 });
+
+test('CD-22 the "Diagram source" fold under a diagram is not shown; other folds still are', async ({ page, api }) => {
+	const body = `Chart:\n\n${svg(1300)}\n\n<details>\n<summary>Diagram source</summary>\n\n\`\`\`dot\ndigraph G { a -> b }\n\`\`\`\n</details>\n\nMore:\n\n<details>\n<summary>Working</summary>\n\nkept\n</details>`;
+	await openChat(page, api, 'CD-22', body);
+	await expect(diagram(page)).toHaveCount(1);
+	const msg = page.locator('#response-content-container').last();
+	await expect(msg.getByText('Diagram source')).toHaveCount(0);
+	await expect(msg.getByText('digraph G')).toHaveCount(0);
+	await expect(msg.getByText('Working')).toHaveCount(1);
+});

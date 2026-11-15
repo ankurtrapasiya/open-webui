@@ -577,6 +577,9 @@
 				className="w-full space-y-2"
 				buttonClassName={detailButtonClassName}
 			/>
+		{:else if token.summary === 'Diagram source'}
+			<!-- Fork (2026-11-15): the Kroki filter folds a diagram's source under this title so the
+			     model keeps what it drew in later turns; the reader never asked to see it. -->
 		{:else if textContent.length > 0}
 			<Collapsible
 				title={token.summary}
