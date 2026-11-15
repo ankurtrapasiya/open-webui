@@ -7,6 +7,7 @@
 	import { toast } from 'svelte-sonner';
 	import { writable } from 'svelte/store';
 	import RecallNode from './RecallNode.svelte';
+	import { tick } from 'svelte';
 	import { parseMindmap, leaves as allLeaves, pathTo, type MindNode } from '$lib/utils/mindmap';
 	import { postRecall } from '$lib/apis/outis';
 
@@ -61,18 +62,29 @@
 	};
 	const reveal = async (n: MindNode) => {
 		revealed.update((s) => new Set(s).add(n));
-		await Promise.resolve();
+		await tick();
 		(mapEl?.querySelector(`[data-node-id="${id(n)}"] [data-label]`) as HTMLElement | null)?.focus();
+	};
+	const parentOf = (target: MindNode): MindNode | null => {
+		const walk = (n: MindNode): MindNode | null => (n.children.includes(target) ? n : n.children.map(walk).find(Boolean) ?? null);
+		return root ? walk(root) : null;
 	};
 	const record = async (n: MindNode, result: Result) => {
 		results.update((m) => new Map(m).set(n, result));
 		try {
-			const r = await postRecall(localStorage.token, { root: root!.label, path: pathTo(root!, n), label: n.label, result });
+			const siblings = (parentOf(n)?.children ?? [n]).map((c) => c.label);
+			const r = await postRecall(localStorage.token, { root: root!.label, path: pathTo(root!, n), label: n.label, result, siblings });
 			if (result === 'missed' && r.stored && !toasted) {
 				toasted = true;
 				toast.success('Saved to Review: My gaps');
 			}
 		} catch (e) {
+			// Not recorded: the node goes back to its revealed, ungraded state so the click can be retried.
+			results.update((m) => {
+				const next = new Map(m);
+				next.delete(n);
+				return next;
+			});
 			toast.error(`Recall not saved: ${(e as Error).message}`);
 		}
 	};

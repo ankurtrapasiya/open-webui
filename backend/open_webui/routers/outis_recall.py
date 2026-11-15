@@ -33,8 +33,14 @@ def card_id(deck: str, question: str) -> str:
     return hashlib.sha1(f'{deck}\n{question}'.encode()).hexdigest()[:16]
 
 
-def question_for(path: list[str]) -> str:
-    return ' → '.join(path) + ' → ?'
+def question_for(path: list[str], siblings: list[str], label: str) -> str:
+    """One card per leaf (review C3): the blank sits among its siblings, so the question has one
+    answer and two leaves under one parent never share a card. A lone leaf keeps `path → ?`."""
+    others = [s for s in siblings if s != label]
+    if not others:
+        return ' → '.join(path) + ' → ?'
+    slot = ', '.join('?' if s == label else s for s in (siblings if label in siblings else [*siblings, label]))
+    return ' → '.join(path) + ' → {' + slot + '}'
 
 
 def connect(path: str) -> sqlite3.Connection:
@@ -70,15 +76,15 @@ def grade(db: sqlite3.Connection, cid: str, rating: str, at: datetime) -> dateti
     return card.due
 
 
-def record(path: str, root: str, trail: list[str], label: str, result: str, at: datetime | None = None) -> dict:
+def record(path: str, root: str, trail: list[str], label: str, result: str, at: datetime | None = None, siblings: list[str] | None = None) -> dict:
     """Missed: upsert the card and grade it `again` (a new card starts its schedule now, so it is
     due within minutes). Knew it: grade `good` only if the card already has a schedule; a node the
     learner knows and never missed is not worth a card."""
     at = at or datetime.now(timezone.utc)
-    question = question_for(trail)
+    question = question_for(trail, siblings or [label], label)
     cid = card_id(DECK, question)
-    db = connect(path)
     try:
+        db = connect(path)
         if result == 'missed':
             db.execute("INSERT INTO deck (name, active) VALUES (?, 1) ON CONFLICT(name) DO UPDATE SET active=1", (DECK,))
             db.execute(
@@ -94,7 +100,10 @@ def record(path: str, root: str, trail: list[str], label: str, result: str, at: 
         due = grade(db, cid, 'good', at)
         return {'stored': True, 'card_id': cid, 'due': due.isoformat()}
     finally:
-        db.close()
+        try:
+            db.close()  # noqa: F821 - unbound only when connect() itself failed
+        except NameError:
+            pass
 
 
 if APIRouter is not None:
@@ -105,12 +114,13 @@ if APIRouter is not None:
         path: list[str]
         label: str
         result: Literal['missed', 'knew']
+        siblings: list[str] = []
 
     @router.post('/recall')
-    async def recall(form_data: RecallForm, user=Depends(get_verified_user)):
+    def recall(form_data: RecallForm, user=Depends(get_verified_user)):  # sync: sqlite + fsrs run in the thread pool (review I1)
         if not form_data.path or not form_data.label.strip():
             raise HTTPException(status_code=422, detail='path and label are required')
         try:
-            return record(db_path(), form_data.root, form_data.path, form_data.label.strip(), form_data.result)
+            return record(db_path(), form_data.root, form_data.path, form_data.label.strip(), form_data.result, siblings=form_data.siblings)
         except sqlite3.OperationalError as e:
             raise HTTPException(status_code=500, detail=f'review.db is not writable: {e}')

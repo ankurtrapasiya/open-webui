@@ -1,10 +1,14 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../support/fixtures';
 
-// What the Kroki filter leaves for a mind map: the SVG carries the final PlantUML source.
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// What the Kroki filter leaves for a mind map: the SVG carries the final PlantUML source, base64.
+// Real output has a <style> block (DOMPurify would drop a plain-text attribute holding "</style")
+// and may hold blank lines, so the fixture includes both.
+const STYLE = '<style>\nmindmapDiagram {\n  node {\n    Padding 8\n  }\n}\n</style>\n';
+const b64 = (s: string) => Buffer.from(s, 'utf8').toString('base64');
+const withStyle = (source: string) => source.replace('@startmindmap\n', '@startmindmap\n' + STYLE).replace('\n@endmindmap', '\n\n@endmindmap');
 const mapSvg = (source: string, w = 1300) =>
-	`<div class="outis-diagram"><svg xmlns="http://www.w3.org/2000/svg" data-outis-mindmap="${esc(source)}" width="${w}" height="300" viewBox="0 0 ${w} 300">` +
+	`<div class="outis-diagram"><svg xmlns="http://www.w3.org/2000/svg" data-outis-mindmap-b64="${b64(withStyle(source))}" width="${w}" height="300" viewBox="0 0 ${w} 300">` +
 	`<rect width="200" height="80"/></svg></div>`;
 const plainSvg = `<div class="outis-diagram"><svg xmlns="http://www.w3.org/2000/svg" width="1300" height="300" viewBox="0 0 1300 300"><rect width="200" height="80"/></svg></div>`;
 
@@ -108,7 +112,7 @@ test('RM-4 recall mode hides every leaf; reveal + Missed posts the card and coun
 	await expect(special.locator('[data-label]')).toHaveText('A & "B" <c>');
 	const req = page.waitForRequest((r) => r.url().endsWith('/api/v1/outis/recall') && r.method() === 'POST');
 	await special.getByRole('button', { name: 'Missed' }).click();
-	expect((await req).postDataJSON()).toEqual({ root: 'Root', path: ['Root', 'Branch'], label: 'A & "B" <c>', result: 'missed' });
+	expect((await req).postDataJSON()).toEqual({ root: 'Root', path: ['Root', 'Branch'], label: 'A & "B" <c>', result: 'missed', siblings: ['A & "B" <c>', 'Second'] });
 	await expect(special).toHaveAttribute('data-result', 'missed');
 	await expect(map(page).locator('[data-recall-count]')).toHaveText('known 0 · missed 1');
 	const second = node(page, 'Second');

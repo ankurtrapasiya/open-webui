@@ -5,13 +5,16 @@ export type RecallResult = { stored: boolean; card_id: string | null; due: strin
 
 export const postRecall = async (
 	token: string,
-	body: { root: string; path: string[]; label: string; result: 'missed' | 'knew' }
+	body: { root: string; path: string[]; label: string; result: 'missed' | 'knew'; siblings: string[] }
 ): Promise<RecallResult> => {
 	const res = await fetch(`${WEBUI_API_BASE_URL}/outis/recall`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
 		body: JSON.stringify(body)
 	});
-	if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.detail ?? res.statusText);
+	if (!res.ok) {
+		const d = (await res.json().catch(() => ({})))?.detail;
+		throw new Error(typeof d === 'string' ? d : res.statusText);
+	}
 	return res.json();
 };

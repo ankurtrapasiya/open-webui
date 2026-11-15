@@ -41,7 +41,17 @@
 	const measure = () => {
 		const svg = stage?.querySelector('svg');
 		if (!svg) return false;
-		mindmapSource = fullscreen ? null : svg.getAttribute('data-outis-mindmap');
+		if (!fullscreen && !mindmapSource) {
+			// Base64 UTF-8 (the filter's choice: DOMPurify strips attribute values holding "</style").
+			const b64 = svg.getAttribute('data-outis-mindmap-b64');
+			if (b64) {
+				try {
+					mindmapSource = new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+				} catch {
+					mindmapSource = null;
+				}
+			}
+		}
 		const r = svg.getBoundingClientRect();
 		natW = r.width / (zoom || 1);
 		natH = r.height / (zoom || 1);
