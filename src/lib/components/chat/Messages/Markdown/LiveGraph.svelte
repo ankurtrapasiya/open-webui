@@ -27,13 +27,13 @@
 	const PAD = 12;
 	const GAP = 24;
 	// Chip width cap: a third of the column (a quarter in LR), tightened so the widest row still
-	// fits with its gaps; never below 90px, so labels wrap rather than scroll where they can.
+	// fits with its gaps; never below 128px, so labels wrap rather than scroll where they can.
 	let chipCap = 160;
 	const capFor = (avail: number, horizontal: boolean, widestRow: number) => {
 		const room = avail - 2; // measured widths are ceil'd; keep a pixel each side so the row never overflows
 		const base = room / (horizontal ? 4 : 3);
 		const fit = widestRow > 0 ? (room - (widestRow - 1) * GAP) / widestRow : base;
-		return Math.max(90, Math.min(base, fit));
+		return Math.max(128, Math.min(base, fit)); // below ~128px words break; such rows scroll instead
 	};
 
 	const depthOf = (id: string) => layout?.pos.get(id)?.rank ?? 0;
@@ -143,20 +143,21 @@
 		bind:this={root}
 		data-live-graph
 		data-horizontal={layout?.horizontal ? 'true' : 'false'}
-		class="outis-diagram relative my-2 w-full overflow-hidden rounded-xl text-sm"
+		class="outis-diagram relative my-2 w-full overflow-x-auto overflow-y-hidden rounded-xl text-sm"
 		style="background: var(--o-page, transparent); color: var(--o-ink, inherit); padding: {PAD}px; height: {layout ? layout.height + 2 * PAD + 28 : 80}px; transition: {reduced ? 'none' : 'height 200ms ease'};"
 	>
 		<!-- Hidden measuring copies: same classes as the chips, so sizes match. -->
-		<div bind:this={measureBox} aria-hidden="true" class="pointer-events-none absolute left-0 top-0 opacity-0" style="visibility: hidden;">
+		<!-- position: fixed, off-screen: an absolute box would count towards the scroll width. -->
+		<div bind:this={measureBox} aria-hidden="true" class="pointer-events-none fixed opacity-0" style="visibility: hidden; left: -10000px; top: 0; width: 2000px;">
 			{#each graph.nodes as n (n.id)}
-				<div data-measure={n.id} class="inline-block whitespace-pre-wrap break-words rounded-lg border px-2.5 py-1 text-sm leading-snug" style="border-left-width: 3px;">{n.label}{#if hasKids.has(n.id)}<span class="ml-6"></span>{/if}</div>
+				<div data-measure={n.id} class="inline-flex items-start gap-1.5 whitespace-pre-wrap break-words rounded-lg border px-2.5 py-1 text-sm leading-snug" style="border-left-width: 3px;"><span class="min-w-0 flex-1">{n.label}</span>{#if hasKids.has(n.id)}<span class="mt-0.5 h-5 w-7 shrink-0"></span>{/if}</div>
 			{/each}
 		</div>
 
 		{#if layout}
 			{@const L = layout}
 			{@const cx = (L.horizontal ? 0 : Math.max(0, (width - 2 * PAD - L.width) / 2))}
-			<div class="relative" style="width: {Math.max(L.width, width - 2 * PAD)}px; height: {L.height + 28}px;">
+			<div class="relative" style="width: {L.width > width - 2 * PAD ? `${L.width}px` : 'auto'}; height: {L.height + 28}px;">
 				<!-- Cluster frames and headers -->
 				{#each graph.clusters as c (c.id)}
 					{@const box = clusterBox(c.id)}
@@ -176,7 +177,7 @@
 					{/if}
 				{/each}
 
-				<svg data-edges class="pointer-events-none absolute left-0 top-0" style="width: {Math.max(L.width, width - 2 * PAD)}px; height: {L.height + 28}px; overflow: visible;" aria-hidden="true">
+				<svg data-edges class="pointer-events-none absolute left-0 top-0" style="width: {L.width > width - 2 * PAD ? `${L.width}px` : '100%'}; height: {L.height + 28}px; overflow: visible;" aria-hidden="true">
 					<defs>
 						<marker id="lg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
 							<path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
@@ -192,7 +193,11 @@
 							marker-end={graph.directed ? 'url(#lg-arrow)' : undefined}
 						/>
 						{#if e.label}
-							{@const [mx, my] = [(e.points[0][0] + e.points[e.points.length - 1][0]) / 2 + cx, (e.points[0][1] + e.points[e.points.length - 1][1]) / 2 + 28]}
+							{@const [x0, y0] = e.points[0]}
+							{@const [x1, y1] = e.points[e.points.length - 1]}
+							{@const t = L.horizontal ? Math.min(0.5, 12 / Math.max(1, x1 - x0)) : Math.min(0.5, 20 / Math.max(1, y1 - y0))}
+							{@const mx = (L.horizontal ? x0 + 12 + 60 : x0 + (x1 - x0) * t) + cx}
+							{@const my = (L.horizontal ? y0 + (y1 - y0) * t - 12 : y0 + 20) + 28}
 							<foreignObject x={mx - 60} y={my - 10} width="120" height="20" style="overflow: visible;">
 								<div data-elabel class="mx-auto w-max max-w-[120px] truncate rounded px-1 text-[11px]" style="background: var(--o-page, transparent); color: var(--o-muted, inherit);">{e.label}</div>
 							</foreignObject>
@@ -211,7 +216,7 @@
 					>
 						<span class="min-w-0 flex-1">{labelOf.get(id)}</span>
 						{#if hasKids.has(id)}
-							<button type="button" class="{small} mt-0.5 shrink-0" aria-label={folded.has(id) ? 'Unfold' : 'Fold'} on:click={() => toggle(id)}>
+							<button type="button" class="{small} mt-0.5 w-7 shrink-0 justify-center" aria-label={folded.has(id) ? 'Unfold' : 'Fold'} on:click={() => toggle(id)}>
 								{#if folded.has(id) && (L.badges.get(id) ?? 0) > 0}
 									<span data-badge>+{L.badges.get(id)}</span>
 								{:else}
