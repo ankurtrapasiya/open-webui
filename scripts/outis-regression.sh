@@ -45,6 +45,7 @@ fi
 echo "== backend checks inside the image"
 docker exec -i -e STUDY_MEMORY_PY=/app/backend/open_webui/utils/study_memory.py "$NAME" python3 - <"$SUITE/backend/test_study_memory.py"
 docker exec -i -e RECALL_PY=/app/backend/open_webui/routers/outis_recall.py -e REVIEW_DB=/tmp/recall-test.db "$NAME" python3 - <"$SUITE/backend/test_recall.py"
+docker exec -i -w /app/backend "$NAME" python3 - <"$SUITE/backend/test_builtin_tools.py"
 docker exec -i -e AGENT_ICONS_PY=/app/backend/open_webui/utils/agents/icons.py -e AGENT_ICONS_STATIC=/app/backend/open_webui/static "$NAME" python3 - <"$SUITE/backend/test_agent_icons.py"
 
 cd "$SUITE"

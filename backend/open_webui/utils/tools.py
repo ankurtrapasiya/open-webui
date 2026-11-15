@@ -896,7 +896,10 @@ async def get_builtin_tools(
         ):
             builtin_functions.append(create_skill)
 
-    if ENABLE_TOOLS and is_builtin_tool_enabled('tools'):
+    # Fork: a model may not author tools unless its own settings opt in (meta.builtinTools.tools = true). Saving a tool
+    # executes the Python it was given on the server, and a model once created two workspace tools nobody asked for
+    # (qf-lab, 2026-11-15). Upstream defaults this to on for every model.
+    if ENABLE_TOOLS and is_builtin_tool_enabled('tools', default=False):
         if user.get('role') == 'admin' or await has_permission(
             user.get('id', ''), 'workspace.tools', await Config.get('user.permissions')
         ):
