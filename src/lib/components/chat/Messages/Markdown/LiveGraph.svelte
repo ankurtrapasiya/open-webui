@@ -226,7 +226,7 @@
 							{@const [x1, y1] = e.points[e.points.length - 1]}
 							{@const t = Math.min(0.5, 20 / Math.max(1, y1 - y0))}
 							{@const gapW = e.loop ? 96 : L.horizontal ? Math.max(24, x1 - x0 - 8) : 120}
-							{@const mx = (e.loop ? (L.horizontal ? (x0 + x1) / 2 : e.bulge! * 0.75 + Math.max(x0, x1) * 0.25 + 48) : L.horizontal ? (x0 + x1) / 2 : x0 + (x1 - x0) * t) + cx}
+							{@const mx = (e.loop ? (L.horizontal ? (x0 + x1) / 2 : e.bulge! * 0.75 + Math.max(x0, x1) * 0.25) : L.horizontal ? (x0 + x1) / 2 : x0 + (x1 - x0) * t) + cx}
 							{@const my = (e.loop ? (L.horizontal ? e.bulge! * 0.75 + Math.max(y0, y1) * 0.25 + 10 : (y0 + y1) / 2) : L.horizontal ? (y0 + y1) / 2 : y0 + 20) + 28}
 							<foreignObject x={mx - gapW / 2} y={my - 10} width={gapW} height="20" style="overflow: visible;">
 								<div data-elabel title={e.label} class="mx-auto w-max max-w-full truncate rounded px-1 text-[11px]" style="background: var(--o-page, transparent); color: var(--o-muted, inherit);">{e.label}</div>
