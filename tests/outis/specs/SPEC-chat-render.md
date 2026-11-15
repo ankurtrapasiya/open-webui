@@ -84,15 +84,17 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   15 tokens, defined per theme in `src/outis-*-theme.css` and recoloured by the palette variants)
   as inline properties on its `<html>`, updated on a theme switch. Spark -> FT -> Outis-Light
   changes `--o-accent`/`--o-page` live.
-- **ML-1** (`math-latex.spec.ts`, skips without outis-mneme) With outis-mneme's global
+- **ML-1** (`math-latex.spec.ts`, skips without outis-owui) With the global
   "Math as LaTeX" filter active, a chat with any model sends a system message containing the
   `[math-as-latex]` rule exactly once.
-- **FM-1** (`code-format.spec.ts`, skips without outis-mneme) With the global "Format code"
+- **FM-1** (`code-format.spec.ts`, skips without outis-owui) With the global "Format code"
   outlet filter active, a finished reply's ` ```python ` block is saved Black-formatted
   (`lik*prior` → `lik * prior`), an invalid snippet is left as written, and the chat shows the
   formatted text. The fake model's `ECHO` line makes it reply with fixed text.
-- **QZ-1** (`quiz-theme.spec.ts`, skips without outis-mneme) The themed QuizUI tool's body is
-  `#090d0c` in dark and `#fafdfc` in light, following a live switch both ways.
+- **ML-2** (`math-latex.spec.ts`) The LaTeX rule says never to wrap a formula in backticks, also not in a table cell (outis-owui#28).
+- **TL-1** (`table-latex.spec.ts`) A table cell with `\( ... \)` shows rendered maths (no raw `\(`, no KaTeX error) with contrast of at least 4.5:1 against its background, in each of the four themes (outis-dark, outis-light, outis-dark-spark, outis-light-ft). A screenshot per theme is attached to the report.
+- **TL-2** (`table-latex.spec.ts`) A formula in backticks in a cell stays code, not maths. This is the cause of #28 and proves TL-1 can fail.
+- **QZ-1, EV-\*** RETIRED 2026-11-15 with the QuizUI and Explainer Video tools.
 
 ### Reading colour guide
 

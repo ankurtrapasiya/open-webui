@@ -2,10 +2,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { test, expect } from '../support/fixtures';
 
-// outis-mneme's global "Format code" outlet filter (services/code-format/owui_filter.py): a finished
+// outis-mneme's global "Format code" outlet filter (outis-owui plugins/code-format/owui_filter.py): a finished
 // reply's ```python blocks are saved Black-formatted. Guards the outlet path (inline outlet run,
-// saved content). Skips without outis-mneme. Spec: specs/SPEC-chat-render.md (FM-1).
-const SRC = `${process.env.OUTIS_MNEME_DIR ?? `${homedir()}/GithubProjects/outis-mneme`}/services/code-format/owui_filter.py`;
+// saved content). Skips without outis-owui. Spec: specs/SPEC-chat-render.md (FM-1).
+const SRC = `${process.env.OUTIS_OWUI_DIR ?? `${homedir()}/GithubProjects/outis-owui`}/plugins/code-format/owui_filter.py`;
 test.skip(!existsSync(SRC), `needs ${SRC}`);
 
 test('FM-1 a reply\'s python block is saved Black-formatted; invalid snippets are left alone', async ({ page, api }) => {

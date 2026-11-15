@@ -24,8 +24,9 @@ passes, or names the broken feature and the acceptance criterion it broke.
 | `notes-render` | LaTeX and Mermaid in notes, chat-written notes, note PDF/print | [SPEC-notes-render.md](SPEC-notes-render.md) |
 | `chat-diagrams` | Inline diagrams at native size, chat PDF fit | [SPEC-chat-diagrams.md](SPEC-chat-diagrams.md) |
 | `chat-render` | Inline HTML/SVG embeds, always-expanded code, one-line video tags | [SPEC-chat-render.md](SPEC-chat-render.md) |
-| `explainer-video` | Manim video tool round trip (needs outis-mneme manim-render) | [SPEC-explainer-video.md](SPEC-explainer-video.md) |
-| `quiz-theme` | QuizUI tool embed takes Outis light/dark colours (needs outis-mneme) | [SPEC-chat-render.md](SPEC-chat-render.md) |
+| `explainer-video` | RETIRED 2026-11-15 (tool and manim-render service removed) | n/a |
+| `quiz-theme` | RETIRED 2026-11-15 (QuizUI tool removed) | n/a |
+| `table-latex` | LaTeX in a table cell renders as maths in all four themes (no outis-owui needed) | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `math-latex` | Global filter adds the LaTeX rule for every model (needs outis-mneme) | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `code-format` | Outlet filter Black-formats python blocks in replies (needs outis-mneme) | [SPEC-chat-render.md](SPEC-chat-render.md) |
 | `memory` | Background memory reviewer keeps study state only, under `study/` | [SPEC-memory.md](SPEC-memory.md) |

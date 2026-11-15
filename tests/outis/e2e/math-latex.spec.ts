@@ -3,10 +3,10 @@ import { homedir } from 'node:os';
 import { test, expect } from '../support/fixtures';
 import { fakeRequests, fakeReset } from '../support/fake-openai';
 
-// outis-mneme's global "Math as LaTeX" filter (services/math-latex/owui_filter.py): every model,
+// outis-mneme's global "Math as LaTeX" filter (outis-owui plugins/math-latex/owui_filter.py): every model,
 // in every chat, gets the rule to write maths as LaTeX. Guards the global-filter path (inlet on
-// all models). Skips without outis-mneme. Spec: specs/SPEC-chat-render.md (ML-1).
-const SRC = `${process.env.OUTIS_MNEME_DIR ?? `${homedir()}/GithubProjects/outis-mneme`}/services/math-latex/owui_filter.py`;
+// all models). Skips without outis-owui. Spec: specs/SPEC-chat-render.md (ML-1).
+const SRC = `${process.env.OUTIS_OWUI_DIR ?? `${homedir()}/GithubProjects/outis-owui`}/plugins/math-latex/owui_filter.py`;
 test.skip(!existsSync(SRC), `needs ${SRC}`);
 
 test('ML-1 a global filter puts the LaTeX rule in the system message, once, for any model', async ({ api }) => {
@@ -28,4 +28,9 @@ test('ML-1 a global filter puts the LaTeX rule in the system message, once, for 
 	} finally {
 		await ctx.delete('/api/v1/functions/id/math_as_latex/delete').catch(() => null);
 	}
+});
+
+// ML-2 (issue outis-owui#28): the rule must forbid a formula in backticks, which show as raw text, also in a table cell.
+test('ML-2 the LaTeX rule forbids backticked formulas, tables included', () => {
+	expect(readFileSync(SRC, 'utf8')).toContain('Never wrap a formula in backticks, in a table cell either');
 });
