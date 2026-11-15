@@ -246,6 +246,14 @@
 			{token.text}
 		{/if}
 	{:else if token.type === 'table'}
+		<!-- Fork: a column whose cells are mostly numbers is right-aligned as a whole (header, the
+		     odd dash, all cells) with tabular figures, unless the markdown set an alignment itself. -->
+		{@const isNum = (t) => /^[\s$€£%±+\-−–]*\d[\d.,]*\s*(%|x|×|pp|k|M|B)?\s*$/.test(t ?? '')}
+		{@const numCols = (token.header ?? []).map((_, c) => {
+			if (token.align?.[c]) return false;
+			const cells = (token.rows ?? []).map((r) => (r?.[c]?.text ?? '').trim()).filter((t) => t && !/^[–—-]$/.test(t));
+			return cells.length > 0 && cells.filter(isNum).length * 2 >= cells.length;
+		})}
 		<div class="relative w-full group mb-2">
 			<div class="scrollbar-hidden relative overflow-x-auto max-w-full">
 				<table
@@ -259,6 +267,7 @@
 									scope="col"
 									class="px-2.5! py-2! cursor-pointer border-b border-gray-100! dark:border-gray-800!"
 									style={token.align[headerIdx] ? `text-align: ${token.align[headerIdx]}` : ''}
+									data-num={numCols[headerIdx] ? '' : undefined}
 								>
 									<div class="gap-1.5 text-start">
 										<div class="shrink-0 break-normal">
@@ -286,6 +295,7 @@
 											? ''
 											: 'border-b border-gray-50! dark:border-gray-850!'}"
 										style={token.align[cellIdx] ? `text-align: ${token.align[cellIdx]}` : ''}
+										data-num={numCols[cellIdx] ? '' : undefined}
 									>
 										<div class="break-normal">
 											<MarkdownInlineTokens

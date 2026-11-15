@@ -502,3 +502,64 @@ html:is(.outis-dark, .outis-light) #settings-tabs-container {
 html:is(.outis-dark, .outis-light) #message-input-container:not(.border-dashed) {
 	border-color: var(--outis-divider);
 }
+
+/* Tables (2026-11-15, user's request: a style that reads at a glance and helps the eye keep its
+   row). Stock renders the body at 12px, the header in uppercase grey, hairlines that vanish on
+   these palettes, and right-aligns numbers only when the markdown asks. Here:
+   - body cells at the reply's own size; header in sentence case, medium weight, ink colour, on
+     the chrome tone with the divider under it, so the header reads as a label row, not a shout;
+   - row lines in the divider colour; alternate rows tinted only when the table is wide (4+
+     columns), where the eye otherwise loses its row; narrow tables stay clean;
+   - numbers (data-num, set by MarkdownTokens) right-aligned with tabular figures so digits line
+     up; the first column reads as the row label (medium weight, ink);
+   - no vertical lines, no outer box: the content is the structure (Few, Tufte). */
+html:is(.outis-dark, .outis-light) .markdown-prose table {
+	font-size: inherit;
+	font-variant-numeric: tabular-nums;
+	border-collapse: collapse;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose thead {
+	text-transform: none;
+	font-size: inherit;
+	letter-spacing: 0;
+	color: var(--outis-input-fg);
+}
+html:is(.outis-dark, .outis-light) .markdown-prose thead th {
+	font-weight: 500;
+	background: var(--outis-chrome);
+	padding: 0.45rem 0.75rem !important;
+	cursor: default;
+}
+/* The th/td carry Tailwind `border-gray-100!` utilities. Among !important declarations an
+   earlier cascade layer wins, so these two live in `base` (before `utilities`) to take effect. */
+@layer base {
+	html:is(.outis-dark, .outis-light) .markdown-prose thead th {
+		border-bottom: 1px solid var(--outis-divider) !important;
+	}
+	html:is(.outis-dark, .outis-light) .markdown-prose tbody td {
+		border-bottom: 1px solid color-mix(in srgb, var(--outis-divider) 60%, transparent) !important;
+	}
+}
+html:is(.outis-dark, .outis-light) .markdown-prose thead th:first-child { border-start-start-radius: 0.5rem; }
+html:is(.outis-dark, .outis-light) .markdown-prose thead th:last-child { border-start-end-radius: 0.5rem; }
+html:is(.outis-dark, .outis-light) .markdown-prose tbody tr {
+	font-size: inherit;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose tbody td {
+	color: var(--outis-input-fg);
+	padding: 0.4rem 0.75rem !important;
+	vertical-align: top;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose tbody td:first-child {
+	font-weight: 500;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose :is(th, td)[data-num] {
+	text-align: right;
+}
+html:is(.outis-dark, .outis-light) .markdown-prose th[data-num] > div {
+	text-align: right;
+}
+/* Wide tables (4+ columns): a faint stripe on every other row keeps the eye on its row. */
+html:is(.outis-dark, .outis-light) .markdown-prose table:has(thead th:nth-child(4)) tbody tr:nth-child(even) td {
+	background: color-mix(in srgb, var(--outis-chrome) 55%, transparent);
+}
