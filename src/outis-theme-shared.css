@@ -9,10 +9,11 @@
  * Palettes live in outis-dark-theme.css / outis-light-theme.css.
  * --------------------------------------------------------------------- */
 
-/* Functional, not style: Kroki lays diagram text out with IBM Plex Mono (outis-owui
-   plugins/kroki, FONT), so the browser must have that exact face or labels stretch between
-   letters (seen 2026-10). The UI itself uses the stock font; only diagram SVGs name this one. */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+/* Functional, not style: Kroki lays diagram text out with IBM Plex Sans (outis-owui
+   plugins/kroki, FONT; Plex Mono until 2026-11-15, still loaded for older chats), so the
+   browser must have that exact face or labels stretch between letters (seen 2026-10). The UI
+   itself uses the stock font; only diagram SVGs name these. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;700&display=swap');
 
 
 /* The login/signup email+password inputs (and any other input a browser

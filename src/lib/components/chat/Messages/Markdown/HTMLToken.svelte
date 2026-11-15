@@ -1,4 +1,5 @@
 <script lang="ts">
+	import DiagramViewer from './DiagramViewer.svelte';
 	import DOMPurify from 'dompurify';
 	import type { Token } from 'marked';
 	import { getContext } from 'svelte';
@@ -107,9 +108,8 @@
 		     `html` is DOMPurify's output: shapes, text, data- attributes, inline
 		     style and var() survive; script, javascript: hrefs and event handlers
 		     do not. -->
-		<div class="my-2 w-full overflow-x-auto">
-			{@html html}
-		</div>
+		<!-- Fork: overview + zoom viewer (DiagramViewer.svelte, 2026-11-15). -->
+		<DiagramViewer {html} />
 	{:else if token.text && token.text.includes('<status')}
 		{@const match = token.text.match(/<status title="([^"]+)" done="(true|false)" ?\/?>/)}
 		{@const statusTitle = match && match[1]}

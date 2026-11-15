@@ -53,3 +53,15 @@ Browser (chat created with a 1300×300 test SVG in the assistant message):
   extracting it. Extraction is an "ask first" change.
 - Diagram HTML is sanitised with plain DOMPurify, not the stricter `sanitizeSvg`, so an
   external `<image href>` would still load. Recorded for a later hardening task.
+
+## Viewer (2026-11-15, diagram readability)
+
+- **CD-4** (rewritten) The SVG keeps its native size (`width` attribute, `max-width: none`) inside
+  the viewer; zoom is a transform on the stage, so labels are drawn at full size.
+- **CD-10** A wide diagram opens fitted (viewer no wider than its column, zoom < 1); Zoom in
+  grows it, Fit restores it, double-click doubles it.
+- **CD-11** Over an unclicked diagram the wheel scrolls the chat; after a click it zooms.
+- **CD-12** A diagram narrower than the column stays at 1.00 with only the Full screen control.
+- **CD-13** Zoom transforms `[data-diagram-stage]`, never `.outis-diagram > svg` (export copies it).
+- **CD-14** Full screen opens `dialog "Diagram"` holding the SVG; Escape closes it.
+- **CD-8/9** (changed) The PDF clone also undoes the viewer's stage transform and fixed height.

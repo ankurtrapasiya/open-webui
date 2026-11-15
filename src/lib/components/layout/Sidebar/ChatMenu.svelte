@@ -133,6 +133,14 @@
 					// scroll: html2canvas paints the clone's 800px box and anything
 					// wider is simply gone off the right edge. Fit it to the column
 					// for the print; small is better than missing.
+					// The diagram viewer (DiagramViewer.svelte) zooms with a transform on an absolute
+					// stage inside a fixed-height box; undo both so the print lays the SVG out normally.
+					clonedElement.querySelectorAll('[data-diagram-stage]').forEach((el) => {
+						el.style.position = 'static';
+						el.style.transform = 'none';
+						el.style.width = 'auto';
+					});
+					clonedElement.querySelectorAll('[data-diagram-viewer]').forEach((el) => (el.style.height = 'auto'));
 					clonedElement.querySelectorAll('.outis-diagram > svg, img').forEach((el) => {
 						el.style.maxWidth = '100%';
 						el.style.height = 'auto';

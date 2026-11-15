@@ -40,18 +40,13 @@ test('CD-3 the diagram is live SVG, not escaped markup', async ({ page, api }) =
 	await expect(page.getByText('<svg', { exact: false })).toHaveCount(0);
 });
 
-test('CD-4 the diagram keeps its native width and the wrapper scrolls', async ({ page, api }) => {
+test('CD-4 the SVG keeps its native size inside the viewer (labels drawn full size; zoom is a transform)', async ({ page, api }) => {
 	await openChat(page, api, 'CD-4', `Wide:\n\n${svg(1300)}\n\nEnd`);
 	const el = diagram(page);
 	await expect(el).toHaveCount(1);
-	expect(await el.evaluate((e) => Math.round(e.getBoundingClientRect().width))).toBe(1300);
+	expect(await el.evaluate((e) => (e as unknown as SVGSVGElement).width.baseVal.value)).toBe(1300);
 	expect(await el.evaluate((e) => getComputedStyle(e).maxWidth)).toBe('none');
-	expect(
-		await el.evaluate((e) => {
-			const w = e.closest('.overflow-x-auto') as HTMLElement;
-			return w.scrollWidth > w.clientWidth;
-		})
-	).toBe(true);
+	await expect(page.locator('[data-diagram-viewer]')).toHaveCount(1);
 });
 
 test('CD-5 a script inside the diagram is removed and never runs', async ({ page, api }) => {
@@ -113,7 +108,7 @@ async function expectPdfFitsDiagram(page: Page, openMenu: () => Promise<void>) {
 	expect(clone.maxWidth).toBe('100%');
 	expect(clone.width).toBeLessThanOrEqual(800);
 	// The diagram on screen is untouched.
-	expect(await diagram(page).evaluate((e) => Math.round(e.getBoundingClientRect().width))).toBe(1300);
+	expect(await diagram(page).evaluate((e) => (e as HTMLElement).style.maxWidth)).toBe('');
 }
 
 test('CD-8 the chat PDF shrinks a wide diagram to the page (chat header menu)', async ({ page, api }) => {
@@ -132,4 +127,67 @@ test('CD-9 the chat PDF shrinks a wide diagram to the page (sidebar chat menu)',
 		await row.hover();
 		await row.locator('button[aria-label="Chat Menu"]').click();
 	});
+});
+
+// --- Viewer (diagram readability plan, Task 5): overview first, zoom on demand ---
+
+const viewer = (page: Page) => page.locator('[data-diagram-viewer]').first();
+const zoomOf = async (page: Page) => Number(await viewer(page).getAttribute('data-zoom'));
+
+test('CD-10 a wide diagram opens fitted to the column; Zoom in, Fit and double-click work', async ({ page, api }) => {
+	await openChat(page, api, 'CD-10', `Wide:\n\n${svg(2400)}\n\nEnd`);
+	await expect(viewer(page)).toBeVisible();
+	const fit = await zoomOf(page);
+	expect(fit).toBeLessThan(1);
+	const [vw, pw] = await viewer(page).evaluate((e) => [e.getBoundingClientRect().width, e.parentElement!.getBoundingClientRect().width]);
+	expect(vw).toBeLessThanOrEqual(pw + 1);
+	await viewer(page).hover();
+	await viewer(page).getByRole('button', { name: 'Zoom in' }).click();
+	expect(await zoomOf(page)).toBeGreaterThan(fit);
+	await viewer(page).getByRole('button', { name: 'Fit diagram' }).click();
+	expect(await zoomOf(page)).toBeCloseTo(fit, 2);
+	await viewer(page).dblclick();
+	expect(Math.abs((await zoomOf(page)) - fit * 2)).toBeLessThan(0.02);
+});
+
+test('CD-11 the wheel scrolls the page over an unclicked diagram, and zooms once it is clicked', async ({ page, api }) => {
+	await openChat(page, api, 'CD-11', `${'Paragraph.\n\n'.repeat(25)}${svg(2400)}\n\n${'More.\n\n'.repeat(40)}`);
+	await viewer(page).scrollIntoViewIfNeeded();
+	const fit = await zoomOf(page);
+	const scroller = page.locator('#messages-container');
+	const before = await scroller.evaluate((e) => e.scrollTop);
+	await viewer(page).hover();
+	await page.mouse.wheel(0, 300);
+	await expect.poll(() => scroller.evaluate((e) => e.scrollTop)).not.toBe(before);
+	expect(await zoomOf(page)).toBe(fit);
+	await viewer(page).click();
+	await page.mouse.wheel(0, -300);
+	await expect.poll(() => zoomOf(page)).toBeGreaterThan(fit);
+});
+
+test('CD-12 a diagram narrower than the column is not upscaled and offers only Full screen', async ({ page, api }) => {
+	await openChat(page, api, 'CD-12', `Small:\n\n${svg(400)}\n\nEnd`);
+	await expect(viewer(page)).toHaveAttribute('data-zoom', '1.00');
+	await expect(viewer(page).getByRole('button', { name: 'Zoom in' })).toHaveCount(0);
+	await expect(viewer(page).getByRole('button', { name: 'Fit diagram' })).toHaveCount(0);
+	await expect(viewer(page).getByRole('button', { name: 'Full screen' })).toHaveCount(1);
+});
+
+test('CD-13 zooming transforms the viewer stage, never the SVG (chat export copies the SVG)', async ({ page, api }) => {
+	await openChat(page, api, 'CD-13', `Wide:\n\n${svg(2400)}\n\nEnd`);
+	await viewer(page).hover();
+	await viewer(page).getByRole('button', { name: 'Zoom in' }).click();
+	expect(await diagram(page).evaluate((e) => getComputedStyle(e).transform)).toBe('none');
+	expect(await page.locator('[data-diagram-stage]').first().evaluate((e) => getComputedStyle(e).transform)).not.toBe('none');
+});
+
+test('CD-14 Full screen opens the diagram in a dialog; Escape closes it', async ({ page, api }) => {
+	await openChat(page, api, 'CD-14', `Wide:\n\n${svg(2400)}\n\nEnd`);
+	await viewer(page).hover();
+	await viewer(page).getByRole('button', { name: 'Full screen' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Diagram' });
+	await expect(dialog).toBeVisible();
+	await expect(dialog.locator('.outis-diagram > svg')).toHaveCount(1);
+	await page.keyboard.press('Escape');
+	await expect(dialog).toHaveCount(0);
 });
