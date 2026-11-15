@@ -9,6 +9,7 @@
 	// untransformed SVG. The wheel zooms only after a click (or with Ctrl/Cmd), so scrolling
 	// the chat never gets stuck in a diagram.
 	import { onMount, onDestroy, tick } from 'svelte';
+	import RecallMindMap from './RecallMindMap.svelte';
 
 	export let html: string;
 	export let fullscreen = false;
@@ -28,15 +29,19 @@
 	let destroyed = false;
 	let showFull = false;
 	let drag: { x: number; y: number; tx: number; ty: number } | null = null;
+	// Recall mind map: the Kroki <svg> carries its PlantUML source (data-outis-mindmap).
+	let mindmapSource: string | null = null;
+	let recall = false;
 	let ro: ResizeObserver | null = null;
 
-	$: zoomable = fit < 0.999 || fullscreen;
+	$: zoomable = !recall && (fit < 0.999 || fullscreen);
 
 	const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 	const measure = () => {
 		const svg = stage?.querySelector('svg');
 		if (!svg) return false;
+		mindmapSource = fullscreen ? null : svg.getAttribute('data-outis-mindmap');
 		const r = svg.getBoundingClientRect();
 		natW = r.width / (zoom || 1);
 		natH = r.height / (zoom || 1);
@@ -75,6 +80,7 @@
 	};
 
 	const onPointerDown = (e: PointerEvent) => {
+		if (recall) return;
 		if (zoomable) active = true;
 		if ((e.target as HTMLElement).closest('button')) return;
 		if (zoom > fit + 0.001) {
@@ -153,7 +159,7 @@
 	data-diagram-viewer
 	data-zoom={zoom.toFixed(2)}
 	class="group relative my-2 w-full overflow-hidden {zoom > fit + 0.001 ? 'cursor-grab' : ''}"
-	style="height: {height ? `${height}px` : 'auto'}; touch-action: {active && zoom > fit + 0.001 ? 'none' : 'pan-y'};"
+	style="height: {height && !recall ? `${height}px` : 'auto'}; touch-action: {active && zoom > fit + 0.001 ? 'none' : 'pan-y'};"
 	on:pointerdown={onPointerDown}
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}
@@ -164,6 +170,7 @@
 		if (e.detail > 1) e.preventDefault();
 	}}
 	on:dblclick={(e) => {
+		if (recall) return;
 		window.getSelection()?.removeAllRanges();
 		if (!zoomable) return;
 		const [x, y] = local(e);
@@ -174,14 +181,27 @@
 		bind:this={stage}
 		data-diagram-stage
 		class="absolute left-0 top-0 w-max origin-top-left"
+		class:hidden={recall}
 		style="transform: translate({tx}px, {ty}px) scale({zoom});"
 	>
 		{@html html}
 	</div>
+	{#if recall && mindmapSource}
+		<RecallMindMap source={mindmapSource} />
+	{/if}
 
 	<div
 		class="absolute right-2 top-2 flex gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"
 	>
+		{#if mindmapSource && !fullscreen}
+			<button type="button" class={btn} aria-label={recall ? 'Picture' : 'Recall'} title={recall ? 'Back to the picture' : 'Study this map'} on:click={() => (recall = !recall)}>
+				{#if recall}
+					<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m3 16 5-5 4 4 3-3 6 6" /></svg>
+				{:else}
+					<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12h5M12 6h7M12 18h7M4 12h3M4 6h3M4 18h3" /></svg>
+				{/if}
+			</button>
+		{/if}
 		{#if zoomable}
 			<button type="button" class={btn} aria-label="Zoom out" on:click={() => zoomAt(viewer.clientWidth / 2, height / 2, 1 / 1.25)}>
 				<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14" /></svg>
