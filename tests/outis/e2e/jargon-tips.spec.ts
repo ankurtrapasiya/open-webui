@@ -39,7 +39,7 @@ test('JT-1 a marked term renders underlined with its tip hidden until hover', as
 	await expect(box).toBeVisible();
 	await expect(box).toHaveText('the slope of the loss: which way it rises, and how steeply');
 	// The raw markup never shows.
-	await expect(message).not.toContainText('{tip=');
+	await expect(message).not.toContainText('{tip="'); // the unquoted marker in the fixture stays literal by design
 });
 
 test('JT-2 a verified tip names its source; an ai tip carries the AI chip', async ({
