@@ -214,3 +214,17 @@ test('CD-16 the mind map root follows each theme\'s accent, not the retired mint
 	await viewer(page).dblclick({ position: { x: 30, y: 15 } });
 	expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('');
 });
+
+test('CD-17 a tap on a narrow diagram leaves touch scrolling on; full screen zooms on the wheel without a click', async ({ page, api }) => {
+	await openChat(page, api, 'CD-17', `Small:\n\n${svg(400)}\n\nEnd`);
+	await viewer(page).click();
+	expect(await viewer(page).evaluate((e) => getComputedStyle(e).touchAction)).toBe('pan-y');
+	await openChat(page, api, 'CD-17 wide', `Wide:\n\n${svg(2400)}\n\nEnd`);
+	await viewer(page).hover();
+	await viewer(page).getByRole('button', { name: 'Full screen' }).click();
+	const full = page.getByRole('dialog', { name: 'Diagram' }).locator('[data-diagram-viewer]');
+	const z0 = Number(await full.getAttribute('data-zoom'));
+	await full.hover({ position: { x: 200, y: 200 } });
+	await page.mouse.wheel(0, -300);
+	await expect.poll(async () => Number(await full.getAttribute('data-zoom'))).toBeGreaterThan(z0);
+});

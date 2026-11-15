@@ -24,7 +24,8 @@
 	let tx = 0;
 	let ty = 0;
 	let height = 0;
-	let active = false;
+	let active = fullscreen; // the overlay is the only thing on screen: wheel zooms at once
+	let destroyed = false;
 	let showFull = false;
 	let drag: { x: number; y: number; tx: number; ty: number } | null = null;
 	let ro: ResizeObserver | null = null;
@@ -74,7 +75,7 @@
 	};
 
 	const onPointerDown = (e: PointerEvent) => {
-		active = true;
+		if (zoomable) active = true;
 		if ((e.target as HTMLElement).closest('button')) return;
 		if (zoom > fit + 0.001) {
 			drag = { x: e.clientX, y: e.clientY, tx, ty };
@@ -104,15 +105,17 @@
 		zoom = 1;
 		tx = ty = 0;
 		await tick();
-		if (measure()) toFit();
+		if (!destroyed && measure()) toFit();
 	};
 	$: if (html !== undefined && viewer) refit();
 
-	onMount(async () => {
-		await refit();
+	onMount(() => {
+		// Listeners first, synchronously: a component destroyed during the await below would
+		// otherwise register them after onDestroy ran (leak) or on a null `viewer` (throw).
 		viewer.addEventListener('wheel', onWheel, { passive: false });
 		document.addEventListener('pointerdown', onDocPointerDown);
 		document.addEventListener('keydown', onKey);
+		refit();
 		// The message may not be laid out yet at mount (the SVG measures 0x0), so the first
 		// real size arrives here: measure then, and re-fit on later width changes while the
 		// reader is still at the overview.
@@ -124,6 +127,7 @@
 	});
 
 	onDestroy(() => {
+		destroyed = true;
 		viewer?.removeEventListener('wheel', onWheel);
 		if (typeof document !== 'undefined') {
 			document.removeEventListener('pointerdown', onDocPointerDown);
@@ -131,6 +135,13 @@
 		}
 		ro?.disconnect();
 	});
+
+	// The chat column is its own stacking context, so a fixed overlay inside it sits under
+	// the sidebar (z-50) whatever its z-index. Mount the dialog on <body> instead.
+	const portal = (node: HTMLElement) => {
+		document.body.appendChild(node);
+		return { destroy: () => node.remove() };
+	};
 
 	const btn =
 		'flex size-7 items-center justify-center rounded-lg border border-gray-200 bg-white/90 text-gray-600 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-400 dark:hover:text-gray-100';
@@ -142,7 +153,7 @@
 	data-diagram-viewer
 	data-zoom={zoom.toFixed(2)}
 	class="group relative my-2 w-full overflow-hidden {zoom > fit + 0.001 ? 'cursor-grab' : ''}"
-	style="height: {height ? `${height}px` : 'auto'}; touch-action: {active ? 'none' : 'pan-y'};"
+	style="height: {height ? `${height}px` : 'auto'}; touch-action: {active && zoom > fit + 0.001 ? 'none' : 'pan-y'};"
 	on:pointerdown={onPointerDown}
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}
@@ -196,6 +207,7 @@
 
 {#if showFull}
 	<div
+		use:portal
 		role="dialog"
 		aria-modal="true"
 		aria-label="Diagram"
