@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { carriedTerminal } from '$lib/utils/terminalCarry';
 	import { resolveToolApprovalMode } from '$lib/utils/toolPermissions';
 	import type { TerminalContext } from '$lib/types';
 	import {
@@ -1218,7 +1219,7 @@
 					(folderTerminalId ||
 						currentModels.every((model) => model.info?.meta?.terminalId === terminalId))
 						? terminalId
-						: $selectedTerminalId
+						: carriedTerminal($selectedTerminalId, currentModels, $models)
 			};
 
 			if (preserveSelections) {
