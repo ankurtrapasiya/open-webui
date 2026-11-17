@@ -86,8 +86,12 @@ const findClosingDelimiter = (src: string, i: number): number => {
 //   parse error. Only when braces do not balance, put ",}" back after digit-brace-3-digits.
 // - every backslash doubled, as if JSON-escaped ($IC \\times \\sqrt{BR}$): KaTeX reads "\\" as a
 //   line break and prints "times" as text. Only when no single-backslash command exists, halve them.
+// - a bare $ for money inside \( \) or \[ \] (\approx $377{,}833): KaTeX rejects $ in math mode and
+//   the whole formula shows as raw text. A delimiter match never contains an unescaped $ that
+//   belongs to it, so every bare $ left in the body is money: escape it.
 export const repairLatex = (tex: string) => {
 	if (/\\\\[a-zA-Z]/.test(tex) && !/(?<!\\)\\[a-zA-Z]/.test(tex)) tex = tex.replace(/\\\\/g, '\\');
+	tex = tex.replace(/(?<!\\)\$/g, '\\$');
 	const depth = (tex.match(/(?<!\\)\{/g) ?? []).length - (tex.match(/(?<!\\)\}/g) ?? []).length;
 	return depth > 0 ? tex.replace(/(\d)\{(?=\d{3}(?!\d))/g, '$1{,}') : tex;
 };

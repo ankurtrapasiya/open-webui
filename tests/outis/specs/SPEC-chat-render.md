@@ -72,6 +72,10 @@ adding this file (inline HTML embeds, always-expanded code, one-line video tags)
   commands is untouched. (Found 2026-10-03: mercury-2.5 doubles backslashes as if JSON-escaping;
   KaTeX read `\\` as a line break. `repairLatex` halves them only when no single-backslash
   command is present.)
+- **CR-24** A formula holding a bare `$` for money (`\( M \approx $377{,}833 \)`) renders as KaTeX
+  with no `.katex-error`; an escaped `\$` is left alone. (Found 2026-11-17: DeepSeek V4 Flash wrote
+  money inside `\( \)` in a rent-vs-buy answer; KaTeX rejects `$` in math mode and two formulas
+  showed as raw text. `repairLatex` escapes every bare `$` in a formula body.)
 - **CR-19** A tool call whose arguments carry one stray `}` and an invalid JSON escape
   (`{"text": "costs \$5"}}`) still runs: the embed shows `costs \$5`, the backslash kept.
   Anything after the object other than closing brackets still fails as before. (Found

@@ -235,6 +235,14 @@ test('CR-14 a formula with every backslash doubled ($IC \\\\times \\\\sqrt{BR}$)
 	await expect(matrix.locator('.katex-error')).toHaveCount(0);
 });
 
+test('CR-24 a bare $ for money inside \\( \\) renders as maths, not raw text', async ({ page, api }) => {
+	const content = 'Balance: \\( M\\frac{(1+r)^{120}-1}{r} \\approx $377{,}833 \\). Rent: \\( 26{,}400 = \\$26{,}400 \\).';
+	const message = await openChat(page, api, content, 'CR-24');
+	await expect(message.locator('.katex')).toHaveCount(2);
+	await expect(message.locator('.katex-error')).toHaveCount(0);
+	expect(await message.innerText()).not.toMatch(/\\frac/);
+});
+
 test('CR-15 an svg drawn past its own viewBox is widened to fit, not clipped', async ({ page, api }) => {
 	// The 2026-10-04 case: a 420-tall chart with its last legend line at y=424.
 	const svg = '<svg width="620" height="420" viewBox="0 0 620 420"><rect x="0" y="0" width="620" height="400" fill="#eee"/><text x="20" y="424" font-size="12">CR15 last legend line</text></svg>';
