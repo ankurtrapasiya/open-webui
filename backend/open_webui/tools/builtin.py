@@ -4150,6 +4150,22 @@ async def _emit_tasks(event_emitter, all_tasks: list[dict]):
         )
 
 
+def open_tasks_note(tasks: list[dict] | None) -> str | None:
+    """Fork (CB-33): the checklist lives on the chat row and the UI keeps showing it, but the model only sees it
+    in old tool results, which it loses track of in a long chat. A model that changes direction then leaves
+    items 'in progress' for good. Remind it each turn which items are still open."""
+    open_items = [t for t in tasks or [] if t.get('status') in ('pending', 'in_progress')]
+    if not open_items:
+        return None
+    lines = '\n'.join(f"- {t['id']} [{t['status']}] {t['content']}" for t in open_items)
+    return (
+        '<open_tasks>\nThis chat has a task checklist the user can see. These items are still open:\n'
+        f'{lines}\n'
+        'Before you end this reply, bring it up to date with update_task: completed if done, cancelled if it no '
+        'longer applies. Start a new list with create_tasks only for new multi-step work.\n</open_tasks>'
+    )
+
+
 async def create_tasks(
     tasks: list[TaskItem],
     __chat_id__: str = None,

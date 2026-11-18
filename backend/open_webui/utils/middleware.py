@@ -2889,6 +2889,21 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
         await filter_user_terminal_tools(request, user, tools_dict, metadata, extra_params)
 
+        # Fork (CB-33): remind the model of checklist items it left open in earlier turns. It goes on the new user
+        # message, not the system prompt, so a local model's prompt cache for the rest of the chat stays valid.
+        messages = form_data.get('messages') or []
+        if (
+            'update_task' in tools_dict
+            and is_saved_chat_id(metadata.get('chat_id'))
+            and messages
+            and messages[-1].get('role') == 'user'
+        ):
+            from open_webui.tools.builtin import open_tasks_note
+
+            note = open_tasks_note(await Chats.get_chat_tasks_by_id(metadata['chat_id']))
+            if note:
+                form_data['messages'] = add_or_update_user_message('\n\n' + note, messages, append=True)
+
         if tools_dict:
             # Always store resolved tools in metadata so downstream consumers
             # (e.g. pipe functions) can access all tools including MCP and builtins.

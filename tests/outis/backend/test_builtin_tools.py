@@ -35,3 +35,15 @@ assert 'create_skill' in offered({'builtinTools': {'create': True}}), 'an explic
 assert 'write_note' in offered({}, note_chat=True), 'a note chat can still write its note'
 assert 'create_tool' not in offered({'builtinTools': {'create': True}}), 'create_tool has its own switch'
 print('CB-31 pass')
+
+# CB-33: open checklist items are put back in front of the model each turn
+from open_webui.tools.builtin import open_tasks_note
+
+assert open_tasks_note(None) is None and open_tasks_note([]) is None
+assert open_tasks_note([{'id': 'a', 'content': 'x', 'status': 'completed'}, {'id': 'b', 'content': 'y', 'status': 'cancelled'}]) is None
+note = open_tasks_note([{'id': 'b1', 'content': 'done one', 'status': 'completed'},
+                        {'id': 'b2', 'content': 'Diagnose overfit', 'status': 'in_progress'},
+                        {'id': 'b3', 'content': 'Implement', 'status': 'pending'}])
+assert '- b2 [in_progress] Diagnose overfit' in note and '- b3 [pending] Implement' in note, note
+assert 'done one' not in note and 'update_task' in note, note
+print('CB-33 pass')
