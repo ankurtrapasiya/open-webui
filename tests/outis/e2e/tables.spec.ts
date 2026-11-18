@@ -129,7 +129,13 @@ test('TB-5 an explicitly aligned column puts its header over its cells', async (
 	const msg = await open(page, api, md);
 	const edges = (loc: any) =>
 		loc.evaluate((e: Element) => {
-			// measure the text itself: a range over the block wrapper would span the whole cell
+			// a number in a code pill: its visible edge is the pill, not the digits inside its padding
+			const pill = e.querySelector('code');
+			if (pill) {
+				const p = pill.getBoundingClientRect();
+				return { left: p.left, right: p.right, mid: (p.left + p.right) / 2 };
+			}
+			// otherwise the text itself: a range over the block wrapper would span the whole cell
 			const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT, {
 				acceptNode: (n) => (n.textContent!.trim() ? 1 : 2)
 			});
