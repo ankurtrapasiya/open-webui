@@ -12,3 +12,4 @@ diagrams (`outis-theme-shared.css`, "Tables"); `MarkdownTokens.svelte` marks num
 - **TB-3** Tables with 4+ columns tint every even body row (`--outis-chrome` at 55%); narrower
   tables have no stripes.
 - **TB-4** Header tone, divider and cell ink resolve per theme (Light, Spark, FT checked).
+- **TB-5** (2026-11-18, user's report) A column the markdown aligns itself (`---:` or `:---:`) puts its header over its cells. Before, the header's inner wrapper kept `text-start`, so with `---:` the numbers sat right and the header stayed put (a Qwen P8 table).

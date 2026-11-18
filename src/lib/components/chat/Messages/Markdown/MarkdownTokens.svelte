@@ -269,7 +269,8 @@
 									style={token.align[headerIdx] ? `text-align: ${token.align[headerIdx]}` : ''}
 									data-num={numCols[headerIdx] ? '' : undefined}
 								>
-									<div class="gap-1.5 text-start">
+									<!-- Fork (TB-5): text-start only when the markdown sets no alignment, so a `---:` header sits over its cells. -->
+									<div class="gap-1.5 {token.align[headerIdx] ? '' : 'text-start'}">
 										<div class="shrink-0 break-normal">
 											<MarkdownInlineTokens
 												id={`${id}-${tokenIdx}-header-${headerIdx}`}

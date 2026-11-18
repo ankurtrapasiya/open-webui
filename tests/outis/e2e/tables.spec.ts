@@ -4,8 +4,20 @@ import { test, expect } from '../support/fixtures';
 // Chat tables (user-approved style, 2026-11-15): reply-sized text, sentence-case ink header on the
 // chrome tone, per-column numeric alignment with tabular figures, labelled first column, stripes
 // only on wide (4+ column) tables. Tokens follow every Outis theme.
-const WIDE = ['| Learner | Leaf size | RMSE (in) | Corr | Verdict |', '|---|---|---|---|---|', '| LinReg | – | 0.0042 | 0.71 | Baseline |', '| DT | 5 | 0.0031 | 0.62 | Overfits |', '| Bag | 5 | 0.0035 | 0.73 | **Best** |'].join('\n');
-const NARROW = ['| Symbol | Meaning |', '|---|---|', '| sigma | Volatility |', '| beta | Market sensitivity |', '| alpha | The rest |'].join('\n');
+const WIDE = [
+	'| Learner | Leaf size | RMSE (in) | Corr | Verdict |',
+	'|---|---|---|---|---|',
+	'| LinReg | – | 0.0042 | 0.71 | Baseline |',
+	'| DT | 5 | 0.0031 | 0.62 | Overfits |',
+	'| Bag | 5 | 0.0035 | 0.73 | **Best** |'
+].join('\n');
+const NARROW = [
+	'| Symbol | Meaning |',
+	'|---|---|',
+	'| sigma | Volatility |',
+	'| beta | Market sensitivity |',
+	'| alpha | The rest |'
+].join('\n');
 const ALIGNED = ['| Name | Count |', '|:---|:---|', '| a | 1 |', '| b | 22 |'].join('\n');
 
 async function open(page: Page, api: any, md: string, theme = 'outis-dark') {
@@ -16,18 +28,25 @@ async function open(page: Page, api: any, md: string, theme = 'outis-dark') {
 	await expect(msg.locator('table').first()).toBeVisible();
 	return msg;
 }
-const style = (loc: any, prop: string) => loc.evaluate((e: Element, p: string) => getComputedStyle(e).getPropertyValue(p), prop);
+const style = (loc: any, prop: string) =>
+	loc.evaluate((e: Element, p: string) => getComputedStyle(e).getPropertyValue(p), prop);
 const probe = (page: Page, css: string, prop: string) =>
-	page.evaluate(([c, p]) => {
-		const el = document.createElement('div');
-		el.style.cssText = c!;
-		document.body.appendChild(el);
-		const v = getComputedStyle(el).getPropertyValue(p!);
-		el.remove();
-		return v;
-	}, [css, prop]);
+	page.evaluate(
+		([c, p]) => {
+			const el = document.createElement('div');
+			el.style.cssText = c!;
+			document.body.appendChild(el);
+			const v = getComputedStyle(el).getPropertyValue(p!);
+			el.remove();
+			return v;
+		},
+		[css, prop]
+	);
 
-test('TB-1 body cells read at the reply size with tabular figures; header is sentence case, medium, ink, on the chrome tone', async ({ page, api }) => {
+test('TB-1 body cells read at the reply size with tabular figures; header is sentence case, medium, ink, on the chrome tone', async ({
+	page,
+	api
+}) => {
 	const msg = await open(page, api, WIDE);
 	const p = msg.locator('p').first();
 	const td = msg.locator('tbody td').nth(1);
@@ -37,12 +56,19 @@ test('TB-1 body cells read at the reply size with tabular figures; header is sen
 	expect(await style(th, 'text-transform')).toBe('none');
 	expect(await style(th, 'font-weight')).toBe('500');
 	expect(await style(th, 'color')).toBe(await probe(page, 'color: var(--outis-input-fg)', 'color'));
-	expect(await style(th, 'background-color')).toBe(await probe(page, 'background: var(--outis-chrome)', 'background-color'));
-	expect(await style(th, 'border-bottom-color')).toBe(await probe(page, 'color: var(--outis-divider)', 'color'));
+	expect(await style(th, 'background-color')).toBe(
+		await probe(page, 'background: var(--outis-chrome)', 'background-color')
+	);
+	expect(await style(th, 'border-bottom-color')).toBe(
+		await probe(page, 'color: var(--outis-divider)', 'color')
+	);
 	expect(await style(msg.locator('tbody td').first(), 'font-weight')).toBe('500');
 });
 
-test('TB-2 numeric columns are right-aligned as a whole (header, dash and cells); text columns are not; explicit markdown alignment wins', async ({ page, api }) => {
+test('TB-2 numeric columns are right-aligned as a whole (header, dash and cells); text columns are not; explicit markdown alignment wins', async ({
+	page,
+	api
+}) => {
 	const msg = await open(page, api, WIDE);
 	const ths = msg.locator('thead th');
 	const row0 = msg.locator('tbody tr').first().locator('td');
@@ -61,20 +87,67 @@ test('TB-2 numeric columns are right-aligned as a whole (header, dash and cells)
 
 test('TB-3 alternate rows are striped on a wide table only', async ({ page, api }) => {
 	const wide = await open(page, api, WIDE);
-	const even = await style(wide.locator('tbody tr').nth(1).locator('td').first(), 'background-color');
-	const odd = await style(wide.locator('tbody tr').nth(0).locator('td').first(), 'background-color');
+	const even = await style(
+		wide.locator('tbody tr').nth(1).locator('td').first(),
+		'background-color'
+	);
+	const odd = await style(
+		wide.locator('tbody tr').nth(0).locator('td').first(),
+		'background-color'
+	);
 	expect(even).not.toBe(odd);
 	expect(odd).toBe('rgba(0, 0, 0, 0)');
 	const narrow = await open(page, api, NARROW);
-	expect(await style(narrow.locator('tbody tr').nth(1).locator('td').first(), 'background-color')).toBe('rgba(0, 0, 0, 0)');
+	expect(
+		await style(narrow.locator('tbody tr').nth(1).locator('td').first(), 'background-color')
+	).toBe('rgba(0, 0, 0, 0)');
 });
 
 test('TB-4 the header tone and divider follow each theme', async ({ page, api }) => {
 	for (const theme of ['outis-light', 'outis-dark-spark', 'outis-light-ft']) {
 		const msg = await open(page, api, WIDE, theme);
 		const th = msg.locator('thead th').first();
-		expect(await style(th, 'background-color'), theme).toBe(await probe(page, 'background: var(--outis-chrome)', 'background-color'));
-		expect(await style(th, 'border-bottom-color'), theme).toBe(await probe(page, 'color: var(--outis-divider)', 'color'));
-		expect(await style(msg.locator('tbody td').nth(1), 'color'), theme).toBe(await probe(page, 'color: var(--outis-input-fg)', 'color'));
+		expect(await style(th, 'background-color'), theme).toBe(
+			await probe(page, 'background: var(--outis-chrome)', 'background-color')
+		);
+		expect(await style(th, 'border-bottom-color'), theme).toBe(
+			await probe(page, 'color: var(--outis-divider)', 'color')
+		);
+		expect(await style(msg.locator('tbody td').nth(1), 'color'), theme).toBe(
+			await probe(page, 'color: var(--outis-input-fg)', 'color')
+		);
 	}
+});
+
+test('TB-5 an explicitly aligned column puts its header over its cells', async ({ page, api }) => {
+	const md = [
+		'| | Benchmark | Learner |',
+		'|---|---:|:---:|',
+		'| **In-sample** cr | `0.012325` | `0.850485` |',
+		'| **Out-of-sample** cr | `-0.083579` | `-0.170438` |'
+	].join('\n');
+	const msg = await open(page, api, md);
+	const edges = (loc: any) =>
+		loc.evaluate((e: Element) => {
+			// measure the text itself: a range over the block wrapper would span the whole cell
+			const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT, {
+				acceptNode: (n) => (n.textContent!.trim() ? 1 : 2)
+			});
+			const first = w.nextNode()!;
+			let last = first;
+			for (let n = w.nextNode(); n; n = w.nextNode()) last = n;
+			const r = document.createRange();
+			r.setStart(first, 0);
+			r.setEnd(last, last.textContent!.length);
+			const b = r.getBoundingClientRect();
+			return { left: b.left, right: b.right, mid: (b.left + b.right) / 2 };
+		});
+	const head = msg.locator('thead th');
+	const cell = msg.locator('tbody tr').first().locator('td');
+	// right-aligned: header text ends where the number ends (within the cell padding difference)
+	expect(
+		Math.abs((await edges(head.nth(1))).right - (await edges(cell.nth(1))).right)
+	).toBeLessThan(6);
+	// centred: header and number share a midpoint
+	expect(Math.abs((await edges(head.nth(2))).mid - (await edges(cell.nth(2))).mid)).toBeLessThan(6);
 });
