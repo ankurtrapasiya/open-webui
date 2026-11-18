@@ -25,6 +25,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Image name is fixed to ghcr.io/ankurtrapasiya/open-webui: the repo was renamed to outis-webui on
+  # 2026-11-18 and outis-mneme pulls the old name.
   REGISTRY: ghcr.io
 
 jobs:
@@ -47,7 +49,7 @@ jobs:
       # the frontend stage is pinned to $BUILDPLATFORM, so nothing is emulated.
       - name: Prepare environment
         run: |
-          echo "FULL_IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+          echo "FULL_IMAGE_NAME=${REGISTRY}/ankurtrapasiya/open-webui" >> ${GITHUB_ENV}
           platform=${{ matrix.platform.arch }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> ${GITHUB_ENV}
 
@@ -124,7 +126,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        run: echo "FULL_IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+        run: echo "FULL_IMAGE_NAME=${REGISTRY}/ankurtrapasiya/open-webui" >> ${GITHUB_ENV}
 
       - name: Download digests
         uses: actions/download-artifact@v7
@@ -216,5 +218,5 @@ jobs:
 
       - name: Run the regression suite against this image
         run: |
-          image="${REGISTRY}/${GITHUB_REPOSITORY,,}:outis-mneme-${GITHUB_SHA::7}"
+          image="${REGISTRY}/ankurtrapasiya/open-webui:outis-mneme-${GITHUB_SHA::7}"
           scripts/outis-regression.sh "$image"
